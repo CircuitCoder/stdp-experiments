@@ -1,6 +1,6 @@
 pub trait Neuron {
     // Tick an neuron, returning true if it fired
-    fn tick(&mut self, input: f32) -> bool;
+    fn tick(&mut self, input: f32, plasticity_enabled: bool) -> bool;
     fn reset(&mut self);
 }
 
@@ -23,16 +23,20 @@ impl Lif {
 }
 
 impl Neuron for Lif {
-    fn tick(&mut self, input: f32) -> bool {
+    fn tick(&mut self, input: f32, plasticity_enabled: bool) -> bool {
         self.v += input;
         if self.v >= self.active_threshold {
             self.v = 0.0;
-            self.active_threshold += self.homeo_inc;
+            if plasticity_enabled {
+                self.active_threshold += self.homeo_inc;
+            }
             true
         } else {
             self.v *= 1.0 - 1.0 / self.tau;
             self.v = self.v.max(0.0);
-            self.active_threshold += (self.base_threshold - self.active_threshold) / self.homeo_tau;
+            if plasticity_enabled {
+                self.active_threshold += (self.base_threshold - self.active_threshold) / self.homeo_tau;
+            }
             false
         }
     }

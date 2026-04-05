@@ -1,0 +1,5 @@
+connectivity	normalization	runs	mean_accuracy_pct	min_accuracy_pct	max_accuracy_pct	mean_zero_classes	mean_avg_firing
+sparse l1	5	33.28	30.20	35.70	0.00	0.20
+sparse l2	5	36.08	33.30	38.80	0.00	0.32
+dense l1	5	37.70	34.70	39.00	0.00	0.33
+dense l2	5	18.00	13.50	25.20	0.00	0.48

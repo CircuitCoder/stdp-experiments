@@ -1,0 +1,6 @@
+connectivity	normalization	run	exit_code	accuracy_pct	zero_classes	avg_firing	assigned
+dense	l1	1	0	33.00	0	0.33	[21, 13, 13, 11, 30, 7, 9, 14, 43, 39]
+dense	l1	2	0	24.70	0	0.33	[25, 13, 15, 14, 19, 16, 16, 15, 35, 32]
+dense	l1	3	0	33.20	0	0.33	[19, 11, 22, 14, 21, 20, 5, 11, 39, 38]
+dense	l1	4	0	34.50	0	0.33	[24, 18, 19, 8, 24, 10, 10, 18, 37, 32]
+dense	l1	5	0	31.70	0	0.33	[27, 14, 22, 6, 21, 11, 7, 23, 39, 30]

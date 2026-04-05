@@ -1,0 +1,6 @@
+connectivity	normalization	run	exit_code	accuracy_pct	zero_classes	avg_firing	assigned
+sparse	l2	1	0	34.00	0	0.34	[21, 8, 20, 7, 7, 8, 6, 33, 51, 39]
+sparse	l2	2	0	35.00	0	0.31	[20, 14, 25, 5, 3, 15, 5, 30, 47, 36]
+sparse	l2	3	0	39.60	0	0.32	[20, 15, 18, 4, 5, 20, 1, 29, 50, 38]
+sparse	l2	4	0	39.50	0	0.32	[20, 8, 18, 5, 5, 17, 4, 36, 43, 44]
+sparse	l2	5	0	39.20	0	0.33	[27, 15, 20, 1, 5, 13, 5, 35, 41, 38]

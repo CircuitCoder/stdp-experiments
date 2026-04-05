@@ -1,8 +1,24 @@
 use clap::Parser;
 use ndarray::s;
-use rand::SeedableRng;
 
 mod snn;
+
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+enum NormalizationArg {
+    None,
+    L1,
+    L2,
+}
+
+impl From<NormalizationArg> for snn::network::FeedforwardNormalization {
+    fn from(value: NormalizationArg) -> Self {
+        match value {
+            NormalizationArg::None => snn::network::FeedforwardNormalization::None,
+            NormalizationArg::L1 => snn::network::FeedforwardNormalization::L1,
+            NormalizationArg::L2 => snn::network::FeedforwardNormalization::L2,
+        }
+    }
+}
 
 #[derive(clap::Parser)]
 struct Args {
@@ -40,6 +56,9 @@ struct Args {
     #[clap(short, long, default_value_t = -0.1)]
     lateral_inhib_strength: f32,
 
+    #[clap(long, value_enum, default_value_t = NormalizationArg::None)]
+    normalization: NormalizationArg,
+
     #[clap(short, long, default_value_t = 0xdeadbeef19260817)]
     rng_seed: usize,
 }
@@ -50,15 +69,52 @@ fn fill_noise(bias: &mut [f32], base_noise: f32) {
     }
 }
 
+fn run_presentation(
+    net: &mut snn::network::PoissonInputNetwork<snn::neurons::Lif, snn::synapse::STDPSynapse>,
+    input: ndarray::ArrayView1<'_, f32>,
+    rates: &mut [f32],
+    bias: &mut [f32],
+    fire_tracker: &mut [usize],
+    poisson_rate: f32,
+    poisson_rate_inc: f32,
+    min_total_spikes: usize,
+    per_sample_ticks: usize,
+    base_noise: f32,
+    plasticity_enabled: bool,
+) -> f32 {
+    let mut cur_poisson_rate = poisson_rate;
+
+    loop {
+        rates.iter_mut().zip(input.iter()).for_each(|(r, &v)| *r = v * cur_poisson_rate);
+        fire_tracker.fill(0);
+        net.reset_neurons();
+
+        for _ in 0..per_sample_ticks {
+            fill_noise(bias, base_noise);
+            net.tick(rates, bias, plasticity_enabled, Some(fire_tracker));
+        }
+
+        let total_fired: usize = fire_tracker.iter().sum();
+        if total_fired >= min_total_spikes {
+            return cur_poisson_rate;
+        }
+
+        cur_poisson_rate += poisson_rate_inc;
+        assert!(cur_poisson_rate <= 1.0, "Unable to elicit enough spikes for a sample");
+    }
+}
+
 fn main() {
     let args = Args::parse();
 
-    // FIXME: seed RNG
-    let rng = rand::rngs::StdRng::seed_from_u64(args.rng_seed as u64);
-
-    let mut net = snn::network::new_mnist_network(args.output_num, args.connection_rate, args.lateral_inhib_strength);
+    let mut net = snn::network::new_mnist_network(
+        args.output_num,
+        args.connection_rate,
+        args.lateral_inhib_strength,
+        args.normalization.into(),
+    );
     let dataset = mnist::MnistBuilder::new()
-        .download_and_extract()
+        .base_path("data")
         .use_fashion_data()
         .label_format_digit()
         .training_set_length(args.train_length as u32)
@@ -74,36 +130,30 @@ fn main() {
     let test_labels = ndarray::Array1::from_shape_vec(args.test_length, dataset.tst_lbl).unwrap();
     let mut bias = vec![0.0; args.output_num];
     let mut rates = vec![0.0; 28 * 28];
-    let empty_rates = vec![0.0; 28 * 28];
 
     let mut fire_tracker = vec![0usize; args.output_num];
+    let min_total_spikes = ((args.least_training_firing_rate * args.per_sample_ticks as f32).ceil() as usize).max(1);
 
     // Run training
     const PROGRESS_INTERVAL: usize = 100;
     for i in 0..args.train_length {
-        let mut cur_poisson_rate = args.poisson_rate;
-        loop {
-            let input = train_data.slice(s![i, ..]);
-            rates.iter_mut().zip(input.iter()).for_each(|(r, &v)| *r = v * cur_poisson_rate);
-            fire_tracker.iter_mut().for_each(|c| *c = 0);
-            net.reset_neurons();
+        let input = train_data.slice(s![i, ..]);
+        let used_poisson_rate = run_presentation(
+            &mut net,
+            input,
+            rates.as_mut_slice(),
+            bias.as_mut_slice(),
+            fire_tracker.as_mut_slice(),
+            args.poisson_rate,
+            args.poisson_rate_inc,
+            min_total_spikes,
+            args.per_sample_ticks,
+            args.base_noise,
+            true,
+        );
 
-            for _ in 0..args.per_sample_ticks {
-                fill_noise(bias.as_mut_slice(), args.base_noise);
-                net.tick(&rates, &bias, true, Some(&mut fire_tracker));
-            }
-
-            let max_fired = fire_tracker.iter().cloned().max().unwrap();
-            if max_fired as f32 / args.per_sample_ticks as f32 >= args.least_training_firing_rate {
-                break;
-            } else {
-                // Increase poisson rate and retry
-                if cur_poisson_rate > 1.0 {
-                    panic!("WTF");
-                }
-                cur_poisson_rate += args.poisson_rate_inc;
-                println!("Increasing poisson rate to {} for sample {}", cur_poisson_rate, i);
-            }
+        if used_poisson_rate > args.poisson_rate {
+            println!("Increasing poisson rate to {} for sample {}", used_poisson_rate, i);
         }
 
         if (i + 1) % PROGRESS_INTERVAL == 0 {
@@ -116,16 +166,22 @@ fn main() {
     let mut class_cnt = vec![0usize; 10];
     for i in 0..args.mark_length {
         let input = mark_data.slice(s![i, ..]);
-        rates.iter_mut().zip(input.iter()).for_each(|(r, &v)| *r = v * args.poisson_rate);
-        fire_tracker.iter_mut().for_each(|c| *c = 0);
-        net.reset_neurons();
+        run_presentation(
+            &mut net,
+            input,
+            rates.as_mut_slice(),
+            bias.as_mut_slice(),
+            fire_tracker.as_mut_slice(),
+            args.poisson_rate,
+            args.poisson_rate_inc,
+            min_total_spikes,
+            args.per_sample_ticks,
+            args.base_noise,
+            false,
+        );
 
         let tracker = prediction_matrix[mark_labels[i] as usize].as_mut_slice();
-
-        for _ in 0..args.per_sample_ticks {
-            fill_noise(bias.as_mut_slice(), args.base_noise);
-            net.tick(&rates, &bias, false, Some(tracker));
-        }
+        tracker.iter_mut().zip(fire_tracker.iter()).for_each(|(dst, src)| *dst += *src);
 
         // Get the predicted class
         class_cnt[mark_labels[i] as usize] += 1;
@@ -139,7 +195,13 @@ fn main() {
     let mut assigned_class = vec![0; args.output_num];
     let mut assigned_class_neurons = vec![0; 10];
     for i in 0..args.output_num {
-        let average_fires = (0..10).map(|cls| prediction_matrix[cls][i] as f32 / class_cnt[cls] as f32);
+        let average_fires = (0..10).map(|cls| {
+            if class_cnt[cls] == 0 {
+                0.0
+            } else {
+                prediction_matrix[cls][i] as f32 / class_cnt[cls] as f32
+            }
+        });
         let (predicted_class, r) = average_fires.enumerate().max_by(|a, b| a.1.partial_cmp(&b.1).unwrap()).unwrap();
         if r < 0.01 {
             println!("Warning: neuron {} has really low firing rate {}", i, r);
@@ -149,21 +211,28 @@ fn main() {
     }
 
     println!("Assigned class neurons: {:?}", assigned_class_neurons);
-    assert!(assigned_class_neurons.iter().all(|&c| c > 0), "Some classes have no assigned neurons");
+    if assigned_class_neurons.iter().any(|&c| c == 0) {
+        println!("Warning: some classes have no assigned neurons");
+    }
     
     // Run testing
     prediction_matrix = vec![vec![0; 10]; 10];
     let mut total_firing_cnt = vec![0usize; args.output_num];
     for i in 0..args.test_length {
         let input = test_data.slice(s![i, ..]);
-        rates.iter_mut().zip(input.iter()).for_each(|(r, &v)| *r = v * args.poisson_rate);
-        fire_tracker.iter_mut().for_each(|c| *c = 0);
-        net.reset_neurons();
-
-        for _ in 0..args.per_sample_ticks {
-            fill_noise(bias.as_mut_slice(), args.base_noise);
-            net.tick(&rates, &bias, false, Some(&mut fire_tracker));
-        }
+        run_presentation(
+            &mut net,
+            input,
+            rates.as_mut_slice(),
+            bias.as_mut_slice(),
+            fire_tracker.as_mut_slice(),
+            args.poisson_rate,
+            args.poisson_rate_inc,
+            min_total_spikes,
+            args.per_sample_ticks,
+            args.base_noise,
+            false,
+        );
 
         let mut cls_firing_tot = [0; 10];
         for j in 0..args.output_num {
@@ -175,6 +244,9 @@ fn main() {
         let mut predicted_class = 0;
         let mut predicted_class_avg_firing= 0f32;
         for cls in 0..10 {
+            if assigned_class_neurons[cls] == 0 {
+                continue;
+            }
             let avg_firing = cls_firing_tot[cls] as f32 / assigned_class_neurons[cls] as f32;
             if avg_firing > predicted_class_avg_firing {
                 predicted_class = cls;

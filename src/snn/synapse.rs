@@ -1,6 +1,8 @@
 pub trait Synapse {
     fn weight(&self) -> f32;
-    fn update(&mut self, pre_last_fire: usize, post_last_fire: usize);
+    fn set_weight(&mut self, weight: f32);
+    fn on_pre_spike(&mut self, post_elapsed: usize);
+    fn on_post_spike(&mut self, pre_elapsed: usize);
 }
 
 pub struct STDPSynapse {
@@ -19,17 +21,28 @@ impl Synapse for STDPSynapse {
         self.weight
     }
 
-    fn update(&mut self, pre_last_fire: usize, post_last_fire: usize) {
-        if pre_last_fire > 0 && post_last_fire == 0 {
-            // Post fired, pre did not, synaptic potentiation
-            let delta_w: f32 = self.lr_plus * (- (post_last_fire as f32) / self.tau_plus).exp();
-            self.weight += delta_w;
-        } else if post_last_fire > 0 && pre_last_fire == 0 {
-            // Pre fired, post did not, synaptic depression
-            let delta_w = -self.lr_minus * (- (pre_last_fire as f32) / self.tau_minus).exp();
-            self.weight += delta_w;
-        }
+    fn set_weight(&mut self, weight: f32) {
+        self.weight = weight;
+        self.clamp_weight();
+    }
 
+    fn on_pre_spike(&mut self, post_elapsed: usize) {
+        let delta_w = -self.lr_minus * (-(post_elapsed as f32) / self.tau_minus).exp();
+        self.weight += delta_w;
+
+        self.clamp_weight();
+    }
+
+    fn on_post_spike(&mut self, pre_elapsed: usize) {
+        let delta_w = self.lr_plus * (-(pre_elapsed as f32) / self.tau_plus).exp();
+        self.weight += delta_w;
+
+        self.clamp_weight();
+    }
+}
+
+impl STDPSynapse {
+    fn clamp_weight(&mut self) {
         // Clamp weight
         if self.weight > self.max_weight {
             self.weight = self.max_weight;
@@ -37,11 +50,50 @@ impl Synapse for STDPSynapse {
             self.weight = self.min_weight;
         }
     }
-}
 
-impl STDPSynapse {
     pub fn new_rand(max_weight: f32, min_weight: f32, lr_plus: f32, lr_minus: f32, tau_plus: f32, tau_minus: f32) -> Self {
         let weight = min_weight + (max_weight - min_weight) * rand::random::<f32>();
         STDPSynapse { weight, max_weight, min_weight, lr_plus, lr_minus, tau_plus, tau_minus }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{STDPSynapse, Synapse};
+
+    #[test]
+    fn post_spike_uses_pre_elapsed_for_potentiation() {
+        let mut synapse = STDPSynapse {
+            weight: 0.5,
+            max_weight: 1.0,
+            min_weight: 0.0,
+            lr_plus: 0.1,
+            lr_minus: 0.1,
+            tau_plus: 10.0,
+            tau_minus: 10.0,
+        };
+
+        synapse.on_post_spike(5);
+
+        let expected = 0.5 + 0.1 * (-0.5f32).exp();
+        assert!((synapse.weight() - expected).abs() < 1e-6);
+    }
+
+    #[test]
+    fn pre_spike_uses_post_elapsed_for_depression() {
+        let mut synapse = STDPSynapse {
+            weight: 0.5,
+            max_weight: 1.0,
+            min_weight: 0.0,
+            lr_plus: 0.1,
+            lr_minus: 0.1,
+            tau_plus: 10.0,
+            tau_minus: 10.0,
+        };
+
+        synapse.on_pre_spike(5);
+
+        let expected = 0.5 - 0.1 * (-0.5f32).exp();
+        assert!((synapse.weight() - expected).abs() < 1e-6);
     }
 }
