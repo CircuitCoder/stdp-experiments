@@ -1,0 +1,13 @@
+label	run	exit_code	accuracy_pct	zero_classes	avg_firing	min_gain	avg_gain	max_gain	min_rate_ema	avg_rate_ema	max_rate_ema	assigned
+dense_l1_scaling_t004	1	0	29.70	0	0.34	1.00	1.05	1.11	min	avg	max	[21, 16, 21, 10, 27, 12, 10, 11, 42, 30]
+dense_l1_scaling_t004	2	0	38.90	0	0.34	1.01	1.05	1.15	min	avg	max	[23, 14, 18, 15, 17, 7, 7, 13, 45, 41]
+dense_l1_scaling_t004	3	0	36.10	0	0.34	1.01	1.05	1.14	min	avg	max	[26, 15, 18, 11, 21, 8, 8, 20, 41, 32]
+dense_l2_gain05	1	0	11.10	0	0.44	0.50	0.50	0.50	NA	NA	NA	[12, 21, 5, 25, 7, 34, 7, 40, 33, 16]
+dense_l2_gain05	2	0	11.90	0	0.45	0.50	0.50	0.50	NA	NA	NA	[7, 27, 8, 16, 8, 46, 4, 56, 21, 7]
+dense_l2_gain05	3	0	10.40	0	0.44	0.50	0.50	0.50	NA	NA	NA	[9, 26, 2, 23, 4, 51, 10, 35, 24, 16]
+dense_l2_gain05_scaling_t004	1	0	14.90	0	0.44	0.34	0.45	0.61	min	avg	max	[12, 24, 6, 13, 11, 56, 4, 42, 18, 14]
+dense_l2_gain05_scaling_t004	2	0	11.90	0	0.44	0.35	0.45	0.59	min	avg	max	[16, 29, 7, 12, 11, 55, 5, 22, 31, 12]
+dense_l2_gain05_scaling_t004	3	0	10.40	0	0.43	0.32	0.45	0.60	min	avg	max	[13, 41, 5, 14, 7, 45, 5, 51, 13, 6]
+sparse_l2_gain075_scaling_t004	1	0	38.70	0	0.25	0.45	0.86	1.00	min	avg	max	[18, 11, 21, 3, 7, 15, 11, 30, 37, 47]
+sparse_l2_gain075_scaling_t004	2	0	38.50	0	0.25	0.46	0.86	1.00	min	avg	max	[14, 16, 23, 4, 7, 16, 8, 33, 41, 38]
+sparse_l2_gain075_scaling_t004	3	0	38.90	0	0.25	0.44	0.86	1.00	min	avg	max	[16, 14, 17, 5, 12, 11, 9, 32, 50, 34]

@@ -1,0 +1,62 @@
+Training progress: 100/2000
+Training progress: 200/2000
+Training progress: 300/2000
+Training progress: 400/2000
+Training progress: 500/2000
+Training progress: 600/2000
+Training progress: 700/2000
+Training progress: 800/2000
+Training progress: 900/2000
+Training progress: 1000/2000
+Training progress: 1100/2000
+Training progress: 1200/2000
+Training progress: 1300/2000
+Training progress: 1400/2000
+Training progress: 1500/2000
+Training progress: 1600/2000
+Training progress: 1700/2000
+Training progress: 1800/2000
+Training progress: 1900/2000
+Training progress: 2000/2000
+Feedforward gain statistics after training: min 4.00, avg 4.00, max 4.00
+Slow scaling EMA rate statistics after training: min 0.00, avg 0.01, max 0.03
+Mark progress: 100/500
+Mark progress: 200/500
+Mark progress: 300/500
+Mark progress: 400/500
+Mark progress: 500/500
+Assigned class neurons: [15, 5, 6, 3, 13, 0, 0, 47, 90, 21]
+Warning: some classes have no assigned neurons
+Test progress: 100/1000
+Test progress: 200/1000
+Test progress: 300/1000
+Test progress: 400/1000
+Test progress: 500/1000
+Test progress: 600/1000
+Test progress: 700/1000
+Test progress: 800/1000
+Test progress: 900/1000
+Test progress: 1000/1000
+Prediction matrix:
+  28    7    7   32    3    0    0    1    0    0 
+   4   13    4   87    0    0    0    0    0    0 
+   6    4   45    2   33    0    0    0    0    0 
+  12    6    2   88    0    0    0    0    0    0 
+   6    0   35   19   42    0    0    0    0    1 
+   2    0   27   35    1    0    0   32    0    4 
+  13    6   42   26   24    0    0    0    1    0 
+   0    0   11   22    3    0    0   58    1    8 
+  13    0   34   19    6    0    0    7    3    6 
+   3    0   42   23   11    0    0   14    0   16 
+Accuracy: 29.30%
+Firing rate statistics (per sample): max 5.54, min 0.14, avg 1.10
+Firing rate bucket [0.00, 0.55): 29 neurons
+Firing rate bucket [0.55, 1.11): 104 neurons
+Firing rate bucket [1.11, 1.66): 42 neurons
+Firing rate bucket [1.66, 2.22): 11 neurons
+Firing rate bucket [2.22, 2.77): 3 neurons
+Firing rate bucket [2.77, 3.32): 3 neurons
+Firing rate bucket [3.32, 3.88): 4 neurons
+Firing rate bucket [3.88, 4.43): 1 neurons
+Firing rate bucket [4.43, 4.99): 0 neurons
+Firing rate bucket [4.99, 5.54): 2 neurons

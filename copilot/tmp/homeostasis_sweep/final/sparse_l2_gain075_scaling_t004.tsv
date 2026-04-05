@@ -1,0 +1,4 @@
+label	run	exit_code	accuracy_pct	zero_classes	avg_firing	min_gain	avg_gain	max_gain	min_rate_ema	avg_rate_ema	max_rate_ema	assigned
+sparse_l2_gain075_scaling_t004	1	0	38.70	0	0.25	0.45	0.86	1.00	min	avg	max	[18, 11, 21, 3, 7, 15, 11, 30, 37, 47]
+sparse_l2_gain075_scaling_t004	2	0	38.50	0	0.25	0.46	0.86	1.00	min	avg	max	[14, 16, 23, 4, 7, 16, 8, 33, 41, 38]
+sparse_l2_gain075_scaling_t004	3	0	38.90	0	0.25	0.44	0.86	1.00	min	avg	max	[16, 14, 17, 5, 12, 11, 9, 32, 50, 34]

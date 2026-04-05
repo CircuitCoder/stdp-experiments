@@ -1,0 +1,5 @@
+label	mean_min_rate_ema	mean_avg_rate_ema	mean_max_rate_ema
+dense_l1_scaling_t004	0.0000	0.0000	0.0100
+dense_l2_gain05	0.0000	0.0000	0.0300
+dense_l2_gain05_scaling_t004	0.0000	0.0000	0.0300
+sparse_l2_gain075_scaling_t004	0.0000	0.0000	0.0100

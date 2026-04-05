@@ -1,0 +1,5 @@
+label	runs	mean_accuracy_pct	min_accuracy_pct	max_accuracy_pct	mean_zero_classes	mean_avg_firing	mean_min_gain	mean_avg_gain	mean_max_gain
+dense_l2_gain05	3	11.13	10.40	11.90	0.00	0.44	0.50	0.50	0.50
+dense_l2_gain05_scaling_t004	3	12.40	10.40	14.90	0.00	0.44	0.34	0.45	0.60
+dense_l1_scaling_t004	3	34.90	29.70	38.90	0.00	0.34	1.01	1.05	1.13
+sparse_l2_gain075_scaling_t004	3	38.70	38.50	38.90	0.00	0.25	0.45	0.86	1.00

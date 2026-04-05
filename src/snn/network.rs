@@ -21,6 +21,25 @@ pub enum FeedforwardNormalization {
     L2,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct FeedforwardHomeostasisConfig {
+    pub normalization: FeedforwardNormalization,
+    pub post_renorm_gain: f32,
+    pub slow_scaling_rate: f32,
+    pub slow_scaling_target_rate: f32,
+    pub slow_scaling_alpha: f32,
+    pub slow_scaling_min_gain: f32,
+    pub slow_scaling_max_gain: f32,
+}
+
+impl FeedforwardHomeostasisConfig {
+    fn scaling_enabled(self) -> bool {
+        self.normalization != FeedforwardNormalization::None
+            && self.slow_scaling_rate > 0.0
+            && self.slow_scaling_alpha > 0.0
+    }
+}
+
 impl FeedforwardNormalization {
     fn contribution(self, weight: f32) -> f32 {
         match self {
@@ -49,7 +68,9 @@ pub struct Network<N: Neuron, S: Synapse> {
     neuron_trackers: Vec<Tracker>,
     synapse_forward: BTreeMap<(SpikeSrc, usize), Rc<RefCell<S>>>,
     synapse_reverse: BTreeMap<(usize, SpikeSrc), Rc<RefCell<S>>>,
-    feedforward_normalization: FeedforwardNormalization,
+    feedforward_homeostasis: FeedforwardHomeostasisConfig,
+    feedforward_post_gains: Vec<f32>,
+    feedforward_rate_ema: Vec<f32>,
 }
 
 #[derive(Clone, Copy)]
@@ -72,8 +93,19 @@ impl Tracker {
 }
 
 impl<N: Neuron, S: Synapse> Network<N, S> {
+    fn summarize(values: &[f32]) -> Option<(f32, f32, f32)> {
+        if values.is_empty() {
+            return None;
+        }
+
+        let min_value = values.iter().copied().fold(f32::INFINITY, f32::min);
+        let max_value = values.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+        let avg_value = values.iter().sum::<f32>() / values.len() as f32;
+        Some((min_value, avg_value, max_value))
+    }
+
     fn renormalize_postsynaptic_feedforward_weights(&mut self, post: usize) {
-        if self.feedforward_normalization == FeedforwardNormalization::None {
+        if self.feedforward_homeostasis.normalization == FeedforwardNormalization::None {
             return;
         }
 
@@ -93,16 +125,61 @@ impl<N: Neuron, S: Synapse> Network<N, S> {
 
         let norm_power_sum: f32 = incoming_synapses
             .iter()
-            .map(|synapse| self.feedforward_normalization.contribution(synapse.borrow().weight()))
+            .map(|synapse| self.feedforward_homeostasis.normalization.contribution(synapse.borrow().weight()))
             .sum();
-        let scale = self.feedforward_normalization.scale(norm_power_sum);
+        let scale = self.feedforward_homeostasis.normalization.scale(norm_power_sum);
+        let target_gain = self.feedforward_post_gains[post];
 
         for synapse in incoming_synapses {
             let normalized_weight = {
                 let synapse = synapse.borrow();
-                synapse.weight() / scale
+                target_gain * synapse.weight() / scale
             };
             synapse.borrow_mut().set_weight(normalized_weight);
+        }
+    }
+
+    pub fn update_slow_synaptic_scaling(&mut self, sample_spike_counts: &[usize], per_sample_ticks: usize) {
+        assert!(sample_spike_counts.len() == self.neurons.len());
+
+        if !self.feedforward_homeostasis.scaling_enabled() {
+            return;
+        }
+
+        let alpha = self.feedforward_homeostasis.slow_scaling_alpha;
+        let scaling_rate = self.feedforward_homeostasis.slow_scaling_rate;
+        let target_rate = self.feedforward_homeostasis.slow_scaling_target_rate;
+        let min_gain = self.feedforward_homeostasis.slow_scaling_min_gain;
+        let max_gain = self.feedforward_homeostasis.slow_scaling_max_gain;
+
+        for post in 0..self.neurons.len() {
+            let observed_rate = sample_spike_counts[post] as f32 / per_sample_ticks as f32;
+            self.feedforward_rate_ema[post] += alpha * (observed_rate - self.feedforward_rate_ema[post]);
+
+            let old_gain = self.feedforward_post_gains[post];
+            let new_gain = (old_gain * (scaling_rate * (target_rate - self.feedforward_rate_ema[post])).exp())
+                .clamp(min_gain, max_gain);
+
+            if (new_gain - old_gain).abs() > 1e-6 {
+                self.feedforward_post_gains[post] = new_gain;
+                self.renormalize_postsynaptic_feedforward_weights(post);
+            }
+        }
+    }
+
+    pub fn feedforward_gain_stats(&self) -> Option<(f32, f32, f32)> {
+        if self.feedforward_homeostasis.normalization == FeedforwardNormalization::None {
+            None
+        } else {
+            Self::summarize(&self.feedforward_post_gains)
+        }
+    }
+
+    pub fn slow_scaling_rate_ema_stats(&self) -> Option<(f32, f32, f32)> {
+        if !self.feedforward_homeostasis.scaling_enabled() {
+            None
+        } else {
+            Self::summarize(&self.feedforward_rate_ema)
         }
     }
 
@@ -193,7 +270,7 @@ impl<N: Neuron, S: Synapse> Network<N, S> {
                 }
             }
 
-            if self.feedforward_normalization != FeedforwardNormalization::None {
+            if self.feedforward_homeostasis.normalization != FeedforwardNormalization::None {
                 for (post, touched) in touched_feedforward_posts.into_iter().enumerate() {
                     if touched {
                         self.renormalize_postsynaptic_feedforward_weights(post);
@@ -232,8 +309,13 @@ impl<N: Neuron, S: Synapse> Network<N, S> {
         num_inputs: usize,
         neurons: Vec<N>,
         synapses: BTreeMap<(SpikeSrc, usize), S>,
-        feedforward_normalization: FeedforwardNormalization,
+        feedforward_homeostasis: FeedforwardHomeostasisConfig,
     ) -> Self {
+        assert!(feedforward_homeostasis.post_renorm_gain > 0.0);
+        assert!(feedforward_homeostasis.slow_scaling_alpha >= 0.0 && feedforward_homeostasis.slow_scaling_alpha <= 1.0);
+        assert!(feedforward_homeostasis.slow_scaling_min_gain > 0.0);
+        assert!(feedforward_homeostasis.slow_scaling_max_gain >= feedforward_homeostasis.slow_scaling_min_gain);
+
         // Verify synapses
         for ((src, post), _) in synapses.iter() {
             match src {
@@ -247,6 +329,8 @@ impl<N: Neuron, S: Synapse> Network<N, S> {
         let neuron_trackers = vec![Tracker { last_fire: usize::MAX >> 1 }; neurons.len()];
         let synapse_forward: BTreeMap<_, _> = synapses.into_iter().map(|(k, v)| (k, Rc::new(RefCell::new(v)))).collect();
         let synapse_reverse = synapse_forward.iter().map(|((s, p), v)| ( (*p, *s), Rc::clone(v) )).collect();
+        let feedforward_post_gains = vec![feedforward_homeostasis.post_renorm_gain; neurons.len()];
+        let feedforward_rate_ema = vec![feedforward_homeostasis.slow_scaling_target_rate; neurons.len()];
         let mut network = Network {
             num_inputs,
             neurons,
@@ -254,10 +338,12 @@ impl<N: Neuron, S: Synapse> Network<N, S> {
             neuron_trackers,
             synapse_forward,
             synapse_reverse,
-            feedforward_normalization,
+            feedforward_homeostasis,
+            feedforward_post_gains,
+            feedforward_rate_ema,
         };
 
-        if feedforward_normalization != FeedforwardNormalization::None {
+        if feedforward_homeostasis.normalization != FeedforwardNormalization::None {
             for post in 0..network.neurons.len() {
                 network.renormalize_postsynaptic_feedforward_weights(post);
             }
@@ -279,6 +365,18 @@ impl<N: Neuron, S: Synapse> PoissonInputNetwork<N, S> {
 
     pub fn reset_neurons(&mut self) {
         self.network.reset_neurons();
+    }
+
+    pub fn update_slow_synaptic_scaling(&mut self, sample_spike_counts: &[usize], per_sample_ticks: usize) {
+        self.network.update_slow_synaptic_scaling(sample_spike_counts, per_sample_ticks);
+    }
+
+    pub fn feedforward_gain_stats(&self) -> Option<(f32, f32, f32)> {
+        self.network.feedforward_gain_stats()
+    }
+
+    pub fn slow_scaling_rate_ema_stats(&self) -> Option<(f32, f32, f32)> {
+        self.network.slow_scaling_rate_ema_stats()
     }
 }
 
@@ -306,7 +404,7 @@ pub fn new_mnist_network(
     output_num: usize,
     connection_rate: f32,
     inbihitory_weight: f32,
-    feedforward_normalization: FeedforwardNormalization,
+    feedforward_homeostasis: FeedforwardHomeostasisConfig,
 ) -> PoissonInputNetwork<Lif, STDPSynapse> {
     let mut neurons = Vec::with_capacity(output_num);
     for _ in 0..output_num {
@@ -314,9 +412,12 @@ pub fn new_mnist_network(
     }
 
     let mut synapses = BTreeMap::new();
-    let feedforward_max_weight = match feedforward_normalization {
+    let feedforward_max_weight = match feedforward_homeostasis.normalization {
         FeedforwardNormalization::None => MNIST_SYNAPSE_WEIGHT,
-        FeedforwardNormalization::L1 | FeedforwardNormalization::L2 => 1.0,
+        FeedforwardNormalization::L1 | FeedforwardNormalization::L2 => feedforward_homeostasis
+            .slow_scaling_max_gain
+            .max(feedforward_homeostasis.post_renorm_gain)
+            .max(MNIST_SYNAPSE_WEIGHT),
     };
 
     // Connect inputs
@@ -345,13 +446,13 @@ pub fn new_mnist_network(
         }
     }
 
-    let network = Network::new_from(784, neurons, synapses, feedforward_normalization);
+    let network = Network::new_from(784, neurons, synapses, feedforward_homeostasis);
     network.into()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{FeedforwardNormalization, Network, SpikeSrc};
+    use super::{FeedforwardHomeostasisConfig, FeedforwardNormalization, Network, SpikeSrc};
     use crate::snn::neurons::Neuron;
     use crate::snn::synapse::Synapse;
     use std::collections::BTreeMap;
@@ -385,13 +486,25 @@ mod tests {
         fn on_post_spike(&mut self, _pre_elapsed: usize) {}
     }
 
+    fn homeostasis_config(normalization: FeedforwardNormalization, post_renorm_gain: f32) -> FeedforwardHomeostasisConfig {
+        FeedforwardHomeostasisConfig {
+            normalization,
+            post_renorm_gain,
+            slow_scaling_rate: 0.0,
+            slow_scaling_target_rate: 0.2,
+            slow_scaling_alpha: 0.01,
+            slow_scaling_min_gain: 0.25,
+            slow_scaling_max_gain: 4.0,
+        }
+    }
+
     #[test]
-    fn new_from_renormalizes_l1_feedforward_weights_to_unit_norm() {
+    fn new_from_renormalizes_l1_feedforward_weights_to_target_gain() {
         let mut synapses = BTreeMap::new();
         synapses.insert((SpikeSrc::Input(0), 0), TestSynapse { weight: 0.2 });
         synapses.insert((SpikeSrc::Input(1), 0), TestSynapse { weight: 0.3 });
 
-        let network = Network::new_from(2, vec![SilentNeuron], synapses, FeedforwardNormalization::L1);
+        let network = Network::new_from(2, vec![SilentNeuron], synapses, homeostasis_config(FeedforwardNormalization::L1, 2.0));
         let weights: Vec<f32> = network
             .synapse_reverse
             .range((0, SpikeSrc::Input(0))..=(0, SpikeSrc::Input(usize::MAX)))
@@ -399,16 +512,16 @@ mod tests {
             .collect();
 
         let l1_norm: f32 = weights.iter().sum();
-        assert!((l1_norm - 1.0).abs() < 1e-6);
+        assert!((l1_norm - 2.0).abs() < 1e-6);
     }
 
     #[test]
-    fn new_from_renormalizes_l2_feedforward_weights_to_unit_norm() {
+    fn new_from_renormalizes_l2_feedforward_weights_to_target_gain() {
         let mut synapses = BTreeMap::new();
         synapses.insert((SpikeSrc::Input(0), 0), TestSynapse { weight: 0.2 });
         synapses.insert((SpikeSrc::Input(1), 0), TestSynapse { weight: 0.3 });
 
-        let network = Network::new_from(2, vec![SilentNeuron], synapses, FeedforwardNormalization::L2);
+        let network = Network::new_from(2, vec![SilentNeuron], synapses, homeostasis_config(FeedforwardNormalization::L2, 2.0));
         let weights: Vec<f32> = network
             .synapse_reverse
             .range((0, SpikeSrc::Input(0))..=(0, SpikeSrc::Input(usize::MAX)))
@@ -416,6 +529,40 @@ mod tests {
             .collect();
 
         let l2_norm = weights.iter().map(|weight| weight * weight).sum::<f32>().sqrt();
-        assert!((l2_norm - 1.0).abs() < 1e-6);
+        assert!((l2_norm - 2.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn slow_scaling_updates_target_gain_and_preserves_l1_budget() {
+        let mut synapses = BTreeMap::new();
+        synapses.insert((SpikeSrc::Input(0), 0), TestSynapse { weight: 0.2 });
+        synapses.insert((SpikeSrc::Input(1), 0), TestSynapse { weight: 0.3 });
+
+        let mut network = Network::new_from(
+            2,
+            vec![SilentNeuron],
+            synapses,
+            FeedforwardHomeostasisConfig {
+                normalization: FeedforwardNormalization::L1,
+                post_renorm_gain: 1.0,
+                slow_scaling_rate: 1.0,
+                slow_scaling_target_rate: 0.5,
+                slow_scaling_alpha: 1.0,
+                slow_scaling_min_gain: 0.25,
+                slow_scaling_max_gain: 4.0,
+            },
+        );
+
+        network.update_slow_synaptic_scaling(&[0], 1);
+
+        let weights: Vec<f32> = network
+            .synapse_reverse
+            .range((0, SpikeSrc::Input(0))..=(0, SpikeSrc::Input(usize::MAX)))
+            .map(|(_, synapse)| synapse.borrow().weight())
+            .collect();
+        let l1_norm: f32 = weights.iter().sum();
+        let expected_gain = 0.5f32.exp();
+
+        assert!((l1_norm - expected_gain).abs() < 1e-6);
     }
 }

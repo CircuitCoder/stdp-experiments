@@ -1,0 +1,4 @@
+label	run	exit_code	accuracy_pct	zero_classes	avg_firing	min_gain	avg_gain	max_gain	min_rate_ema	avg_rate_ema	max_rate_ema	assigned
+dense_l2_gain05	1	0	11.10	0	0.44	0.50	0.50	0.50	NA	NA	NA	[12, 21, 5, 25, 7, 34, 7, 40, 33, 16]
+dense_l2_gain05	2	0	11.90	0	0.45	0.50	0.50	0.50	NA	NA	NA	[7, 27, 8, 16, 8, 46, 4, 56, 21, 7]
+dense_l2_gain05	3	0	10.40	0	0.44	0.50	0.50	0.50	NA	NA	NA	[9, 26, 2, 23, 4, 51, 10, 35, 24, 16]

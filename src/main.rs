@@ -59,6 +59,24 @@ struct Args {
     #[clap(long, value_enum, default_value_t = NormalizationArg::None)]
     normalization: NormalizationArg,
 
+    #[clap(long, default_value_t = 1.0)]
+    post_renorm_gain: f32,
+
+    #[clap(long, default_value_t = 0.0)]
+    slow_scaling_rate: f32,
+
+    #[clap(long, default_value_t = 0.2)]
+    slow_scaling_target_rate: f32,
+
+    #[clap(long, default_value_t = 0.01)]
+    slow_scaling_alpha: f32,
+
+    #[clap(long, default_value_t = 0.25)]
+    slow_scaling_min_gain: f32,
+
+    #[clap(long, default_value_t = 4.0)]
+    slow_scaling_max_gain: f32,
+
     #[clap(short, long, default_value_t = 0xdeadbeef19260817)]
     rng_seed: usize,
 }
@@ -107,11 +125,21 @@ fn run_presentation(
 fn main() {
     let args = Args::parse();
 
+    let feedforward_homeostasis = snn::network::FeedforwardHomeostasisConfig {
+        normalization: args.normalization.into(),
+        post_renorm_gain: args.post_renorm_gain,
+        slow_scaling_rate: args.slow_scaling_rate,
+        slow_scaling_target_rate: args.slow_scaling_target_rate,
+        slow_scaling_alpha: args.slow_scaling_alpha,
+        slow_scaling_min_gain: args.slow_scaling_min_gain,
+        slow_scaling_max_gain: args.slow_scaling_max_gain,
+    };
+
     let mut net = snn::network::new_mnist_network(
         args.output_num,
         args.connection_rate,
         args.lateral_inhib_strength,
-        args.normalization.into(),
+        feedforward_homeostasis,
     );
     let dataset = mnist::MnistBuilder::new()
         .base_path("data")
@@ -156,9 +184,19 @@ fn main() {
             println!("Increasing poisson rate to {} for sample {}", used_poisson_rate, i);
         }
 
+        net.update_slow_synaptic_scaling(fire_tracker.as_slice(), args.per_sample_ticks);
+
         if (i + 1) % PROGRESS_INTERVAL == 0 {
             println!("Training progress: {}/{}", i + 1, args.train_length);
         }
+    }
+
+    if let Some((min_gain, avg_gain, max_gain)) = net.feedforward_gain_stats() {
+        println!("Feedforward gain statistics after training: min {:.2}, avg {:.2}, max {:.2}", min_gain, avg_gain, max_gain);
+    }
+
+    if let Some((min_rate, avg_rate, max_rate)) = net.slow_scaling_rate_ema_stats() {
+        println!("Slow scaling EMA rate statistics after training: min {:.2}, avg {:.2}, max {:.2}", min_rate, avg_rate, max_rate);
     }
 
     // Run validation, get prediction mapping
