@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 pub trait Synapse {
     fn weight(&self) -> f32;
     fn set_weight(&mut self, weight: f32);
@@ -5,6 +7,7 @@ pub trait Synapse {
     fn on_post_spike(&mut self, pre_elapsed: usize);
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct STDPSynapse {
     weight: f32,
     max_weight: f32,
