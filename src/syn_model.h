@@ -24,6 +24,7 @@
 #define SYNMODEL_H
 
 #include "stdp.h"
+#include "stdp_pl.h"
 #include <string>
 #include <vector>
 
@@ -39,6 +40,7 @@ enum SynModels
   i_null_syn_model = 0,
   i_test_syn_model,
   i_stdp_model,
+  i_stdp_pl_model,
   N_SYN_MODELS
 };
 
@@ -55,10 +57,13 @@ SynapseUpdate( int syn_group, float* w, float Dt )
   case i_stdp_model:
     stdp_ns::STDPUpdate( w, Dt, param );
     break;
+  case i_stdp_pl_model:
+    stdp_pl_ns::STDPPLUpdate( w, Dt, param );
+    break;
   }
 }
 
-const std::string syn_model_name[ N_SYN_MODELS ] = { "", "test_syn_model", "stdp" };
+const std::string syn_model_name[ N_SYN_MODELS ] = { "", "test_syn_model", "stdp", "stdp_pl" };
 
 class SynModel
 {
@@ -90,6 +95,23 @@ class STDP : public SynModel
 
 public:
   STDP()
+  {
+    _Init();
+  }
+
+  int
+  Init()
+  {
+    return _Init();
+  }
+};
+
+class STDPPL : public SynModel
+{
+  int _Init();
+
+public:
+  STDPPL()
   {
     _Init();
   }

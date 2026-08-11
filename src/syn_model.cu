@@ -24,6 +24,7 @@
 #include "nestgpu.h"
 #include "ngpu_exception.h"
 #include "stdp.h"
+#include "stdp_pl.h"
 #include "syn_model.h"
 #include "test_syn_model.h"
 #include <config.h>
@@ -135,6 +136,11 @@ NESTGPU::CreateSynGroup( std::string model_name )
   {
     STDP* stdp_group = new STDP;
     syn_group_vect_.push_back( stdp_group );
+  }
+  else if ( model_name == syn_model_name[ i_stdp_pl_model ] )
+  {
+    STDPPL* stdp_pl_group = new STDPPL;
+    syn_group_vect_.push_back( stdp_pl_group );
   }
   else
   {
