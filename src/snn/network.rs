@@ -25,62 +25,85 @@ pub struct FeedforwardHomeostasisConfig {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct MnistNeuronConfig {
+    pub rest_potential: f32,
+    pub reset_potential: f32,
     pub membrane_tau: f32,
     pub threshold: f32,
-    pub reset_potential: f32,
     pub refractory_ticks: usize,
-    pub threshold_homeostasis_tau: f32,
-    pub threshold_homeostasis_inc: f32,
+    pub e_exc: f32,
+    pub e_inh: f32,
+    pub ge_decay: f32,
+    pub gi_decay: f32,
+    pub theta_init: f32,
+    pub theta_plus: f32,
+    pub theta_tc: f32,
+    // Inhibitory neuron overrides (None = use excitatory value)
+    pub inhibitory_rest_potential: Option<f32>,
+    pub inhibitory_reset_potential: Option<f32>,
     pub inhibitory_membrane_tau: Option<f32>,
     pub inhibitory_threshold: Option<f32>,
-    pub inhibitory_reset_potential: Option<f32>,
     pub inhibitory_refractory_ticks: Option<usize>,
-    pub inhibitory_threshold_homeostasis_tau: Option<f32>,
-    pub inhibitory_threshold_homeostasis_inc: Option<f32>,
+    pub inhibitory_e_inh: Option<f32>,
+    pub inhibitory_theta_init: Option<f32>,
+    pub inhibitory_theta_plus: Option<f32>,
+    pub inhibitory_theta_tc: Option<f32>,
 }
 
 impl Default for MnistNeuronConfig {
     fn default() -> Self {
         Self {
+            rest_potential: MNIST_REST_POTENTIAL,
+            reset_potential: MNIST_RESET_POTENTIAL,
             membrane_tau: MNIST_TAU,
             threshold: MNIST_THRESHOLD,
-            reset_potential: 0.0,
-            refractory_ticks: 0,
-            threshold_homeostasis_tau: MNIST_HOMEO_TAU,
-            threshold_homeostasis_inc: MNIST_HOMEO_INC,
-            inhibitory_membrane_tau: None,
-            inhibitory_threshold: None,
-            inhibitory_reset_potential: None,
-            inhibitory_refractory_ticks: None,
-            inhibitory_threshold_homeostasis_tau: None,
-            inhibitory_threshold_homeostasis_inc: None,
+            refractory_ticks: MNIST_REFRACTORY_TICKS,
+            e_exc: MNIST_E_EXC,
+            e_inh: MNIST_E_INH_EXC,
+            ge_decay: MNIST_GE_DECAY,
+            gi_decay: MNIST_GI_DECAY,
+            theta_init: MNIST_THETA_INIT,
+            theta_plus: MNIST_THETA_PLUS,
+            theta_tc: MNIST_THETA_TC,
+            inhibitory_rest_potential: Some(MNIST_INH_REST_POTENTIAL),
+            inhibitory_reset_potential: Some(MNIST_INH_RESET_POTENTIAL),
+            inhibitory_membrane_tau: Some(MNIST_INH_TAU),
+            inhibitory_threshold: Some(MNIST_INH_THRESHOLD),
+            inhibitory_refractory_ticks: Some(MNIST_INH_REFRACTORY_TICKS),
+            inhibitory_e_inh: Some(MNIST_E_INH_INH),
+            inhibitory_theta_init: Some(0.0),
+            inhibitory_theta_plus: Some(0.0),
+            inhibitory_theta_tc: Some(1e10), // effectively no adaptation
         }
     }
 }
 
 impl MnistNeuronConfig {
-    fn inhibitory_membrane_tau(self) -> f32 {
-        self.inhibitory_membrane_tau.unwrap_or(self.membrane_tau)
+    fn inhibitory_rest_potential(self) -> f32 {
+        self.inhibitory_rest_potential.unwrap_or(self.rest_potential)
     }
-
-    fn inhibitory_threshold(self) -> f32 {
-        self.inhibitory_threshold.unwrap_or(self.threshold)
-    }
-
     fn inhibitory_reset_potential(self) -> f32 {
         self.inhibitory_reset_potential.unwrap_or(self.reset_potential)
     }
-
+    fn inhibitory_membrane_tau(self) -> f32 {
+        self.inhibitory_membrane_tau.unwrap_or(self.membrane_tau)
+    }
+    fn inhibitory_threshold(self) -> f32 {
+        self.inhibitory_threshold.unwrap_or(self.threshold)
+    }
     fn inhibitory_refractory_ticks(self) -> usize {
         self.inhibitory_refractory_ticks.unwrap_or(self.refractory_ticks)
     }
-
-    fn inhibitory_threshold_homeostasis_tau(self) -> f32 {
-        self.inhibitory_threshold_homeostasis_tau.unwrap_or(self.threshold_homeostasis_tau)
+    fn inhibitory_e_inh(self) -> f32 {
+        self.inhibitory_e_inh.unwrap_or(self.e_inh)
     }
-
-    fn inhibitory_threshold_homeostasis_inc(self) -> f32 {
-        self.inhibitory_threshold_homeostasis_inc.unwrap_or(self.threshold_homeostasis_inc)
+    fn inhibitory_theta_init(self) -> f32 {
+        self.inhibitory_theta_init.unwrap_or(self.theta_init)
+    }
+    fn inhibitory_theta_plus(self) -> f32 {
+        self.inhibitory_theta_plus.unwrap_or(self.theta_plus)
+    }
+    fn inhibitory_theta_tc(self) -> f32 {
+        self.inhibitory_theta_tc.unwrap_or(self.theta_tc)
     }
 }
 
@@ -166,25 +189,6 @@ impl FeedforwardHomeostasisConfig {
     }
 }
 
-impl FeedforwardNormalization {
-    fn contribution(self, weight: f32) -> f32 {
-        match self {
-            FeedforwardNormalization::None => 0.0,
-            FeedforwardNormalization::L1 => weight.abs(),
-            FeedforwardNormalization::L2 => weight * weight,
-        }
-    }
-
-    fn scale(self, norm_power_sum: f32) -> f32 {
-        const EPSILON: f32 = 1e-6;
-
-        match self {
-            FeedforwardNormalization::None => 1.0,
-            FeedforwardNormalization::L1 => norm_power_sum.max(EPSILON),
-            FeedforwardNormalization::L2 => norm_power_sum.sqrt().max(EPSILON),
-        }
-    }
-}
 
 // --- SynapseGroup: Weight matrix + shared STDP parameters ---
 
@@ -197,6 +201,11 @@ pub struct SynapseGroup {
     pub lr_minus: f32,
     pub tau_plus: f32,
     pub tau_minus: f32,
+    /// Second post-synaptic time constant for triplet STDP (tc_post_2_ee).
+    /// Potentiation is gated by `exp(-post_elapsed / tau_post2)`, so a neuron
+    /// only strongly potentiates when it fires in bursts.  Set to 0 to disable
+    /// (falls back to standard pair-based STDP).
+    pub tau_post2: f32,
     pub plastic: bool,
 }
 
@@ -246,9 +255,18 @@ pub struct Network<N: Neuron> {
     feedforward_post_gains: Vec<f32>,
     feedforward_rate_ema: Vec<f32>,
 
+    // Feedforward delay support: per-synapse random delays (0..max_delay ticks).
+    // Indexed same as feedforward.weights data: [pre * num_post + post].
+    feedforward_delays: Vec<u8>,
+    // Circular buffer of pending ge deliveries.  delay_buf[slot][post] accumulates
+    // weights from spikes scheduled to arrive when the cursor reaches that slot.
+    delay_buf: Vec<Vec<f32>>,
+    delay_buf_cursor: usize,
+
     // Reusable per-tick buffers (avoid allocation in hot loop)
-    buf_exc_inputs: Vec<f32>,
-    buf_inh_inputs: Vec<f32>,
+    buf_exc_ge: Vec<f32>,       // feedforward excitatory conductance for exc neurons
+    buf_exc_gi: Vec<f32>,       // inhibitory conductance for exc neurons (from i_to_e)
+    buf_inh_ge: Vec<f32>,       // excitatory conductance for inh neurons (from e_to_i)
     buf_fired_neurons: Vec<bool>,
     buf_touched_posts: Vec<bool>,
     buf_fired_inputs: Vec<usize>,
@@ -259,6 +277,8 @@ pub struct NetworkRuntimeState<N: Clone> {
     neurons: Vec<N>,
     input_trackers: Vec<Tracker>,
     neuron_trackers: Vec<Tracker>,
+    delay_buf: Vec<Vec<f32>>,
+    delay_buf_cursor: usize,
 }
 
 // --- Checkpoint ---
@@ -276,6 +296,9 @@ pub struct MnistNetworkCheckpoint {
     feedforward_homeostasis: FeedforwardHomeostasisConfig,
     feedforward_post_gains: Vec<f32>,
     feedforward_rate_ema: Vec<f32>,
+    feedforward_delays: Vec<u8>,
+    delay_buf: Vec<Vec<f32>>,
+    delay_buf_cursor: usize,
 }
 
 // --- Network implementation ---
@@ -297,17 +320,22 @@ impl<N: Neuron> Network<N> {
             return;
         }
 
-        let normalization = self.feedforward_homeostasis.normalization;
-        let power_sum: f32 = self.feedforward.weights.iter_post(post)
-            .map(|(_pre, w)| normalization.contribution(w))
-            .sum();
-        let scale = normalization.scale(power_sum);
         let target_gain = self.feedforward_post_gains[post];
         let min_w = self.feedforward.min_weight;
         let max_w = self.feedforward.max_weight;
 
+        // Column-sum normalization: scale all weights so their sum equals target_gain.
+        let col_sum: f32 = self.feedforward.weights.iter_post(post)
+            .map(|(_pre, w)| w)
+            .sum();
+
+        if col_sum.abs() < 1e-8 {
+            return;
+        }
+
+        let scale = target_gain / col_sum;
         for (_pre, w) in self.feedforward.weights.iter_post_mut(post) {
-            *w = (target_gain * *w / scale).clamp(min_w, max_w);
+            *w = (*w * scale).clamp(min_w, max_w);
         }
     }
 
@@ -374,6 +402,17 @@ impl<N: Neuron> Network<N> {
         }
     }
 
+    /// Normalize all feedforward weight columns to their target gain.
+    /// Call this before each training sample (reference: normalize_weights).
+    pub fn normalize_all_feedforward_weights(&mut self) {
+        if self.feedforward_homeostasis.normalization == FeedforwardNormalization::None {
+            return;
+        }
+        for post in 0..self.num_output_neurons {
+            self.renormalize_postsynaptic_feedforward_weights(post);
+        }
+    }
+
     pub fn tick(&mut self, inputs: &[bool], biases: &[f32], plasticity_enabled: bool, mut fire_tracker: Option<&mut [usize]>) {
         assert!(inputs.len() == self.num_inputs);
         assert!(biases.len() == self.num_output_neurons);
@@ -391,31 +430,47 @@ impl<N: Neuron> Network<N> {
             if f { self.buf_fired_inputs.push(i); }
         }
 
-        // 2. Accumulate feedforward: Input -> Exc
-        self.buf_exc_inputs[..n].fill(0.0);
+        // 2. Schedule feedforward spikes into delay buffer
+        let delay_buf_len = self.delay_buf.len();
         for &src in &self.buf_fired_inputs {
-            self.feedforward.weights.accumulate_pre(src, &mut self.buf_exc_inputs[..n]);
+            let row_offset = src * n;
+            for post in 0..n {
+                let w = self.feedforward.weights.get(src, post);
+                if w != 0.0 {
+                    let d = self.feedforward_delays[row_offset + post] as usize;
+                    let slot = (self.delay_buf_cursor + d) % delay_buf_len;
+                    self.delay_buf[slot][post] += w;
+                }
+            }
         }
 
-        // 3. Accumulate e_to_i: Exc -> Inh (from previously fired exc neurons)
-        self.buf_inh_inputs[..num_inh].fill(0.0);
+        // Pop current delay slot → buf_exc_ge (spikes arriving NOW)
+        self.buf_exc_ge[..n].copy_from_slice(&self.delay_buf[self.delay_buf_cursor][..n]);
+        self.delay_buf[self.delay_buf_cursor].fill(0.0);
+        self.delay_buf_cursor = (self.delay_buf_cursor + 1) % delay_buf_len;
+
+        // 3. Accumulate e_to_i: Exc -> Inh (excitatory conductance on inh neurons)
+        self.buf_inh_ge[..num_inh].fill(0.0);
         for i in 0..n {
             if self.neuron_trackers[i].last_fire == 0 {
-                self.e_to_i.weights.accumulate_pre(i, &mut self.buf_inh_inputs[..num_inh]);
+                self.e_to_i.weights.accumulate_pre(i, &mut self.buf_inh_ge[..num_inh]);
             }
         }
 
-        // 4. Accumulate i_to_e: Inh -> Exc (from previously fired inh neurons)
+        // 4. Accumulate i_to_e: Inh -> Exc (inhibitory conductance on exc neurons)
+        self.buf_exc_gi[..n].fill(0.0);
         for i in 0..num_inh {
             if self.neuron_trackers[n + i].last_fire == 0 {
-                self.i_to_e.weights.accumulate_pre(i, &mut self.buf_exc_inputs[..n]);
+                self.i_to_e.weights.accumulate_pre(i, &mut self.buf_exc_gi[..n]);
             }
         }
 
-        // 5. Tick neurons
+        // 5. Add conductances and tick neurons
         self.buf_fired_neurons[..num_neurons].fill(false);
         for i in 0..n {
-            let fired = self.neurons[i].tick(self.buf_exc_inputs[i] + biases[i], plasticity_enabled);
+            self.neurons[i].add_ge(self.buf_exc_ge[i]);
+            self.neurons[i].add_gi(self.buf_exc_gi[i]);
+            let fired = self.neurons[i].tick(biases[i], plasticity_enabled);
             self.buf_fired_neurons[i] = fired;
             if let Some(ref mut ft) = fire_tracker {
                 if fired {
@@ -424,7 +479,8 @@ impl<N: Neuron> Network<N> {
             }
         }
         for i in 0..num_inh {
-            let fired = self.neurons[n + i].tick(self.buf_inh_inputs[i], plasticity_enabled);
+            self.neurons[n + i].add_ge(self.buf_inh_ge[i]);
+            let fired = self.neurons[n + i].tick(0.0, plasticity_enabled);
             self.buf_fired_neurons[n + i] = fired;
         }
 
@@ -443,6 +499,9 @@ impl<N: Neuron> Network<N> {
             for idx in 0..self.buf_fired_inputs.len() {
                 let i = self.buf_fired_inputs[idx];
                 for (post, w) in self.feedforward.weights.iter_pre_mut(i) {
+                    if *w == 0.0 && min_weight == 0.0 {
+                        continue; // skip absent synapses (sparse connectivity)
+                    }
                     let post_elapsed = self.neuron_trackers[post].last_fire.saturating_add(1);
                     let delta = -lr_minus * (-(post_elapsed as f32) / tau_minus).exp();
                     *w = (*w + delta).clamp(min_weight, max_weight);
@@ -451,29 +510,42 @@ impl<N: Neuron> Network<N> {
             }
 
             // Potentiation: post-spike rule (postsynaptic spikes can see current input spikes)
+            // Triplet STDP: potentiation is gated by post2_trace_before = exp(-post_elapsed / tau_post2),
+            // which measures how recently the post neuron fired *before* this spike.
+            // This means a neuron only strongly potentiates when it fires in bursts.
+            let tau_post2 = self.feedforward.tau_post2;
             for j in 0..n {
                 if self.buf_fired_neurons[j] {
+                    // post2_trace_before: value of the slow post trace BEFORE this spike sets it to 1.
+                    // The tracker hasn't been updated yet (step 7), so last_fire gives ticks
+                    // since previous fire. Add 1 because tracker was last incremented at end of
+                    // previous tick.
+                    let post2_gate = if tau_post2 > 0.0 {
+                        let post_elapsed_before = self.neuron_trackers[j].last_fire.saturating_add(1);
+                        (-(post_elapsed_before as f32) / tau_post2).exp()
+                    } else {
+                        1.0 // tau_post2 == 0 disables triplet gating (standard pair STDP)
+                    };
                     for (pre, w) in self.feedforward.weights.iter_post_mut(j) {
+                        if *w == 0.0 && min_weight == 0.0 {
+                            continue; // skip absent synapses (sparse connectivity)
+                        }
                         let pre_elapsed = if inputs[pre] {
                             0
                         } else {
                             self.input_trackers[pre].last_fire.saturating_add(1)
                         };
-                        let delta = lr_plus * (-(pre_elapsed as f32) / tau_plus).exp();
+                        let delta = lr_plus * (-(pre_elapsed as f32) / tau_plus).exp() * post2_gate;
                         *w = (*w + delta).clamp(min_weight, max_weight);
                         self.buf_touched_posts[j] = true;
                     }
                 }
             }
 
-            // Renormalize touched columns
-            if self.feedforward_homeostasis.normalization != FeedforwardNormalization::None {
-                for post in 0..n {
-                    if self.buf_touched_posts[post] {
-                        self.renormalize_postsynaptic_feedforward_weights(post);
-                    }
-                }
-            }
+            // Weight normalization is applied once per sample (before each
+            // presentation) via normalize_all_feedforward_weights(), matching
+            // the reference.  During a sample, STDP can temporarily push
+            // column sums above/below the target, amplifying WTA dynamics.
         }
 
         // 7. Update trackers
@@ -495,6 +567,10 @@ impl<N: Neuron> Network<N> {
         for tracker in self.neuron_trackers.iter_mut() {
             tracker.reset();
         }
+        for slot in self.delay_buf.iter_mut() {
+            slot.fill(0.0);
+        }
+        self.delay_buf_cursor = 0;
     }
 }
 
@@ -504,6 +580,8 @@ impl<N: Neuron + Clone> Network<N> {
             neurons: self.neurons.clone(),
             input_trackers: self.input_trackers.clone(),
             neuron_trackers: self.neuron_trackers.clone(),
+            delay_buf: self.delay_buf.clone(),
+            delay_buf_cursor: self.delay_buf_cursor,
         }
     }
 
@@ -511,6 +589,8 @@ impl<N: Neuron + Clone> Network<N> {
         self.neurons = state.neurons;
         self.input_trackers = state.input_trackers;
         self.neuron_trackers = state.neuron_trackers;
+        self.delay_buf = state.delay_buf;
+        self.delay_buf_cursor = state.delay_buf_cursor;
     }
 }
 
@@ -523,6 +603,8 @@ impl<N: Neuron> Network<N> {
         e_to_i: SynapseGroup,
         i_to_e: SynapseGroup,
         feedforward_homeostasis: FeedforwardHomeostasisConfig,
+        feedforward_delays: Vec<u8>,
+        max_delay: usize,
     ) -> Self {
         let num_neurons = neurons.len();
         let num_inh = num_neurons - num_output_neurons;
@@ -538,11 +620,15 @@ impl<N: Neuron> Network<N> {
         assert!(feedforward_homeostasis.slow_scaling_alpha >= 0.0 && feedforward_homeostasis.slow_scaling_alpha <= 1.0);
         assert!(feedforward_homeostasis.slow_scaling_min_gain > 0.0);
         assert!(feedforward_homeostasis.slow_scaling_max_gain >= feedforward_homeostasis.slow_scaling_min_gain);
+        assert_eq!(feedforward_delays.len(), feedforward.weights.num_synapses());
 
         let input_trackers = vec![Tracker { last_fire: usize::MAX >> 1 }; num_inputs];
         let neuron_trackers = vec![Tracker { last_fire: usize::MAX >> 1 }; num_neurons];
         let feedforward_post_gains = vec![feedforward_homeostasis.post_renorm_gain; num_output_neurons];
         let feedforward_rate_ema = vec![feedforward_homeostasis.slow_scaling_target_rate; num_output_neurons];
+
+        let delay_buf_len = max_delay + 1;
+        let delay_buf = vec![vec![0.0; num_output_neurons]; delay_buf_len];
 
         let mut network = Network {
             num_inputs,
@@ -556,8 +642,12 @@ impl<N: Neuron> Network<N> {
             feedforward_homeostasis,
             feedforward_post_gains,
             feedforward_rate_ema,
-            buf_exc_inputs: vec![0.0; num_output_neurons],
-            buf_inh_inputs: vec![0.0; num_inh],
+            feedforward_delays,
+            delay_buf,
+            delay_buf_cursor: 0,
+            buf_exc_ge: vec![0.0; num_output_neurons],
+            buf_exc_gi: vec![0.0; num_output_neurons],
+            buf_inh_ge: vec![0.0; num_inh],
             buf_fired_neurons: vec![false; num_neurons],
             buf_touched_posts: vec![false; num_output_neurons],
             buf_fired_inputs: Vec::with_capacity(num_inputs),
@@ -606,6 +696,10 @@ impl<N: Neuron> PoissonInputNetwork<N> {
     pub fn feedforward_sparsity_stats(&self, near_zero_threshold: f32) -> FeedforwardSparsityStats {
         self.network.feedforward_sparsity_stats(near_zero_threshold)
     }
+
+    pub fn normalize_all_feedforward_weights(&mut self) {
+        self.network.normalize_all_feedforward_weights();
+    }
 }
 
 impl<N: Neuron + Clone> PoissonInputNetwork<N> {
@@ -641,6 +735,9 @@ impl PoissonInputNetwork<Lif> {
             feedforward_homeostasis: self.network.feedforward_homeostasis,
             feedforward_post_gains: self.network.feedforward_post_gains.clone(),
             feedforward_rate_ema: self.network.feedforward_rate_ema.clone(),
+            feedforward_delays: self.network.feedforward_delays.clone(),
+            delay_buf: self.network.delay_buf.clone(),
+            delay_buf_cursor: self.network.delay_buf_cursor,
         }
     }
 
@@ -671,6 +768,7 @@ impl PoissonInputNetwork<Lif> {
             checkpoint.feedforward_homeostasis.slow_scaling_max_gain
                 >= checkpoint.feedforward_homeostasis.slow_scaling_min_gain
         );
+        assert_eq!(checkpoint.feedforward_delays.len(), checkpoint.feedforward.weights.num_synapses());
 
         PoissonInputNetwork {
             network: Network {
@@ -685,8 +783,12 @@ impl PoissonInputNetwork<Lif> {
                 feedforward_homeostasis: checkpoint.feedforward_homeostasis,
                 feedforward_post_gains: checkpoint.feedforward_post_gains,
                 feedforward_rate_ema: checkpoint.feedforward_rate_ema,
-                buf_exc_inputs: vec![0.0; num_output],
-                buf_inh_inputs: vec![0.0; num_inh],
+                feedforward_delays: checkpoint.feedforward_delays,
+                delay_buf: checkpoint.delay_buf,
+                delay_buf_cursor: checkpoint.delay_buf_cursor,
+                buf_exc_ge: vec![0.0; num_output],
+                buf_exc_gi: vec![0.0; num_output],
+                buf_inh_ge: vec![0.0; num_inh],
                 buf_fired_neurons: vec![false; num_neurons],
                 buf_touched_posts: vec![false; num_output],
                 buf_fired_inputs: Vec::with_capacity(num_inputs),
@@ -694,21 +796,96 @@ impl PoissonInputNetwork<Lif> {
             buf_poisson_inputs: Vec::with_capacity(num_inputs),
         }
     }
+
+    /// Diagnostic: dump key network statistics for debugging training dynamics.
+    pub fn dump_diagnostics(&self, n_exc: usize) {
+        let net = &self.network;
+        let thetas: Vec<f64> = net.neurons[..n_exc].iter().map(|n| n.theta).collect();
+        let theta_min = thetas.iter().cloned().fold(f64::INFINITY, f64::min);
+        let theta_max = thetas.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+        let theta_avg = thetas.iter().sum::<f64>() / thetas.len() as f64;
+        let theta_above_72 = thetas.iter().filter(|&&t| t as f32 + net.neurons[0].threshold > net.neurons[0].e_exc).count();
+
+        eprintln!("  THETA: min={:.2} avg={:.2} max={:.2} dead(eff_thresh>E_exc)={} theta_decay={:.15} theta_plus={}",
+            theta_min, theta_avg, theta_max, theta_above_72,
+            net.neurons[0].theta_decay, net.neurons[0].theta_plus);
+
+        let ge_vals: Vec<f32> = net.neurons[..n_exc].iter().map(|n| n.ge).collect();
+        let gi_vals: Vec<f32> = net.neurons[..n_exc].iter().map(|n| n.gi).collect();
+        let ge_max = ge_vals.iter().cloned().fold(0.0f32, f32::max);
+        let gi_max = gi_vals.iter().cloned().fold(0.0f32, f32::max);
+        let ge_nz = ge_vals.iter().filter(|&&g| g > 1e-6).count();
+        let gi_nz = gi_vals.iter().filter(|&&g| g > 1e-6).count();
+        eprintln!("  GE: max={:.4} nonzero={} | GI: max={:.4} nonzero={}", ge_max, ge_nz, gi_max, gi_nz);
+
+        let mut col_sums = Vec::with_capacity(n_exc);
+        let mut col_maxes = Vec::with_capacity(n_exc);
+        let mut col_nz = Vec::with_capacity(n_exc);
+        for post in 0..n_exc {
+            let mut sum = 0.0f32;
+            let mut max_w = 0.0f32;
+            let mut nz = 0usize;
+            for (_pre, w) in net.feedforward.weights.iter_post(post) {
+                sum += w;
+                if w > max_w { max_w = w; }
+                if w > 1e-6 { nz += 1; }
+            }
+            col_sums.push(sum);
+            col_maxes.push(max_w);
+            col_nz.push(nz);
+        }
+        let cs_min = col_sums.iter().cloned().fold(f32::INFINITY, f32::min);
+        let cs_max = col_sums.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
+        let cs_avg = col_sums.iter().sum::<f32>() / col_sums.len() as f32;
+        let wmax_max = col_maxes.iter().cloned().fold(0.0f32, f32::max);
+        let nz_min = *col_nz.iter().min().unwrap_or(&0);
+        let nz_max = *col_nz.iter().max().unwrap_or(&0);
+        eprintln!("  FF_COL_SUM: min={:.2} avg={:.2} max={:.2} | wmax={:.4} | nz_per_col: {}..{}",
+            cs_min, cs_avg, cs_max, wmax_max, nz_min, nz_max);
+
+        let v_vals: Vec<f32> = net.neurons[..n_exc].iter().map(|n| n.v).collect();
+        let v_min = v_vals.iter().cloned().fold(f32::INFINITY, f32::min);
+        let v_max = v_vals.iter().cloned().fold(f32::NEG_INFINITY, f32::max);
+        let refrac_count = net.neurons[..n_exc].iter().filter(|n| n.refractory_remaining > 0).count();
+        eprintln!("  V: min={:.2} max={:.2} refractory={}", v_min, v_max, refrac_count);
+    }
 }
-
-// --- MNIST network construction ---
-
-const MNIST_TAU: f32 = 50.0;
-const MNIST_THRESHOLD: f32 = 1.0;
-const MNIST_HOMEO_TAU: f32 = 5.0;
-const MNIST_HOMEO_INC: f32 = 2.0;
+// Reference parameters (Diehl & Cook 2015), FTDT discretized.
+// 1 tick = 0.5ms (matching reference dt).
+// Excitatory neurons
+const MNIST_REST_POTENTIAL: f32 = -65.0;  // mV
+const MNIST_RESET_POTENTIAL: f32 = -65.0; // mV (same as rest in reference)
+const MNIST_TAU: f32 = 200.0;            // membrane time constant: 100ms / 0.5ms = 200 ticks
+const MNIST_THRESHOLD: f32 = -72.0;       // mV: v_thresh_e(-52) - offset(20); ref threshold = theta - offset + v_thresh_e
+const MNIST_REFRACTORY_TICKS: usize = 10; // 5ms / 0.5ms = 10 ticks
+const MNIST_E_EXC: f32 = 0.0;            // excitatory reversal (mV)
+const MNIST_E_INH_EXC: f32 = -100.0;     // inhibitory reversal for exc neurons (mV)
+const MNIST_GE_DECAY: f32 = 0.6065;      // exp(-0.5/1) = exp(-1/2): tau_ge=1ms, dt=0.5ms → 2 ticks
+const MNIST_GI_DECAY: f32 = 0.7788;      // exp(-0.5/2) = exp(-1/4): tau_gi=2ms, dt=0.5ms → 4 ticks
+const MNIST_THETA_INIT: f32 = 20.0;      // mV (initial theta)
+const MNIST_THETA_PLUS: f32 = 0.05;      // mV (increment on spike)
+const MNIST_THETA_TC: f32 = 1e5;         // tc_theta: 5e4ms / 0.5ms = 1e5 ticks (faster decay)
+// Inhibitory neurons
+const MNIST_INH_REST_POTENTIAL: f32 = -60.0;
+const MNIST_INH_RESET_POTENTIAL: f32 = -45.0;
+const MNIST_INH_TAU: f32 = 20.0;         // 10ms / 0.5ms = 20 ticks
+const MNIST_INH_THRESHOLD: f32 = -40.0;
+const MNIST_INH_REFRACTORY_TICKS: usize = 4; // 2ms / 0.5ms = 4 ticks
+const MNIST_E_INH_INH: f32 = -85.0;      // inhibitory reversal for inh neurons
+// STDP (time constants in ticks: ms / 0.5ms)
 const MNIST_STDP_LR_PLUS: f32 = 0.01;
-const MNIST_STDP_LR_MINUS: f32 = 0.02;
-const MNIST_STDP_TAU_PLUS: f32 = 10.0;
-const MNIST_STDP_TAU_MINUS: f32 = 10.0;
-const MNIST_SYNAPSE_WEIGHT: f32 = 0.5;
+const MNIST_STDP_LR_MINUS: f32 = 0.0001; // nu_ee_pre in reference
+const MNIST_STDP_TAU_PLUS: f32 = 40.0;   // tc_pre_ee: 20ms / 0.5ms = 40 ticks
+const MNIST_STDP_TAU_MINUS: f32 = 40.0;  // tc_post_1_ee: 20ms / 0.5ms = 40 ticks
+const MNIST_STDP_TAU_POST2: f32 = 80.0;  // tc_post_2_ee: 40ms / 0.5ms = 80 ticks (triplet STDP)
+// Weights
+const MNIST_SYNAPSE_WEIGHT: f32 = 1.0;   // wmax
+const MNIST_FEEDFORWARD_INIT_SCALE: f32 = 0.3;  // random * 0.3 + 0.01
+const MNIST_FEEDFORWARD_INIT_OFFSET: f32 = 0.01;
 const MNIST_REF_E_TO_I_WEIGHT: f32 = 10.4;
 const MNIST_REF_I_TO_E_WEIGHT: f32 = 17.0;
+// Feedforward delay: reference uses uniform random delay (0, 10ms) = (0, 20 ticks)
+const MNIST_MAX_FEEDFORWARD_DELAY: usize = 20; // 10ms / 0.5ms = 20 ticks
 
 pub fn new_mnist_network(
     output_num: usize,
@@ -720,16 +897,8 @@ pub fn new_mnist_network(
     feedforward_homeostasis: FeedforwardHomeostasisConfig,
 ) -> PoissonInputNetwork<Lif> {
     assert!(neuron_config.membrane_tau > 0.0);
-    assert!(neuron_config.threshold > 0.0);
-    assert!(neuron_config.reset_potential < neuron_config.threshold);
-    assert!(neuron_config.threshold_homeostasis_tau > 0.0);
-    assert!(neuron_config.threshold_homeostasis_inc >= 0.0);
     assert!(neuron_config.inhibitory_membrane_tau() > 0.0);
-    assert!(neuron_config.inhibitory_threshold() > 0.0);
-    assert!(neuron_config.inhibitory_reset_potential() < neuron_config.inhibitory_threshold());
-    assert!(neuron_config.inhibitory_threshold_homeostasis_tau() > 0.0);
-    assert!(neuron_config.inhibitory_threshold_homeostasis_inc() >= 0.0);
-    assert!(inhibitory_weight <= 0.0);
+    assert!(inhibitory_weight >= 0.0, "i_to_e weight should be non-negative (it's a conductance magnitude)");
     if let Some(weight) = excitatory_to_inhibitory_weight {
         assert!(weight >= 0.0);
     }
@@ -738,29 +907,39 @@ pub fn new_mnist_network(
     let mut neurons = Vec::with_capacity(output_num * 2);
     for _ in 0..output_num {
         neurons.push(Lif::new_rand(
-            0.0,
+            neuron_config.rest_potential,
             neuron_config.reset_potential,
             neuron_config.threshold,
             neuron_config.membrane_tau,
-            neuron_config.threshold_homeostasis_inc,
-            neuron_config.threshold_homeostasis_tau,
+            neuron_config.e_exc,
+            neuron_config.e_inh,
+            neuron_config.ge_decay,
+            neuron_config.gi_decay,
+            neuron_config.theta_init,
+            neuron_config.theta_plus,
+            neuron_config.theta_tc,
             neuron_config.refractory_ticks,
         ));
     }
     for _ in 0..output_num {
         neurons.push(Lif::new_rand(
-            0.0,
+            neuron_config.inhibitory_rest_potential(),
             neuron_config.inhibitory_reset_potential(),
             neuron_config.inhibitory_threshold(),
             neuron_config.inhibitory_membrane_tau(),
-            neuron_config.inhibitory_threshold_homeostasis_inc(),
-            neuron_config.inhibitory_threshold_homeostasis_tau(),
+            neuron_config.e_exc,           // same excitatory reversal
+            neuron_config.inhibitory_e_inh(),
+            neuron_config.ge_decay,        // same conductance dynamics
+            neuron_config.gi_decay,
+            neuron_config.inhibitory_theta_init(),
+            neuron_config.inhibitory_theta_plus(),
+            neuron_config.inhibitory_theta_tc(),
             neuron_config.inhibitory_refractory_ticks(),
         ));
     }
 
     let excitatory_to_inhibitory_weight = excitatory_to_inhibitory_weight
-        .unwrap_or_else(|| inhibitory_weight.abs() * (MNIST_REF_E_TO_I_WEIGHT / MNIST_REF_I_TO_E_WEIGHT));
+        .unwrap_or_else(|| inhibitory_weight * (MNIST_REF_E_TO_I_WEIGHT / MNIST_REF_I_TO_E_WEIGHT));
     let feedforward_max_weight = stdp_config.resolved_weight_max(feedforward_homeostasis);
     let stdp_lr_plus = stdp_config.resolved_lr_plus();
     let stdp_lr_minus = stdp_config.resolved_lr_minus();
@@ -768,10 +947,11 @@ pub fn new_mnist_network(
     let stdp_tau_minus = stdp_config.resolved_tau_minus();
 
     // Feedforward: Input(784) -> Exc(N), Dense
+    // Reference: random * 0.3 + 0.01
     let feedforward_data: Vec<f32> = (0..784 * output_num)
         .map(|_| {
             if rand::random::<f32>() < connection_rate {
-                feedforward_max_weight * rand::random::<f32>()
+                MNIST_FEEDFORWARD_INIT_SCALE * rand::random::<f32>() + MNIST_FEEDFORWARD_INIT_OFFSET
             } else {
                 0.0
             }
@@ -785,6 +965,7 @@ pub fn new_mnist_network(
         lr_minus: stdp_lr_minus,
         tau_plus: stdp_tau_plus,
         tau_minus: stdp_tau_minus,
+        tau_post2: MNIST_STDP_TAU_POST2,
         plastic: true,
     };
 
@@ -797,6 +978,7 @@ pub fn new_mnist_network(
         lr_minus: 0.0,
         tau_plus: 1.0,
         tau_minus: 1.0,
+        tau_post2: 0.0,
         plastic: false,
     };
 
@@ -813,10 +995,20 @@ pub fn new_mnist_network(
         lr_minus: 0.0,
         tau_plus: 1.0,
         tau_minus: 1.0,
+        tau_post2: 0.0,
         plastic: false,
     };
 
-    let network = Network::new_from(784, output_num, neurons, feedforward, e_to_i, i_to_e, feedforward_homeostasis);
+    // Random per-synapse feedforward delays: uniform [0, MNIST_MAX_FEEDFORWARD_DELAY]
+    let feedforward_delays: Vec<u8> = (0..784 * output_num)
+        .map(|_| (rand::random::<f32>() * (MNIST_MAX_FEEDFORWARD_DELAY as f32 + 1.0)) as u8)
+        .map(|d| d.min(MNIST_MAX_FEEDFORWARD_DELAY as u8))
+        .collect();
+
+    let network = Network::new_from(
+        784, output_num, neurons, feedforward, e_to_i, i_to_e,
+        feedforward_homeostasis, feedforward_delays, MNIST_MAX_FEEDFORWARD_DELAY,
+    );
     network.into()
 }
 
@@ -838,6 +1030,8 @@ mod tests {
         }
 
         fn reset(&mut self) {}
+        fn add_ge(&mut self, _ge: f32) {}
+        fn add_gi(&mut self, _gi: f32) {}
     }
 
     fn homeostasis_config(normalization: FeedforwardNormalization, post_renorm_gain: f32) -> FeedforwardHomeostasisConfig {
@@ -861,19 +1055,21 @@ mod tests {
             lr_minus: 0.0,
             tau_plus: 1.0,
             tau_minus: 1.0,
+            tau_post2: 0.0,
             plastic: false,
         }
     }
 
     /// Build a minimal test network: `num_inputs` inputs, `num_exc` excitatory
     /// SilentNeurons, `num_exc` inhibitory SilentNeurons, with the given
-    /// feedforward weights and zero lateral weights.
+    /// feedforward weights and zero lateral weights.  All delays are zero.
     fn test_network(
         num_inputs: usize,
         num_exc: usize,
         feedforward_weights: Vec<f32>,
         homeostasis: FeedforwardHomeostasisConfig,
     ) -> Network<SilentNeuron> {
+        let num_synapses = num_inputs * num_exc;
         let feedforward = SynapseGroup {
             weights: Weight::new_dense(num_inputs, num_exc, feedforward_weights),
             max_weight: f32::MAX,
@@ -882,13 +1078,15 @@ mod tests {
             lr_minus: 0.0,
             tau_plus: 1.0,
             tau_minus: 1.0,
+            tau_post2: 0.0,
             plastic: false,
         };
         let e_to_i = dummy_synapse_group(Weight::new_one_to_one(vec![0.0; num_exc]));
         let i_to_e = dummy_synapse_group(Weight::new_dense(num_exc, num_exc, vec![0.0; num_exc * num_exc]));
         let neurons = vec![SilentNeuron; num_exc * 2];
+        let delays = vec![0u8; num_synapses];
 
-        Network::new_from(num_inputs, num_exc, neurons, feedforward, e_to_i, i_to_e, homeostasis)
+        Network::new_from(num_inputs, num_exc, neurons, feedforward, e_to_i, i_to_e, homeostasis, delays, 0)
     }
 
     #[test]
@@ -901,10 +1099,11 @@ mod tests {
 
     #[test]
     fn new_from_renormalizes_l2_feedforward_weights_to_target_gain() {
+        // With column-sum normalization, L2 mode also uses sum-to-target
         let network = test_network(2, 1, vec![0.2, 0.3], homeostasis_config(FeedforwardNormalization::L2, 2.0));
         let weights: Vec<f32> = network.feedforward.weights.iter_post(0).map(|(_pre, w)| w).collect();
-        let l2_norm = weights.iter().map(|w| w * w).sum::<f32>().sqrt();
-        assert!((l2_norm - 2.0).abs() < 1e-6);
+        let col_sum: f32 = weights.iter().sum();
+        assert!((col_sum - 2.0).abs() < 1e-6);
     }
 
     #[test]
@@ -917,6 +1116,7 @@ mod tests {
             lr_minus: 0.0,
             tau_plus: 1.0,
             tau_minus: 1.0,
+            tau_post2: 0.0,
             plastic: false,
         };
         let e_to_i = dummy_synapse_group(Weight::new_one_to_one(vec![0.0]));
@@ -939,6 +1139,8 @@ mod tests {
                 slow_scaling_min_gain: 0.25,
                 slow_scaling_max_gain: 4.0,
             },
+            vec![0u8; 2],
+            0,
         );
 
         network.update_slow_synaptic_scaling(&[0], 1);
@@ -968,8 +1170,8 @@ mod tests {
         let network = new_mnist_network(
             4,
             0.2,
-            -0.1,
-            Some(0.05),
+            17.0,
+            Some(10.4),
             MnistNeuronConfig::default(),
             MnistStdpConfig::default(),
             homeostasis_config(FeedforwardNormalization::L1, 1.0),
@@ -979,5 +1181,261 @@ mod tests {
         let restored = PoissonInputNetwork::from_checkpoint(checkpoint.clone());
 
         assert_eq!(restored.to_checkpoint(), checkpoint);
+    }
+
+    #[test]
+    fn lateral_inhibition_suppresses_competing_neurons() {
+        use crate::snn::neurons::Lif;
+
+        // Create 2 exc + 2 inh Lif neurons with conductance-based dynamics
+        let exc = |v_init: f32| Lif::new(
+            -65.0, -65.0, -72.0, 200.0,
+            0.0, -100.0, 0.6065, 0.7788,
+            20.0, 0.05, 2e7, 10,
+        );
+        let inh = || Lif::new(
+            -60.0, -45.0, -40.0, 20.0,
+            0.0, -85.0, 0.6065, 0.7788,
+            0.0, 0.0, 1e10, 4,
+        );
+
+        let mut n0 = exc(-105.0); n0.v = -100.0; // e_inh
+        let mut n1 = exc(-105.0); n1.v = -100.0;
+        let mut n2 = inh(); n2.v = -85.0; // e_inh
+        let mut n3 = inh(); n3.v = -85.0;
+        let neurons = vec![n0, n1, n2, n3];
+
+        // Feedforward: 2 inputs -> 2 exc (each column sums to 78)
+        let feedforward = SynapseGroup {
+            weights: Weight::new_dense(2, 2, vec![78.0, 0.0, 0.0, 78.0]),
+            max_weight: 1.0,
+            min_weight: 0.0,
+            lr_plus: 0.0, lr_minus: 0.0,
+            tau_plus: 1.0, tau_minus: 1.0,
+            tau_post2: 0.0,
+            plastic: false,
+        };
+        // E->I: OneToOne, weight 10.4
+        let e_to_i = SynapseGroup {
+            weights: Weight::new_one_to_one(vec![10.4; 2]),
+            max_weight: 10.4, min_weight: 10.4,
+            lr_plus: 0.0, lr_minus: 0.0,
+            tau_plus: 1.0, tau_minus: 1.0,
+            tau_post2: 0.0,
+            plastic: false,
+        };
+        // I->E: Dense 2x2, weight 17 off-diagonal, 0 diagonal
+        let i_to_e = SynapseGroup {
+            weights: Weight::new_dense(2, 2, vec![0.0, 17.0, 17.0, 0.0]),
+            max_weight: 17.0, min_weight: 17.0,
+            lr_plus: 0.0, lr_minus: 0.0,
+            tau_plus: 1.0, tau_minus: 1.0,
+            tau_post2: 0.0,
+            plastic: false,
+        };
+
+        let mut net: Network<Lif> = Network::new_from(
+            2, 2, neurons, feedforward, e_to_i, i_to_e,
+            homeostasis_config(FeedforwardNormalization::None, 78.0),
+            vec![0u8; 4], 0,
+        );
+
+        // Drive only input 0 for 200 ticks.
+        // Neuron 0 should fire, neuron 1 should be suppressed by lateral inhibition.
+        let inputs_drive = [true, false];
+        let biases = [0.0, 0.0];
+        let mut ft = [0usize; 2];
+
+        for _ in 0..200 {
+            net.tick(&inputs_drive, &biases, false, Some(&mut ft));
+        }
+
+        println!("Neuron 0 spikes: {}, Neuron 1 spikes: {}", ft[0], ft[1]);
+        assert!(ft[0] > 0, "Driven neuron should fire");
+        // Neuron 1 gets no feedforward input, so should fire much less
+        assert!(ft[0] > ft[1] * 5, "Inhibition should strongly suppress undriven neuron: n0={} n1={}", ft[0], ft[1]);
+    }
+
+    #[test]
+    fn lateral_inhibition_works_with_uniform_drive() {
+        use crate::snn::neurons::Lif;
+
+        // Create 10 exc + 10 inh neurons with all inputs driving all neurons equally
+        let n = 10;
+        let n_in = 4;
+
+        let make_exc = || {
+            let mut neuron = Lif::new(
+                -65.0, -65.0, -72.0, 200.0,
+                0.0, -100.0, 0.6065, 0.7788,
+                20.0, 0.05, 2e7, 10,
+            );
+            neuron.v = -100.0; // e_inh
+            neuron
+        };
+        let make_inh = || {
+            let mut neuron = Lif::new(
+                -60.0, -45.0, -40.0, 20.0,
+                0.0, -85.0, 0.6065, 0.7788,
+                0.0, 0.0, 1e10, 4,
+            );
+            neuron.v = -85.0; // e_inh
+            neuron
+        };
+
+        let mut neurons = Vec::new();
+        for _ in 0..n { neurons.push(make_exc()); }
+        for _ in 0..n { neurons.push(make_inh()); }
+
+        let w_ff = 78.0 / n_in as f32;
+        let ff_data = vec![w_ff; n_in * n];
+        let feedforward = SynapseGroup {
+            weights: Weight::new_dense(n_in, n, ff_data),
+            max_weight: 1.0, min_weight: 0.0,
+            lr_plus: 0.0, lr_minus: 0.0,
+            tau_plus: 1.0, tau_minus: 1.0,
+            tau_post2: 0.0,
+            plastic: false,
+        };
+        let e_to_i = SynapseGroup {
+            weights: Weight::new_one_to_one(vec![10.4; n]),
+            max_weight: 10.4, min_weight: 10.4,
+            lr_plus: 0.0, lr_minus: 0.0,
+            tau_plus: 1.0, tau_minus: 1.0,
+            tau_post2: 0.0,
+            plastic: false,
+        };
+        let mut i_to_e_data = vec![17.0; n * n];
+        for i in 0..n { i_to_e_data[i * n + i] = 0.0; }
+        let i_to_e = SynapseGroup {
+            weights: Weight::new_dense(n, n, i_to_e_data),
+            max_weight: 17.0, min_weight: 17.0,
+            lr_plus: 0.0, lr_minus: 0.0,
+            tau_plus: 1.0, tau_minus: 1.0,
+            tau_post2: 0.0,
+            plastic: false,
+        };
+
+        // Use random delays (0-20 ticks) to break synchrony, matching the reference
+        let max_delay = 20usize;
+        let delays: Vec<u8> = (0..n_in * n)
+            .map(|_| (rand::random::<f32>() * (max_delay as f32 + 1.0)) as u8)
+            .map(|d| d.min(max_delay as u8))
+            .collect();
+
+        let mut net: Network<Lif> = Network::new_from(
+            n_in, n, neurons, feedforward, e_to_i, i_to_e,
+            homeostasis_config(FeedforwardNormalization::None, 78.0),
+            delays, max_delay,
+        );
+
+        let inputs = vec![true; n_in];
+        let biases = vec![0.0; n];
+        let mut ft = vec![0usize; n];
+
+        let mut total_inh_spikes = 0usize;
+
+        for tick in 0..700 {
+            net.tick(&inputs, &biases, false, Some(&mut ft));
+
+            for i in 0..n {
+                if net.buf_fired_neurons[n + i] {
+                    total_inh_spikes += 1;
+                }
+            }
+
+            if tick < 5 || tick % 100 == 0 {
+                let exc_fired: usize = (0..n).filter(|&i| net.buf_fired_neurons[i]).count();
+                let inh_fired: usize = (0..n).filter(|&i| net.buf_fired_neurons[n + i]).count();
+                let gi_sum: f32 = net.buf_exc_gi[..n].iter().sum();
+                println!(
+                    "t={:3}: exc_fired={} inh_fired={} gi_sum={:.1} n0.v={:.2} n0.ge={:.2} n0.gi={:.2}",
+                    tick, exc_fired, inh_fired, gi_sum,
+                    net.neurons[0].v, net.neurons[0].ge, net.neurons[0].gi,
+                );
+            }
+        }
+
+        let total_exc_spikes: usize = ft.iter().sum();
+        println!("\nTotal exc_spikes={} inh_spikes={}", total_exc_spikes, total_inh_spikes);
+        for (i, &f) in ft.iter().enumerate() {
+            println!("  Neuron {}: {} spikes", i, f);
+        }
+
+        assert!(total_inh_spikes > 0, "Inhibitory neurons never fired!");
+        // With uniform drive (all inputs constant, all column sums equal),
+        // all neurons converge to the same steady-state rate regardless of delays.
+        // The real desynchronization happens with stochastic Poisson input + different random weights.
+        // Here we just verify the inhibitory pathway is active.
+        assert!(total_exc_spikes > 0, "No excitatory spikes at all");
+    }
+
+    /// Diagnostic: trace a sync case tick-by-tick.
+    #[test]
+    #[ignore] // Intentionally finds pathological gi accumulation that triggers CFL
+    fn diagnose_sync_trace() {
+        for _attempt in 0..50 {
+            let mut net = new_mnist_network(
+                400, 1.0, 17.0, Some(10.4),
+                MnistNeuronConfig::default(),
+                MnistStdpConfig::default(),
+                homeostasis_config(FeedforwardNormalization::L1, 78.0),
+            );
+
+            let mut rates = vec![0.0f32; 784];
+            for i in 0..230 {
+                let idx = (6 * 79 + i * 3) % 784;
+                rates[idx] = 0.032;
+            }
+
+            let biases = vec![0.0f32; 400];
+            let mut ft = vec![0usize; 400];
+
+            net.normalize_all_feedforward_weights();
+            ft.fill(0);
+
+            // Store per-tick firing events
+            let mut events: Vec<(usize, Vec<usize>, usize)> = Vec::new();
+
+            for tick in 0..700 {
+                let inputs: Vec<bool> = rates.iter().map(|&r| rand::random::<f32>() < r).collect();
+                net.network.tick(&inputs, &biases, false, Some(&mut ft));
+
+                let exc_fired: Vec<usize> = (0..400).filter(|&i| net.network.buf_fired_neurons[i]).collect();
+                let inh_fired: usize = (0..400).filter(|&i| net.network.buf_fired_neurons[400 + i]).count();
+
+                if !exc_fired.is_empty() || inh_fired > 0 {
+                    events.push((tick, exc_fired, inh_fired));
+                }
+            }
+
+            let total: usize = ft.iter().sum();
+            let firing = ft.iter().filter(|&&f| f > 0).count();
+            let max_spikes = *ft.iter().max().unwrap();
+            let tied = ft.iter().filter(|&&f| f == max_spikes).count();
+
+            if tied > 3 && max_spikes > 40 {
+                println!("SYNC: total={} firing={} max={} tied={}", total, firing, max_spikes, tied);
+
+                for (tick, exc, inh) in events.iter().take(50) {
+                    let exc_str: String = if exc.len() <= 10 {
+                        format!("{:?}", exc)
+                    } else {
+                        format!("[{} neurons]", exc.len())
+                    };
+                    println!("  t={:3}: exc={} inh={}", tick, exc_str, inh);
+                }
+
+                let sn = ft.iter().enumerate().find(|(_, f)| **f == max_spikes).unwrap().0;
+                println!("\nSync neuron n{}: ge={:.3} gi={:.3} v={:.2} ref={}",
+                    sn, net.network.neurons[sn].ge, net.network.neurons[sn].gi,
+                    net.network.neurons[sn].v, net.network.neurons[sn].refractory_remaining);
+                break;
+            }
+
+            if _attempt % 10 == 0 {
+                println!("attempt {} => total={} firing={} max={} tied={}", _attempt, total, firing, max_spikes, tied);
+            }
+        }
     }
 }

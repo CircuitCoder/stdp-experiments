@@ -39,6 +39,24 @@ impl Weight {
         }
     }
 
+    pub fn num_synapses(&self) -> usize {
+        match self {
+            Weight::Dense { data, .. } => data.len(),
+            Weight::OneToOne { data } => data.len(),
+        }
+    }
+
+    /// Get the weight for a specific (pre, post) pair.
+    #[inline(always)]
+    pub fn get(&self, pre: usize, post: usize) -> f32 {
+        match self {
+            Weight::Dense { num_post, data, .. } => data[pre * num_post + post],
+            Weight::OneToOne { data } => {
+                if pre == post { data[pre] } else { 0.0 }
+            }
+        }
+    }
+
     // ---------------------------------------------------------------
     // Construction
     // ---------------------------------------------------------------

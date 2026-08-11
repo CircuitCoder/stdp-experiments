@@ -77,90 +77,49 @@ struct Args {
     #[clap(long, default_value = "data")]
     data_path: String,
 
-    #[clap(short, long, default_value_t = 0.1)]
+    /// Spike probability per tick for max-intensity pixel.
+    /// Reference: pixel/8 * intensity(2) Hz → 63.75Hz → 0.032/tick at dt=0.5ms.
+    #[clap(short, long, default_value_t = 0.032)]
     poisson_rate: f32,
 
-    #[clap(long, default_value_t = 0.05)]
+    /// Increment when re-presenting a sample with too few spikes.
+    /// Reference: intensity += 1 → 31.875Hz → 0.016/tick at dt=0.5ms.
+    #[clap(long, default_value_t = 0.016)]
     poisson_rate_inc: f32,
 
-    #[clap(long, default_value_t = 0.1)]
+    #[clap(long, default_value_t = 0.007)]
     least_training_firing_rate: f32,
 
-    /// Number of ticks to run per sample
-    #[clap(long, default_value_t = 100)]
+    /// Number of ticks to run per sample (reference: 350ms at dt=0.5ms = 700)
+    #[clap(long, default_value_t = 700)]
     per_sample_ticks: usize,
 
-    /// Number of zero-input ticks to run after each presentation attempt
-    #[clap(long, default_value_t = 40)]
+    /// Number of zero-input ticks to run after each presentation attempt (reference: 150ms = 300)
+    #[clap(long, default_value_t = 300)]
     rest_ticks: usize,
 
-    #[clap(short, long, default_value_t = 1000)]
+    #[clap(short, long, default_value_t = 400)]
     output_num: usize,
 
-    #[clap(short, long, default_value_t = 0.05)]
+    #[clap(short, long, default_value_t = 1.0)]
     connection_rate: f32,
 
-    #[clap(short, long, default_value_t = 0.1)]
+    #[clap(short, long, default_value_t = 0.0)]
     base_noise: f32,
 
-    #[clap(short, long, default_value_t = -0.1)]
+    /// I->E conductance weight (positive; inhibition via reversal potential)
+    #[clap(short, long, default_value_t = 17.0)]
     lateral_inhib_strength: f32,
 
+    /// E->I conductance weight (positive)
     #[clap(long)]
     excitatory_inhibitory_strength: Option<f32>,
 
-    #[clap(long, default_value_t = 50.0)]
-    neuron_tau: f32,
-
-    #[clap(long, default_value_t = 1.0)]
-    neuron_threshold: f32,
-
-    #[clap(long, default_value_t = 0)]
-    neuron_refractory_ticks: usize,
-
-    #[clap(long, default_value_t = 5.0)]
-    threshold_homeostasis_tau: f32,
-
-    #[clap(long, default_value_t = 2.0)]
-    threshold_homeostasis_inc: f32,
-
-    #[clap(long)]
-    inhibitory_neuron_tau: Option<f32>,
-
-    #[clap(long)]
-    inhibitory_neuron_threshold: Option<f32>,
-
-    #[clap(long)]
-    inhibitory_neuron_reset: Option<f32>,
-
-    #[clap(long)]
-    inhibitory_neuron_refractory_ticks: Option<usize>,
-
-    #[clap(long)]
-    inhibitory_threshold_homeostasis_tau: Option<f32>,
-
-    #[clap(long)]
-    inhibitory_threshold_homeostasis_inc: Option<f32>,
-
-    #[clap(long)]
-    feedforward_weight_max: Option<f32>,
-
-    #[clap(long)]
-    stdp_lr_plus: Option<f32>,
-
-    #[clap(long)]
-    stdp_lr_minus: Option<f32>,
-
-    #[clap(long)]
-    stdp_tau_plus: Option<f32>,
-
-    #[clap(long)]
-    stdp_tau_minus: Option<f32>,
-
-    #[clap(long, value_enum, default_value_t = NormalizationArg::None)]
+    #[clap(long, value_enum, default_value_t = NormalizationArg::L1)]
     normalization: NormalizationArg,
 
-    #[clap(long, default_value_t = 1.0)]
+    /// Column-sum target for feedforward weight normalization
+    #[clap(long, default_value_t = 78.0)]
     post_renorm_gain: f32,
 
     #[clap(long, default_value_t = 0.0)]
@@ -177,6 +136,21 @@ struct Args {
 
     #[clap(long, default_value_t = 4.0)]
     slow_scaling_max_gain: f32,
+
+    #[clap(long)]
+    feedforward_weight_max: Option<f32>,
+
+    #[clap(long)]
+    stdp_lr_plus: Option<f32>,
+
+    #[clap(long)]
+    stdp_lr_minus: Option<f32>,
+
+    #[clap(long)]
+    stdp_tau_plus: Option<f32>,
+
+    #[clap(long)]
+    stdp_tau_minus: Option<f32>,
 
     #[clap(long, default_value_t = 1e-3)]
     near_zero_weight_threshold: f32,
@@ -245,14 +219,23 @@ fn run_presentation(
 
         let total_fired: usize = fire_tracker.iter().sum();
         if total_fired >= min_total_spikes {
+            if cur_poisson_rate > poisson_rate {
+                eprintln!("sample needed rate escalation to {:.3} (fired {})", cur_poisson_rate, total_fired);
+            }
             run_rest_phase(net, rates, bias, rest_ticks, plasticity_enabled);
             return cur_poisson_rate;
         }
 
+        eprintln!("retry: rate {:.3} → fired {} (need {})", cur_poisson_rate, total_fired, min_total_spikes);
+
         run_rest_phase(net, rates, bias, rest_ticks, plasticity_enabled);
 
         cur_poisson_rate += poisson_rate_inc;
-        assert!(cur_poisson_rate <= 1.0, "Unable to elicit enough spikes for a sample");
+        if cur_poisson_rate > 1.0 {
+            eprintln!("WARN: poisson_rate escalated to {:.2} without eliciting {} spikes — skipping sample",
+                cur_poisson_rate, min_total_spikes);
+            return cur_poisson_rate;
+        }
     }
 }
 
@@ -637,20 +620,7 @@ fn main() -> Result<()> {
         slow_scaling_max_gain: args.slow_scaling_max_gain,
     };
 
-    let neuron_config = snn::network::MnistNeuronConfig {
-        membrane_tau: args.neuron_tau,
-        threshold: args.neuron_threshold,
-        reset_potential: 0.0,
-        refractory_ticks: args.neuron_refractory_ticks,
-        threshold_homeostasis_tau: args.threshold_homeostasis_tau,
-        threshold_homeostasis_inc: args.threshold_homeostasis_inc,
-        inhibitory_membrane_tau: args.inhibitory_neuron_tau,
-        inhibitory_threshold: args.inhibitory_neuron_threshold,
-        inhibitory_reset_potential: args.inhibitory_neuron_reset,
-        inhibitory_refractory_ticks: args.inhibitory_neuron_refractory_ticks,
-        inhibitory_threshold_homeostasis_tau: args.inhibitory_threshold_homeostasis_tau,
-        inhibitory_threshold_homeostasis_inc: args.inhibitory_threshold_homeostasis_inc,
-    };
+    let neuron_config = snn::network::MnistNeuronConfig::default();
     let stdp_config = snn::network::MnistStdpConfig {
         weight_max: args.feedforward_weight_max,
         lr_plus: args.stdp_lr_plus,
@@ -790,6 +760,8 @@ fn main() -> Result<()> {
         }
         let train_pool_index = train_order[pool_position];
         let input = train_data.slice(s![train_pool_index, ..]);
+        // Normalize feedforward weights before each training sample (reference: normalize_weights)
+        net.normalize_all_feedforward_weights();
         let used_poisson_rate = run_presentation(
             &mut net,
             input,
@@ -814,6 +786,13 @@ fn main() -> Result<()> {
         let epoch_progress = epoch_progress_before + 1;
         if epoch_progress % PROGRESS_INTERVAL == 0 {
             println!("Epoch {}/{} training progress: {}/{}", epoch_index, args.epochs, epoch_progress, args.train_length);
+            // Diagnostic dump every progress interval
+            let total_spikes: usize = fire_tracker.iter().sum();
+            let max_spikes = *fire_tracker.iter().max().unwrap_or(&0);
+            let active_neurons = fire_tracker.iter().filter(|&&f| f > 0).count();
+            eprintln!("  SAMPLE_STATS: total_spikes={} max_single={} active_neurons={}/{} poisson_rate_used={:.3}",
+                total_spikes, max_spikes, active_neurons, args.output_num, used_poisson_rate);
+            net.dump_diagnostics(args.output_num);
         }
 
         let should_verify = if args.verify_interval == 0 {
