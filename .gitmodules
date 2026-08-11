@@ -1,3 +1,25 @@
 [submodule "ref"]
 	path = ref
 	url = https://github.com/peter-u-diehl/stdp-mnist.git
+[submodule "3rdparty/CARLsim6"]
+	path = 3rdparty/CARLsim6
+	url = https://github.com/UCI-CARL/CARLsim6.git
+[submodule "3rdparty/brian2"]
+	path = 3rdparty/brian2
+	url = https://github.com/brian-team/brian2.git
+[submodule "3rdparty/brian2cuda"]
+	path = 3rdparty/brian2cuda
+	url = https://github.com/brian-team/brian2cuda.git
+[submodule "3rdparty/genn"]
+	path = 3rdparty/genn
+	url = https://github.com/genn-team/genn.git
+[submodule "3rdparty/json"]
+	path = 3rdparty/json
+	url = https://github.com/nlohmann/json.git
+[submodule "3rdparty/nest-gpu"]
+	path = 3rdparty/nest-gpu
+	url = ./
+	branch = nest-gpu
+[submodule "3rdparty/nest-simulator"]
+	path = 3rdparty/nest-simulator
+	url = https://github.com/nest/nest-simulator.git

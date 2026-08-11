@@ -1,3 +1,4 @@
+# Dependency directories are registered as Git submodules.
+# Ignore any additional local checkouts placed here.
 /*
 !/.gitignore
-!/README.md

@@ -1,8 +1,5 @@
-# Local datasets and reviewed dependency clones
+# Local datasets
 /data/
-/3rdparty/*
-!/3rdparty/.gitignore
-!/3rdparty/README.md
 
 # Experiment runs and generated measurements
 /copilot/tmp/
