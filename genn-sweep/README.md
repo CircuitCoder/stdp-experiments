@@ -29,26 +29,23 @@ stimulus steps and 300 rest steps per attempt. Brunel uses arrival-timed STDP,
 step. The Brunel graph is the full scale-1 network: 9,000 excitatory neurons,
 2,250 inhibitory neurons, and 126,562,500 recurrent synapses.
 
-## Copy to the A100 machine
+## Checkpoints
 
-Transfer this working tree, including `genn-sweep/`, `reimpl/`, `brunel/`, and
-`3rdparty/genn/`. Also transfer the real MNIST IDX files under `data/mnist/` and
-these immutable checkpoint files:
+The three immutable MNIST starting states are committed under
+`genn-sweep/checkpoints/` and used by default. Each is the 10,000-accepted-sample
+checkpoint from a retained 30,000-sample GeNN CUDA training run on MNIST with
+seed 0.
 
-```text
-reimpl/runs/genn_cuda_mnist_30k_20260725_a/checkpoints/checkpoint_010000.npz
-reimpl/runs/genn_cuda_onetrace_dense_train30000_post_20260805_a/checkpoints/checkpoint_010000.npz
-reimpl/runs/genn_cuda_onetrace_sparse0125_train30000_pre32_20260805_a/checkpoints/checkpoint_010000.npz
-```
+| Workload | Committed checkpoint | Original retained run checkpoint | SHA-256 |
+|---|---|---|---|
+| Triplet dense | `mnist_triplet_dense_010000.npz` | `reimpl/runs/genn_cuda_mnist_30k_20260725_a/checkpoints/checkpoint_010000.npz` | `e4cef93ef2ad8c8e93b7d3d1b93b28276d62616f1e3b59b4dbc0db99149becce` |
+| One-trace dense | `mnist_one_trace_dense_010000.npz` | `reimpl/runs/genn_cuda_onetrace_dense_train30000_post_20260805_a/checkpoints/checkpoint_010000.npz` | `eab026d59dad20f1dd979f800e6a37e3f8a3e2b0386febb3f9b1fe672e44d289` |
+| One-trace sparse 12.5% | `mnist_one_trace_sparse_0125_010000.npz` | `reimpl/runs/genn_cuda_onetrace_sparse0125_train30000_pre32_20260805_a/checkpoints/checkpoint_010000.npz` | `c32bf0269d8dd33879a7ecfadc096e078cb4e6967d0d58215a1fe061253cc82d` |
 
-The run directories and checkpoints are experimental artifacts and may not be
-present in a plain Git checkout. The three checkpoint paths can instead be
-overridden with `--triplet-checkpoint`, `--dense-checkpoint`, and
-`--sparse-checkpoint`. `--data-path` similarly overrides the MNIST directory.
-
-Do not transfer or reuse generated GeNN build directories from the RTX 3090.
-Compile fresh on the A100 so CUDA code generation targets the new machine and
-toolchain.
+The original experiment directories remain on this machine for result
+reproduction. Override the committed defaults with `--triplet-checkpoint`,
+`--dense-checkpoint`, or `--sparse-checkpoint` when testing another state.
+`--data-path` similarly overrides the MNIST directory.
 
 ## Environment
 

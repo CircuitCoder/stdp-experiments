@@ -13,7 +13,9 @@ from typing import Iterator
 import numpy as np
 
 
-REPOSITORY = Path(__file__).resolve().parents[1]
+SWEEP_DIRECTORY = Path(__file__).resolve().parent
+REPOSITORY = SWEEP_DIRECTORY.parent
+CHECKPOINT_DIRECTORY = SWEEP_DIRECTORY / "checkpoints"
 sys.path.insert(0, str(REPOSITORY / "reimpl"))
 sys.path.insert(0, str(REPOSITORY / "brunel"))
 
@@ -200,10 +202,6 @@ def run_brunel(
     )
 
 
-def default_checkpoint(path: str) -> Path:
-    return REPOSITORY / path
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run the selected GeNN CUDA workloads with minimal measurement overhead."
@@ -221,25 +219,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--triplet-checkpoint",
         type=Path,
-        default=default_checkpoint(
-            "reimpl/runs/genn_cuda_mnist_30k_20260725_a/checkpoints/checkpoint_010000.npz"
-        ),
+        default=CHECKPOINT_DIRECTORY / "mnist_triplet_dense_010000.npz",
     )
     parser.add_argument(
         "--dense-checkpoint",
         type=Path,
-        default=default_checkpoint(
-            "reimpl/runs/genn_cuda_onetrace_dense_train30000_post_20260805_a/"
-            "checkpoints/checkpoint_010000.npz"
-        ),
+        default=CHECKPOINT_DIRECTORY / "mnist_one_trace_dense_010000.npz",
     )
     parser.add_argument(
         "--sparse-checkpoint",
         type=Path,
-        default=default_checkpoint(
-            "reimpl/runs/genn_cuda_onetrace_sparse0125_train30000_pre32_20260805_a/"
-            "checkpoints/checkpoint_010000.npz"
-        ),
+        default=CHECKPOINT_DIRECTORY / "mnist_one_trace_sparse_0125_010000.npz",
     )
     parser.add_argument("--work-dir", type=Path, default=REPOSITORY / "genn-sweep" / "work")
     parser.add_argument(

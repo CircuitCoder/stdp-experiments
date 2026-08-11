@@ -9,6 +9,7 @@
 /reimpl/logs/
 /trace-sim/results/
 /genn-sweep/*/
+!/genn-sweep/checkpoints/
 /genn-sweep/test-run-*.txt
 
 # Rust and native build output
