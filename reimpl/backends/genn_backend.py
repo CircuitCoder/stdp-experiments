@@ -82,6 +82,8 @@ class GeNNNetwork:
         num_threads_per_spike: int,
         timing_enabled: bool,
         reuse_build: Path | None,
+        record_spikes: bool = False,
+        recording_steps: int = 0,
     ) -> None:
         api = _import_genn()
         if backend not in api["backend_modules"]:
@@ -346,6 +348,12 @@ class GeNNNetwork:
                 "spikeCount": 0,
             },
         )
+        if record_spikes:
+            if recording_steps <= 0:
+                raise ValueError("recording_steps must be positive when recording spikes")
+            self.inputs.spike_recording_enabled = True
+            self.exc.spike_recording_enabled = True
+            self.inh.spike_recording_enabled = True
         triplet_params = {
             "depressionRate": MODEL.depression_rate,
             "potentiationRate": MODEL.potentiation_rate,
@@ -434,8 +442,12 @@ class GeNNNetwork:
         build_started = time.perf_counter()
         self.model.build(str(build_path), never_rebuild=reuse_build is not None)
         self.build_wall_seconds = time.perf_counter() - build_started
-        self.model.load()
+        if record_spikes:
+            self.model.load(num_recording_timesteps=recording_steps)
+        else:
+            self.model.load()
         self._count_baseline = np.zeros(MODEL.n_exc, dtype=np.uint32)
+        self._record_spikes = record_spikes
 
     def close(self) -> None:
         self.model.unload()
@@ -516,6 +528,23 @@ class GeNNNetwork:
         variable = self.exc.vars["theta"]
         variable.pull_from_device()
         return np.asarray(variable.view, dtype=np.float64).copy()
+
+    def recorded_spikes(self) -> dict[str, tuple[np.ndarray, np.ndarray]]:
+        if not self._record_spikes:
+            raise RuntimeError("spike recording was disabled for this model")
+        self.model.pull_recording_buffers_from_device()
+        result = {}
+        for name, population in (
+            ("input", self.inputs),
+            ("excitatory", self.exc),
+            ("inhibitory", self.inh),
+        ):
+            times, ids = population.spike_recording_data[0]
+            result[name] = (
+                np.asarray(times, dtype=np.float64).copy(),
+                np.asarray(ids, dtype=np.int64).copy(),
+            )
+        return result
 
     @staticmethod
     def _pulled(population: Any, name: str) -> np.ndarray:
