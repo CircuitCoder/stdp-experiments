@@ -5,6 +5,10 @@ import pytest
 
 from ports.brian2_port import fixed_indegree_arrays
 from ports.common import (
+    GENN_DEFAULT_DELAY_MS,
+    GENN_DEFAULT_EXTERNAL_RATE_SCALES,
+    GENN_DEFAULT_INDEGREE_SCALE,
+    GENN_DEFAULT_RECURRENT_DELIVERY_SCALE,
     JE_PA,
     RULES,
     TAU_MINUS_MS,
@@ -12,8 +16,10 @@ from ports.common import (
     PairTraceState,
     alpha_lif_step,
     alpha_propagator,
+    make_genn_default_model,
     make_model,
     stdp_post_path_delay_ms,
+    variance_preserving_scales,
 )
 
 
@@ -30,7 +36,7 @@ def test_fixed_indegree_arrays_exclude_autapses() -> None:
     assert np.all((source >= 0) & (source < 8))
 
 
-def test_scale_one_connection_counts() -> None:
+def test_historical_full_indegree_connection_counts() -> None:
     model = make_model("morrison", 1.0, 1.0)
     assert model.ne == 9000
     assert model.ni == 2250
@@ -38,9 +44,50 @@ def test_scale_one_connection_counts() -> None:
     assert model.recurrent_synapses == 126_562_500
 
 
+def test_five_percent_indegree_connection_counts() -> None:
+    model = make_model("morrison", 1.0, 0.05, delay_ms=0.0)
+    assert model.ne == 9000
+    assert model.ni == 2250
+    assert model.ce == 450
+    assert model.ci == 112
+    assert model.plastic_synapses == 4_050_000
+    assert model.recurrent_synapses == 6_322_500
+    assert model.delay_ms == 0.0
+
+
+@pytest.mark.parametrize("rule_name", ["additive", "morrison"])
+def test_genn_default_configuration(rule_name: str) -> None:
+    model = make_genn_default_model(rule_name)
+    assert model.indegree_scale == GENN_DEFAULT_INDEGREE_SCALE
+    assert model.delay_ms == GENN_DEFAULT_DELAY_MS
+    assert model.recurrent_delivery_scale == GENN_DEFAULT_RECURRENT_DELIVERY_SCALE
+    assert model.external_rate_scale == GENN_DEFAULT_EXTERNAL_RATE_SCALES[rule_name]
+    assert model.ce == 450
+    assert model.ci == 112
+
+
+def test_variance_preserving_sparse_scaling() -> None:
+    delivery_scale, external_rate_scale = variance_preserving_scales(0.05)
+    assert delivery_scale == pytest.approx(1.0 / np.sqrt(0.05))
+    assert external_rate_scale == pytest.approx(np.sqrt(0.05))
+
+    baseline = make_model("additive", 1.0, 1.0)
+    sparse = make_model(
+        "additive",
+        1.0,
+        0.05,
+        recurrent_delivery_scale=delivery_scale,
+        external_rate_scale=external_rate_scale,
+    )
+    assert sparse.external_rate_hz == pytest.approx(
+        baseline.external_rate_hz * external_rate_scale
+    )
+
+
 def test_nest_dendritic_timing_compensates_two_delays() -> None:
     assert stdp_post_path_delay_ms("arrival") == 0.0
     assert stdp_post_path_delay_ms("nest_dendritic") == 3.0
+    assert stdp_post_path_delay_ms("nest_dendritic", 0.0) == 0.0
 
 
 def test_alpha_propagator_matches_independent_matrix_step() -> None:

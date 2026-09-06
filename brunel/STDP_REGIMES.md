@@ -1,5 +1,11 @@
 # STDP equilibrium regimes in the NEST Brunel benchmarks
 
+The rule-level discussion in this document remains applicable, but its Brunel
+measurements and equilibrium expectations were written for historical NEST and
+full-indegree configurations. They are not measurements of the current
+5%-indegree, zero-delay GeNN default, whose short 1 s recovery runs do not
+establish a long-run equilibrium.
+
 ## Summary
 
 The equilibrium shape of a plastic synaptic-weight distribution is controlled

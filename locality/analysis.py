@@ -97,6 +97,166 @@ def series_summary(series: np.ndarray) -> dict[str, Any]:
     }
 
 
+def count_distribution_summary(counts: np.ndarray) -> dict[str, Any]:
+    values = np.asarray(counts, dtype=np.uint64)
+    histogram = np.bincount(values.astype(np.int64)).astype(np.uint64)
+    summary = series_summary(values)
+    summary.pop("lag1_autocorrelation")
+    summary["active_count"] = int(np.count_nonzero(values))
+    summary["concentration"] = histogram_concentration(histogram)
+    return summary
+
+
+def weighted_interval_histogram(
+    event_ticks: Iterable[np.ndarray], weights: np.ndarray | None = None
+) -> np.ndarray:
+    events = list(event_ticks)
+    if weights is None:
+        event_weights = np.ones(len(events), dtype=np.uint64)
+    else:
+        event_weights = np.asarray(weights, dtype=np.uint64)
+        if event_weights.shape != (len(events),):
+            raise ValueError("interval weights must match event entities")
+
+    histogram = np.zeros(1, dtype=np.uint64)
+    for ticks, weight in zip(events, event_weights):
+        values = np.asarray(ticks, dtype=np.int64)
+        if values.size < 2 or weight == 0:
+            continue
+        gaps = np.diff(np.sort(values))
+        if np.any(gaps < 0):
+            raise ValueError("event ticks must produce non-negative intervals")
+        required = int(gaps.max()) + 1
+        if required > histogram.size:
+            histogram.resize(required, refcheck=False)
+        histogram[:required] += (
+            np.bincount(gaps, minlength=required).astype(np.uint64) * weight
+        )
+    return histogram
+
+
+def interval_histogram_summary(histogram: np.ndarray, dt_ms: float) -> dict[str, Any]:
+    counts = np.asarray(histogram, dtype=np.uint64)
+    values = np.flatnonzero(counts)
+    nonzero_counts = counts[values]
+    total = int(nonzero_counts.sum(dtype=np.uint64))
+    if total == 0:
+        return {
+            "intervals": 0,
+            "mean_ticks": None,
+            "mean_ms": None,
+            "variance_ticks2": None,
+            "variance_ms2": None,
+            "std_ticks": None,
+            "std_ms": None,
+            "coefficient_of_variation": None,
+            "skewness": None,
+            "excess_kurtosis": None,
+            "p10_ticks": None,
+            "p25_ticks": None,
+            "p50_ticks": None,
+            "p75_ticks": None,
+            "p90_ticks": None,
+            "p95_ticks": None,
+            "p99_ticks": None,
+            "maximum_ticks": None,
+            "zero_tick_fraction": None,
+            "histogram_values_ticks": [],
+            "histogram_counts": [],
+        }
+
+    cumulative = np.cumsum(nonzero_counts, dtype=np.uint64)
+
+    def quantile_tick(fraction: float) -> int:
+        rank = max(1, math.ceil(total * fraction))
+        return int(values[np.searchsorted(cumulative, rank, side="left")])
+
+    weighted_total = int(
+        np.dot(values.astype(object), nonzero_counts.astype(object))
+    )
+    mean_ticks = weighted_total / total
+    float_values = values.astype(np.float64)
+    float_counts = nonzero_counts.astype(np.float64)
+    centered = float_values - mean_ticks
+    variance_ticks2 = float(np.dot(centered**2, float_counts) / total)
+    std_ticks = math.sqrt(variance_ticks2)
+    if std_ticks > 0.0:
+        skewness = float(np.dot(centered**3, float_counts) / total / std_ticks**3)
+        excess_kurtosis = float(
+            np.dot(centered**4, float_counts) / total / variance_ticks2**2 - 3.0
+        )
+    else:
+        skewness = None
+        excess_kurtosis = None
+    return {
+        "intervals": total,
+        "mean_ticks": mean_ticks,
+        "mean_ms": mean_ticks * dt_ms,
+        "variance_ticks2": variance_ticks2,
+        "variance_ms2": variance_ticks2 * dt_ms**2,
+        "std_ticks": std_ticks,
+        "std_ms": std_ticks * dt_ms,
+        "coefficient_of_variation": std_ticks / mean_ticks
+        if mean_ticks > 0.0
+        else None,
+        "skewness": skewness,
+        "excess_kurtosis": excess_kurtosis,
+        "p10_ticks": quantile_tick(0.10),
+        "p25_ticks": quantile_tick(0.25),
+        "p50_ticks": quantile_tick(0.50),
+        "p75_ticks": quantile_tick(0.75),
+        "p90_ticks": quantile_tick(0.90),
+        "p95_ticks": quantile_tick(0.95),
+        "p99_ticks": quantile_tick(0.99),
+        "maximum_ticks": int(values[-1]),
+        "zero_tick_fraction": int(counts[0]) / total,
+        "histogram_values_ticks": values.astype(np.uint64).tolist(),
+        "histogram_counts": nonzero_counts.tolist(),
+    }
+
+
+def id_gap_histogram_summary(histogram: np.ndarray) -> dict[str, Any]:
+    interval = interval_histogram_summary(histogram, 1.0)
+    return {
+        "gaps": interval["intervals"],
+        "mean_id_distance": interval["mean_ticks"],
+        "p50_id_distance": interval["p50_ticks"],
+        "p90_id_distance": interval["p90_ticks"],
+        "p99_id_distance": interval["p99_ticks"],
+        "maximum_id_distance": interval["maximum_ticks"],
+        "same_id_fraction": interval["zero_tick_fraction"],
+        "histogram_values_id_distance": interval["histogram_values_ticks"],
+        "histogram_counts": interval["histogram_counts"],
+    }
+
+
+def within_tick_id_gap_histogram(
+    times_ms: np.ndarray,
+    ids: np.ndarray,
+    *,
+    dt_ms: float,
+    start_ms: float,
+    duration_ticks: int,
+) -> np.ndarray:
+    ticks, keep = ticks_for_events(
+        times_ms,
+        dt_ms=dt_ms,
+        start_ms=start_ms,
+        duration_ticks=duration_ticks,
+    )
+    kept_ids = np.asarray(ids, dtype=np.int64)[keep]
+    order = np.argsort(ticks, kind="stable")
+    sorted_ticks = ticks[order]
+    sorted_ids = kept_ids[order]
+    if sorted_ticks.size < 2:
+        return np.zeros(1, dtype=np.uint64)
+    same_tick = sorted_ticks[1:] == sorted_ticks[:-1]
+    gaps = np.abs(np.diff(sorted_ids))[same_tick]
+    if gaps.size == 0:
+        return np.zeros(1, dtype=np.uint64)
+    return np.bincount(gaps).astype(np.uint64)
+
+
 def histogram_concentration(histogram: np.ndarray) -> dict[str, float | None]:
     counts = np.asarray(histogram, dtype=np.uint64)
     n = int(counts.sum(dtype=np.uint64))

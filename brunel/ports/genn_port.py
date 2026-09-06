@@ -10,8 +10,11 @@ from typing import Any
 import numpy as np
 
 from ports.common import (
-    DELAY_MS,
     DT_MS,
+    GENN_DEFAULT_DELAY_MS,
+    GENN_DEFAULT_EXTERNAL_RATE_SCALES,
+    GENN_DEFAULT_INDEGREE_SCALE,
+    GENN_DEFAULT_RECURRENT_DELIVERY_SCALE,
     JE_PA,
     REFRACTORY_MS,
     TAU_MINUS_MS,
@@ -153,6 +156,7 @@ class GeNNBrunel:
             "BrunelMeasuredSTDP",
             params=[
                 "epscInitial",
+                "deliveryScale",
                 "learningRate",
                 "depressionRatio",
                 "muPlus",
@@ -207,7 +211,7 @@ class GeNNBrunel:
                 g = fmax(0.0,
                     g - (learningRate * depressionRatio * g * effectivePostTrace));
             }
-            addToPost(epscInitial * g);
+            addToPost(epscInitial * deliveryScale * g);
             preTrace += 1.0;
             lastTraceTime = t;
             lastPreUpdateTime = t;
@@ -238,8 +242,8 @@ class GeNNBrunel:
         )
         static_model = create_weight_update_model(
             "BrunelStaticPulse",
-            params=["g", "epscInitial"],
-            pre_spike_syn_code="addToPost(epscInitial * g);",
+            params=["g", "epscInitial", "deliveryScale"],
+            pre_spike_syn_code="addToPost(epscInitial * deliveryScale * g);",
         )
         from scipy.stats import binom
 
@@ -317,9 +321,11 @@ class GeNNBrunel:
         )
         if record_spikes:
             self.exc.spike_recording_enabled = True
+            self.inh.spike_recording_enabled = True
         weight_max = spec.rule.weight_max_pa if spec.rule.weight_max_pa is not None else 1.0e30
         plastic_params = {
             "epscInitial": p["epsc_initial"],
+            "deliveryScale": spec.recurrent_delivery_scale,
             "learningRate": spec.rule.learning_rate,
             "depressionRatio": spec.rule.depression_ratio,
             "muPlus": spec.rule.mu_plus,
@@ -358,11 +364,18 @@ class GeNNBrunel:
             else api["ParallelismHint"].POSTSYNAPTIC
         )
         self.ee.num_threads_per_spike = ee_num_threads_per_spike
-        self.ee.back_prop_delay_steps = round(stdp_post_path_delay_ms(stdp_timing) / DT_MS)
-        static_ex = {"g": JE_PA, "epscInitial": p["epsc_initial"]}
+        self.ee.back_prop_delay_steps = round(
+            stdp_post_path_delay_ms(stdp_timing, spec.delay_ms) / DT_MS
+        )
+        static_ex = {
+            "g": JE_PA,
+            "epscInitial": p["epsc_initial"],
+            "deliveryScale": spec.recurrent_delivery_scale,
+        }
         static_in = {
             "g": -spec.rule.inhibitory_weight_ratio * JE_PA,
             "epscInitial": p["epsc_initial"],
+            "deliveryScale": spec.recurrent_delivery_scale,
         }
         self.ie = self.model.add_synapse_population(
             "IE",
@@ -394,7 +407,7 @@ class GeNNBrunel:
             init_sparse_connectivity(no_autapse, {"num": spec.ci}),
         )
         self.ii.post_target_var = "inIn"
-        delay_steps = round(DELAY_MS / DT_MS)
+        delay_steps = round(spec.delay_ms / DT_MS)
         for synapses in (self.ee, self.ie, self.ei, self.ii):
             synapses.axonal_delay_steps = delay_steps
         model_code = f"brunel_{spec.rule.name}_CODE"
@@ -501,19 +514,36 @@ class GeNNBrunel:
         return values[indices].copy()
 
     def recorded_spikes(self, n_record: int) -> tuple[np.ndarray, np.ndarray]:
+        times, ids = self.recorded_population_spikes()["excitatory"]
+        keep = ids < n_record
+        return times[keep], ids[keep]
+
+    def recorded_population_spikes(
+        self,
+    ) -> dict[str, tuple[np.ndarray, np.ndarray]]:
         if not self._record_spikes:
             raise RuntimeError("spike recording was disabled for this model")
         self.model.pull_recording_buffers_from_device()
-        times, ids = self.exc.spike_recording_data[0]
-        times = np.asarray(times, dtype=np.float64)
-        ids = np.asarray(ids, dtype=np.int64)
-        keep = ids < n_record
-        return times[keep], ids[keep]
+        result = {}
+        for name, population in (("excitatory", self.exc), ("inhibitory", self.inh)):
+            times, ids = population.spike_recording_data[0]
+            result[name] = (
+                np.asarray(times, dtype=np.float64).copy(),
+                np.asarray(ids, dtype=np.int64).copy(),
+            )
+        return result
 
 
 def run(args: argparse.Namespace) -> int:
     api = _import_genn()
-    spec = make_model(args.rule, args.network_scale, args.indegree_scale)
+    spec = make_model(
+        args.rule,
+        args.network_scale,
+        args.indegree_scale,
+        delay_ms=args.delay_ms,
+        recurrent_delivery_scale=args.recurrent_delivery_scale,
+        external_rate_scale=args.external_rate_scale,
+    )
     backend_name = f"genn-{args.backend}"
     manifest = base_manifest(backend_name, spec)
     manifest.update(
@@ -532,7 +562,9 @@ def run(args: argparse.Namespace) -> int:
             "external_input": "independent Poisson multiplicity sampled in each neuron kernel",
             "stdp_timing": args.stdp_timing,
             "stdp_tie_order": args.stdp_tie_order,
-            "stdp_post_path_delay_ms": stdp_post_path_delay_ms(args.stdp_timing),
+            "stdp_post_path_delay_ms": stdp_post_path_delay_ms(
+                args.stdp_timing, spec.delay_ms
+            ),
             "genn_timing_enabled": args.genn_timing,
             "profile_accounting_enabled": args.profile_accounting,
             "reuse_build": str(args.reuse_build.resolve()) if args.reuse_build else None,
@@ -562,7 +594,9 @@ def run(args: argparse.Namespace) -> int:
     initial_weights = network.sample_weights(args.weight_sample_size)
     initial_stats = weight_stats(initial_weights, spec.rule)
     print(
-        f"CONFIG backend={backend_name} rule={args.rule} dt_ms={DT_MS} delay_ms={DELAY_MS} "
+        f"CONFIG backend={backend_name} rule={args.rule} dt_ms={DT_MS} "
+        f"delay_ms={spec.delay_ms} recurrent_delivery_scale={spec.recurrent_delivery_scale} "
+        f"external_rate_scale={spec.external_rate_scale} "
         f"ne={spec.ne} ni={spec.ni} ce={spec.ce} ci={spec.ci} precision={args.precision} "
         f"ee_parallelism={args.ee_parallelism} "
         f"ee_threads_per_spike={args.ee_num_threads_per_spike} "
@@ -698,7 +732,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="GeNN port of the measured Brunel STDP models")
     parser.add_argument("--rule", choices=("additive", "morrison"), required=True)
     parser.add_argument("--backend", default="single_threaded_cpu")
-    parser.add_argument("--precision", choices=("double", "float"), default="double")
+    parser.add_argument("--precision", choices=("double", "float"), default="float")
     parser.add_argument(
         "--ee-parallelism",
         choices=("postsynaptic", "presynaptic"),
@@ -709,14 +743,27 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=20260724)
     parser.add_argument("--state-seed", type=int)
     parser.add_argument("--network-scale", type=float, default=1.0)
-    parser.add_argument("--indegree-scale", type=float, default=1.0)
+    parser.add_argument(
+        "--indegree-scale", type=float, default=GENN_DEFAULT_INDEGREE_SCALE
+    )
+    parser.add_argument("--delay-ms", type=float, default=GENN_DEFAULT_DELAY_MS)
+    parser.add_argument(
+        "--recurrent-delivery-scale",
+        type=float,
+        default=GENN_DEFAULT_RECURRENT_DELIVERY_SCALE,
+    )
+    parser.add_argument(
+        "--external-rate-scale",
+        type=float,
+        help="scale external drive (default: 0.47 additive, 0.32 Morrison)",
+    )
     parser.add_argument("--presim-ms", type=float, default=100.0)
     parser.add_argument("--sim-ms", type=float, default=1000.0)
     parser.add_argument("--chunk-ms", type=float, default=100.0)
     parser.add_argument("--abort-rate-hz", type=float, default=100.0)
     parser.add_argument("--record-neurons", type=int, default=1000)
     parser.add_argument("--weight-sample-size", type=int, default=100000)
-    parser.add_argument("--stdp-timing", choices=STDP_TIMING_MODES, default="nest_dendritic")
+    parser.add_argument("--stdp-timing", choices=STDP_TIMING_MODES, default="arrival")
     parser.add_argument(
         "--stdp-tie-order", choices=STDP_TIE_MODES, default="nest_causal_boundary"
     )
@@ -742,18 +789,29 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    for name in ("network_scale", "indegree_scale", "sim_ms", "chunk_ms"):
+    if args.external_rate_scale is None:
+        args.external_rate_scale = GENN_DEFAULT_EXTERNAL_RATE_SCALES[args.rule]
+    for name in (
+        "network_scale",
+        "indegree_scale",
+        "recurrent_delivery_scale",
+        "external_rate_scale",
+        "sim_ms",
+        "chunk_ms",
+    ):
         if getattr(args, name) <= 0.0:
             raise SystemExit(f"--{name.replace('_', '-')} must be positive")
     if args.presim_ms < 0.0:
         raise SystemExit("--presim-ms must be non-negative")
+    if args.delay_ms < 0.0:
+        raise SystemExit("--delay-ms must be non-negative")
     if args.ee_num_threads_per_spike <= 0:
         raise SystemExit("--ee-num-threads-per-spike must be positive")
     if args.ee_parallelism == "postsynaptic" and args.ee_num_threads_per_spike != 1:
         raise SystemExit(
             "--ee-num-threads-per-spike only applies to presynaptic EE parallelism"
         )
-    for name in ("presim_ms", "sim_ms", "chunk_ms"):
+    for name in ("delay_ms", "presim_ms", "sim_ms", "chunk_ms"):
         steps = getattr(args, name) / DT_MS
         if not math.isclose(steps, round(steps), abs_tol=1e-9):
             raise SystemExit(f"--{name.replace('_', '-')} must be an integer number of timesteps")

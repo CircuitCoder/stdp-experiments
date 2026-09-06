@@ -14,7 +14,17 @@ import numpy as np
 
 
 DT_MS = 0.1
+# Retained for historical non-GeNN ports and explicitly requested legacy cases.
 DELAY_MS = 1.5
+GENN_DEFAULT_INDEGREE_SCALE = 0.05
+GENN_DEFAULT_DELAY_MS = 0.0
+GENN_DEFAULT_RECURRENT_DELIVERY_SCALE = 1.0 / math.sqrt(
+    GENN_DEFAULT_INDEGREE_SCALE
+)
+GENN_DEFAULT_EXTERNAL_RATE_SCALES = {
+    "additive": 0.47,
+    "morrison": 0.32,
+}
 STDP_TIMING_MODES = ("arrival", "nest_dendritic")
 STDP_TIE_MODES = (
     "framework_pre_first",
@@ -33,14 +43,16 @@ VM_MEAN_MV = 5.7
 VM_STD_MV = 7.2
 
 
-def stdp_post_path_delay_ms(mode: str) -> float:
+def stdp_post_path_delay_ms(mode: str, delay_ms: float = DELAY_MS) -> float:
     if mode == "arrival":
         return 0.0
     if mode == "nest_dendritic":
         # NEST samples postsynaptic history at t_pre_source - dendritic_delay,
         # while these ports process presynaptic learning at t_pre_source + delay.
-        return 2.0 * DELAY_MS
+        return 2.0 * delay_ms
     raise ValueError(f"unsupported STDP timing mode: {mode}")
+
+
 JE_PA = 45.609600316540956
 BASE_NE = 9000
 BASE_NI = 2250
@@ -95,6 +107,9 @@ class Model:
     ni: int
     ce: int
     ci: int
+    delay_ms: float
+    recurrent_delivery_scale: float
+    external_rate_scale: float
 
     @property
     def recurrent_synapses(self) -> int:
@@ -109,14 +124,19 @@ class Model:
         nu_threshold = V_THRESHOLD_MV / (
             self.ce * TAU_M_MS / CAPACITANCE_PF * JE_PA * math.e * TAU_SYN_MS
         )
-        return nu_threshold * self.rule.external_drive_eta * self.ce * 1000.0
+        return (
+            nu_threshold
+            * self.rule.external_drive_eta
+            * self.ce
+            * self.external_rate_scale
+            * 1000.0
+        )
 
     def as_dict(self) -> dict[str, Any]:
         result = asdict(self)
         result.update(
             {
                 "dt_ms": DT_MS,
-                "delay_ms": DELAY_MS,
                 "tau_m_ms": TAU_M_MS,
                 "tau_syn_ms": TAU_SYN_MS,
                 "capacitance_pf": CAPACITANCE_PF,
@@ -137,11 +157,38 @@ class Model:
         return result
 
 
-def make_model(rule: str, network_scale: float, indegree_scale: float) -> Model:
+def variance_preserving_scales(indegree_scale: float) -> tuple[float, float]:
+    if not math.isfinite(indegree_scale) or indegree_scale <= 0.0:
+        raise ValueError("indegree scale must be finite and positive")
+    root_scale = math.sqrt(indegree_scale)
+    return 1.0 / root_scale, root_scale
+
+
+def make_model(
+    rule: str,
+    network_scale: float,
+    indegree_scale: float,
+    *,
+    delay_ms: float = DELAY_MS,
+    recurrent_delivery_scale: float = 1.0,
+    external_rate_scale: float = 1.0,
+) -> Model:
     if rule not in RULES:
         raise ValueError(f"unknown rule {rule!r}")
-    if network_scale <= 0.0 or indegree_scale <= 0.0:
-        raise ValueError("network and indegree scales must be positive")
+    positive_values = {
+        "network scale": network_scale,
+        "indegree scale": indegree_scale,
+        "recurrent delivery scale": recurrent_delivery_scale,
+        "external rate scale": external_rate_scale,
+    }
+    for name, value in positive_values.items():
+        if not math.isfinite(value) or value <= 0.0:
+            raise ValueError(f"{name} must be finite and positive")
+    if not math.isfinite(delay_ms) or delay_ms < 0.0:
+        raise ValueError("delay must be finite and non-negative")
+    delay_steps = delay_ms / DT_MS
+    if not math.isclose(delay_steps, round(delay_steps), abs_tol=1e-9):
+        raise ValueError("delay must be an integer number of timesteps")
     return Model(
         rule=RULES[rule],
         network_scale=network_scale,
@@ -150,6 +197,22 @@ def make_model(rule: str, network_scale: float, indegree_scale: float) -> Model:
         ni=max(2, round(BASE_NI * network_scale)),
         ce=max(1, round(BASE_CE * indegree_scale)),
         ci=max(1, round(BASE_CI * indegree_scale)),
+        delay_ms=delay_ms,
+        recurrent_delivery_scale=recurrent_delivery_scale,
+        external_rate_scale=external_rate_scale,
+    )
+
+
+def make_genn_default_model(rule: str, network_scale: float = 1.0) -> Model:
+    if rule not in RULES:
+        raise ValueError(f"unknown rule {rule!r}")
+    return make_model(
+        rule,
+        network_scale,
+        GENN_DEFAULT_INDEGREE_SCALE,
+        delay_ms=GENN_DEFAULT_DELAY_MS,
+        recurrent_delivery_scale=GENN_DEFAULT_RECURRENT_DELIVERY_SCALE,
+        external_rate_scale=GENN_DEFAULT_EXTERNAL_RATE_SCALES[rule],
     )
 
 

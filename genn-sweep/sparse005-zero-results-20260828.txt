@@ -1,0 +1,20 @@
+# Run 1: fresh builds
+case=mnist_triplet_dense precision=float spike_count=246685 wall_seconds=3.551011627 seconds_per_step=3.481383947998e-05
+case=mnist_one_trace_dense precision=float spike_count=244155 wall_seconds=2.916380170 seconds_per_step=2.887505118731e-05
+case=mnist_one_trace_sparse_0125 precision=float spike_count=244318 wall_seconds=2.679441975 seconds_per_step=2.679441974964e-05
+case=brunel_additive precision=float indegree_scale=0.05 delay_ms=0.0 recurrent_delivery_scale=4.47213595499958 external_rate_scale=0.47 spike_count=49896 wall_seconds=0.426342870 seconds_per_step=4.263428699924e-05
+case=brunel_morrison precision=float indegree_scale=0.05 delay_ms=0.0 recurrent_delivery_scale=4.47213595499958 external_rate_scale=0.32 spike_count=67089 wall_seconds=0.423114496 seconds_per_step=4.231144959340e-05
+
+# Run 2: reuse Run 1 builds
+case=mnist_triplet_dense precision=float spike_count=246685 wall_seconds=3.684044736 seconds_per_step=3.611808564678e-05
+case=mnist_one_trace_dense precision=float spike_count=244155 wall_seconds=3.003328209 seconds_per_step=2.973592286183e-05
+case=mnist_one_trace_sparse_0125 precision=float spike_count=244318 wall_seconds=2.634410178 seconds_per_step=2.634410178056e-05
+case=brunel_additive precision=float indegree_scale=0.05 delay_ms=0.0 recurrent_delivery_scale=4.47213595499958 external_rate_scale=0.47 spike_count=49896 wall_seconds=0.421188859 seconds_per_step=4.211888589198e-05
+case=brunel_morrison precision=float indegree_scale=0.05 delay_ms=0.0 recurrent_delivery_scale=4.47213595499958 external_rate_scale=0.32 spike_count=67089 wall_seconds=0.418579204 seconds_per_step=4.185792040080e-05
+
+# Run 3: reuse Run 1 builds
+case=mnist_triplet_dense precision=float spike_count=246685 wall_seconds=3.558135471 seconds_per_step=3.488368108782e-05
+case=mnist_one_trace_dense precision=float spike_count=244155 wall_seconds=2.883184135 seconds_per_step=2.854637757502e-05
+case=mnist_one_trace_sparse_0125 precision=float spike_count=244318 wall_seconds=2.578603441 seconds_per_step=2.578603441012e-05
+case=brunel_additive precision=float indegree_scale=0.05 delay_ms=0.0 recurrent_delivery_scale=4.47213595499958 external_rate_scale=0.47 spike_count=49896 wall_seconds=0.422040562 seconds_per_step=4.220405620290e-05
+case=brunel_morrison precision=float indegree_scale=0.05 delay_ms=0.0 recurrent_delivery_scale=4.47213595499958 external_rate_scale=0.32 spike_count=67089 wall_seconds=0.421934542 seconds_per_step=4.219345420133e-05

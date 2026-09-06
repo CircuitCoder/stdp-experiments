@@ -1,5 +1,13 @@
 # GeNN CUDA profiling results
 
+**Legacy Brunel geometry:** all Brunel profiling in this document used the
+full-indegree, 1.5 ms-delay graph with 126,562,500 recurrent synapses. The
+current GeNN default instead uses 5% fixed indegree, zero delay, and 6,322,500
+recurrent synapses. Kernel geometry, delay-queue traffic, utilization, register
+pressure, and timing conclusions here do not transfer directly to the current
+default. Current timing-disabled results are recorded in `performance.md` and
+`genn-sweep/README.md`.
+
 Measured 2026-08-05 and 2026-08-06 UTC. The original profiling instructions are
 retained after the results under [Profiling plan](#genn-cuda-profiling-plan).
 

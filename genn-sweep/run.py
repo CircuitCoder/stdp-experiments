@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 import os
 import sys
 import time
@@ -21,6 +22,16 @@ sys.path.insert(0, str(REPOSITORY / "brunel"))
 
 from backends.genn_backend import GeNNNetwork  # noqa: E402
 from ports.common import DT_MS as BRUNEL_DT_MS  # noqa: E402
+from ports.common import GENN_DEFAULT_DELAY_MS as BRUNEL_DELAY_MS  # noqa: E402
+from ports.common import (  # noqa: E402
+    GENN_DEFAULT_EXTERNAL_RATE_SCALES as BRUNEL_EXTERNAL_RATE_SCALES,
+)
+from ports.common import (  # noqa: E402
+    GENN_DEFAULT_INDEGREE_SCALE as BRUNEL_INDEGREE_SCALE,
+)
+from ports.common import (  # noqa: E402
+    GENN_DEFAULT_RECURRENT_DELIVERY_SCALE as BRUNEL_RECURRENT_DELIVERY_SCALE,
+)
 from ports.common import make_model  # noqa: E402
 from ports.genn_port import GeNNBrunel  # noqa: E402
 from zd3.constants import MODEL  # noqa: E402
@@ -161,7 +172,17 @@ def run_brunel(
     args: argparse.Namespace, case_name: str, precision: str
 ) -> Result:
     rule = BRUNEL_CASES[case_name]
-    spec = make_model(rule, 1.0, 1.0)
+    external_rate_scale = getattr(
+        args, f"brunel_{rule}_external_rate_scale"
+    )
+    spec = make_model(
+        rule,
+        1.0,
+        args.brunel_indegree_scale,
+        delay_ms=args.brunel_delay_ms,
+        recurrent_delivery_scale=args.brunel_recurrent_delivery_scale,
+        external_rate_scale=external_rate_scale,
+    )
     build_path, reuse_build = build_location(args, case_name, precision)
     network = GeNNBrunel(
         spec=spec,
@@ -215,6 +236,25 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mnist-samples", type=int, default=100)
     parser.add_argument("--brunel-presim-ms", type=float, default=100.0)
     parser.add_argument("--brunel-sim-ms", type=float, default=1000.0)
+    parser.add_argument(
+        "--brunel-indegree-scale", type=float, default=BRUNEL_INDEGREE_SCALE
+    )
+    parser.add_argument("--brunel-delay-ms", type=float, default=BRUNEL_DELAY_MS)
+    parser.add_argument(
+        "--brunel-recurrent-delivery-scale",
+        type=float,
+        default=BRUNEL_RECURRENT_DELIVERY_SCALE,
+    )
+    parser.add_argument(
+        "--brunel-additive-external-rate-scale",
+        type=float,
+        default=BRUNEL_EXTERNAL_RATE_SCALES["additive"],
+    )
+    parser.add_argument(
+        "--brunel-morrison-external-rate-scale",
+        type=float,
+        default=BRUNEL_EXTERNAL_RATE_SCALES["morrison"],
+    )
     parser.add_argument("--data-path", type=Path, default=REPOSITORY / "data" / "mnist")
     parser.add_argument(
         "--triplet-checkpoint",
@@ -246,6 +286,23 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit("--mnist-samples must be positive")
     if args.brunel_presim_ms < 0.0 or args.brunel_sim_ms <= 0.0:
         raise SystemExit("Brunel presimulation must be non-negative and simulation positive")
+    for name in (
+        "brunel_indegree_scale",
+        "brunel_recurrent_delivery_scale",
+        "brunel_additive_external_rate_scale",
+        "brunel_morrison_external_rate_scale",
+    ):
+        value = getattr(args, name)
+        if not math.isfinite(value) or value <= 0.0:
+            raise SystemExit(f"--{name.replace('_', '-')} must be finite and positive")
+    if not math.isfinite(args.brunel_delay_ms) or args.brunel_delay_ms < 0.0:
+        raise SystemExit("--brunel-delay-ms must be finite and non-negative")
+    for name in ("brunel_delay_ms", "brunel_presim_ms", "brunel_sim_ms"):
+        steps = getattr(args, name) / BRUNEL_DT_MS
+        if not math.isclose(steps, round(steps), abs_tol=1e-9):
+            raise SystemExit(
+                f"--{name.replace('_', '-')} must be an integer number of timesteps"
+            )
     if args.reuse_build_root is not None and not args.reuse_build_root.is_dir():
         raise SystemExit(f"reusable build root does not exist: {args.reuse_build_root}")
     args.work_dir.mkdir(parents=True, exist_ok=False)
@@ -266,8 +323,20 @@ def main(argv: list[str] | None = None) -> int:
             except BaseException:
                 print(f"{case_name} ({precision}) failed; see {log_path}", file=sys.stderr)
                 raise
+            brunel_config = ""
+            if case_name in BRUNEL_CASES:
+                rule = BRUNEL_CASES[case_name]
+                external_rate_scale = getattr(
+                    args, f"brunel_{rule}_external_rate_scale"
+                )
+                brunel_config = (
+                    f"indegree_scale={args.brunel_indegree_scale} "
+                    f"delay_ms={args.brunel_delay_ms} "
+                    f"recurrent_delivery_scale={args.brunel_recurrent_delivery_scale} "
+                    f"external_rate_scale={external_rate_scale} "
+                )
             print(
-                f"case={case_name} precision={precision} "
+                f"case={case_name} precision={precision} {brunel_config}"
                 f"spike_count={result.spike_count} "
                 f"wall_seconds={result.wall_seconds:.9f} "
                 f"seconds_per_step={result.wall_seconds / result.simulation_steps:.12e}",

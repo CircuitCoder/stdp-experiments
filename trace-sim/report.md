@@ -1,5 +1,10 @@
 # STDP update locality and buffering report
 
+The Brunel references in this report are conceptual comparisons, not results
+from the current 5%-indegree, zero-delay GeNN Brunel network. Any older Brunel
+geometry assumed by related locality or profiling documents must be treated as
+configuration-specific and revalidated before applying it here.
+
 This report is generated alongside the simulator so that the research basis,
 model assumptions, exact trace provenance, validation, and results remain tied
 to the implementation. The completed experiment tables and conclusions are

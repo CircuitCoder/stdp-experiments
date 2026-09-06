@@ -23,15 +23,21 @@ sys.path.insert(0, str(REPOSITORY / "reimpl"))
 sys.path.insert(0, str(REPOSITORY / "brunel"))
 sys.path.insert(0, str(REPOSITORY))
 
-from brunel.ports.common import DELAY_MS, DT_MS as BRUNEL_DT_MS, make_model  # noqa: E402
+from brunel.ports.common import (  # noqa: E402
+    DT_MS as BRUNEL_DT_MS,
+    make_genn_default_model,
+)
 from brunel.ports.genn_port import GeNNBrunel  # noqa: E402
 from locality.analysis import (  # noqa: E402
     aggregate_series,
     choose_edge_sample,
+    count_distribution_summary,
     endpoint_counts,
     event_series,
     firing_communities,
     histogram_concentration,
+    id_gap_histogram_summary,
+    interval_histogram_summary,
     interval_gaps,
     morans_i_4_neighbor,
     sample_sparse_state,
@@ -39,9 +45,16 @@ from locality.analysis import (  # noqa: E402
     series_summary,
     spearman,
     ticks_for_events,
+    weighted_interval_histogram,
+    within_tick_id_gap_histogram,
     write_json,
 )
-from locality.plotting import plot_brunel_spatial, plot_mnist_spatial, plot_temporal  # noqa: E402
+from locality.plotting import (  # noqa: E402
+    plot_brunel_intervals,
+    plot_brunel_spatial,
+    plot_mnist_spatial,
+    plot_temporal,
+)
 from reimpl.backends.genn_backend import GeNNNetwork  # noqa: E402
 from reimpl.zd3.constants import MODEL  # noqa: E402
 from reimpl.zd3.io import load_checkpoint, load_mnist, sha256_file  # noqa: E402
@@ -111,7 +124,7 @@ def base_manifest(args: argparse.Namespace, case_name: str) -> dict[str, Any]:
     import pygenn
 
     return {
-        "schema": "synapse-locality-v1",
+        "schema": "synapse-locality-v3",
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "case": case_name,
         "command": sys.argv,
@@ -128,6 +141,12 @@ def base_manifest(args: argparse.Namespace, case_name: str) -> dict[str, Any]:
             "synapse_traversal": "execution of a synaptic pre or post event path",
             "weight_update_attempt": "execution of code assigning the plastic weight",
             "net_weight_change": "absolute before/after difference; cancelling events are not counted separately",
+            "population_interarrival": "gaps between consecutive spikes in one population, including zero-tick simultaneous gaps",
+            "per_neuron_interspike": "gaps between consecutive spikes from the same neuron, pooled by population",
+            "per_synapse_pre_interval": "source-neuron interspike gaps weighted by each source's E-E outdegree",
+            "per_synapse_post_interval": "target-neuron interspike gaps weighted by each target's E-E indegree",
+            "windowed_interval": "both events fall within the named half-open window; intervals crossing a window boundary are excluded",
+            "within_tick_neuron_id_gap": "absolute ID distance between consecutive entries in GeNN's recorded spike-list order, excluding cross-tick pairs",
         },
     }
 
@@ -398,11 +417,12 @@ def brunel_window(
     *,
     start_ms: float,
     duration_ms: float,
+    delay_ms: float,
 ) -> tuple[dict[str, Any], dict[str, np.ndarray]]:
     n = network.ee.src.num_neurons
     end_ms = start_ms + duration_ms
     pre_counts = endpoint_counts(
-        times, ids, n, start_ms=start_ms, end_ms=end_ms, delay_ms=DELAY_MS
+        times, ids, n, start_ms=start_ms, end_ms=end_ms, delay_ms=delay_ms
     )
     post_counts = endpoint_counts(times, ids, n, start_ms=start_ms, end_ms=end_ms)
     communities, firing_counts = firing_communities(
@@ -429,7 +449,7 @@ def brunel_window(
 
 def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
     rule = BRUNEL_CASES[case_name]
-    spec = make_model(rule, 1.0, 1.0)
+    spec = make_genn_default_model(rule)
     manifest = {
         **base_manifest(args, case_name),
         "rng_seed": args.brunel_seed,
@@ -462,12 +482,17 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
     )
     total_edges = int(np.asarray(network.ee._row_lengths.view, dtype=np.uint64).sum())
     sample_ordinals = choose_edge_sample(total_edges, args.edge_sample_size)
-    spike_chunks: list[tuple[np.ndarray, np.ndarray]] = []
+    spike_chunks: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {
+        "excitatory": [],
+        "inhibitory": [],
+    }
     try:
         presim_chunks = round(args.brunel_presim_ms / args.brunel_chunk_ms)
         for _ in range(presim_chunks):
             network.step(chunk_steps, synchronize=False)
-            spike_chunks.append(network.recorded_spikes(spec.ne))
+            recorded = network.recorded_population_spikes()
+            for population, events in recorded.items():
+                spike_chunks[population].append(events)
         population_baseline = network.population_spike_counts()
         baseline_sample = _pull_sample(network, sample_ordinals)
         elapsed_ms = 0.0
@@ -478,7 +503,9 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
             chunk_ms = min(args.brunel_chunk_ms, args.brunel_sim_ms - elapsed_ms)
             network.step(round(chunk_ms / BRUNEL_DT_MS), synchronize=False)
             elapsed_ms += chunk_ms
-            spike_chunks.append(network.recorded_spikes(spec.ne))
+            recorded = network.recorded_population_spikes()
+            for population, events in recorded.items():
+                spike_chunks[population].append(events)
             exc, _ = network.population_spike_counts()
             chunk_spikes = int((exc - previous_exc).sum(dtype=np.uint64))
             previous_exc = exc
@@ -490,8 +517,16 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
                 break
 
         final_sample = _pull_sample(network, sample_ordinals)
-        times = np.concatenate([events[0] for events in spike_chunks])
-        ids = np.concatenate([events[1] for events in spike_chunks])
+        population_final = network.population_spike_counts()
+        population_spikes = {
+            population: (
+                np.concatenate([events[0] for events in chunks]),
+                np.concatenate([events[1] for events in chunks]),
+            )
+            for population, chunks in spike_chunks.items()
+        }
+        times, ids = population_spikes["excitatory"]
+        inhibitory_times, inhibitory_ids = population_spikes["inhibitory"]
         actual_steps = round(elapsed_ms / BRUNEL_DT_MS)
         pre_series = event_series(
             times,
@@ -500,7 +535,7 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
             dt_ms=BRUNEL_DT_MS,
             start_ms=args.brunel_presim_ms,
             duration_ticks=actual_steps,
-            delay_ms=DELAY_MS,
+            delay_ms=spec.delay_ms,
         )
         post_series = event_series(
             times,
@@ -517,6 +552,7 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
             ids,
             start_ms=args.brunel_presim_ms,
             duration_ms=elapsed_ms,
+            delay_ms=spec.delay_ms,
         )
         selected_windows: dict[str, Any] = {}
         if elapsed_ms > 1000.0:
@@ -525,7 +561,12 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
                 ("last_1000_ms", args.brunel_presim_ms + elapsed_ms - 1000.0),
             ):
                 window_summary, _ = brunel_window(
-                    network, times, ids, start_ms=start, duration_ms=1000.0
+                    network,
+                    times,
+                    ids,
+                    start_ms=start,
+                    duration_ms=1000.0,
+                    delay_ms=spec.delay_ms,
                 )
                 selected_windows[label] = window_summary
 
@@ -543,7 +584,7 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
             dt_ms=BRUNEL_DT_MS,
             start_ms=args.brunel_presim_ms,
             duration_ticks=actual_steps,
-            delay_ms=DELAY_MS,
+            delay_ms=spec.delay_ms,
         )
         post_events = events_by_neuron(
             times,
@@ -553,6 +594,223 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
             start_ms=args.brunel_presim_ms,
             duration_ticks=actual_steps,
         )
+        inhibitory_events = events_by_neuron(
+            inhibitory_times,
+            inhibitory_ids,
+            spec.ni,
+            dt_ms=BRUNEL_DT_MS,
+            start_ms=args.brunel_presim_ms,
+            duration_ticks=actual_steps,
+        )
+
+        excitatory_counts = np.asarray(graph_arrays["firing_counts"], dtype=np.uint32)
+        inhibitory_counts = endpoint_counts(
+            inhibitory_times,
+            inhibitory_ids,
+            spec.ni,
+            start_ms=args.brunel_presim_ms,
+            end_ms=args.brunel_presim_ms + elapsed_ms,
+        )
+        recorded_population_totals = {
+            "excitatory": int(excitatory_counts.sum(dtype=np.uint64)),
+            "inhibitory": int(inhibitory_counts.sum(dtype=np.uint64)),
+        }
+        counter_population_totals = {
+            "excitatory": int(
+                (population_final[0] - population_baseline[0]).sum(dtype=np.uint64)
+            ),
+            "inhibitory": int(
+                (population_final[1] - population_baseline[1]).sum(dtype=np.uint64)
+            ),
+        }
+        if recorded_population_totals != counter_population_totals:
+            raise RuntimeError(
+                "recorded population spikes do not match device counters: "
+                f"recorded={recorded_population_totals} counters={counter_population_totals}"
+            )
+
+        ee_outdegrees = np.asarray(network._outdegrees["ee"], dtype=np.uint64)
+        expected_pre_updates = int(
+            np.dot(excitatory_counts.astype(np.uint64), ee_outdegrees)
+        )
+        expected_post_updates = recorded_population_totals["excitatory"] * spec.ce
+        observed_pre_updates = int(pre_series.sum(dtype=np.uint64))
+        observed_post_updates = int(post_series.sum(dtype=np.uint64))
+        if observed_pre_updates != expected_pre_updates:
+            raise RuntimeError(
+                f"presynaptic update mismatch: {observed_pre_updates} != {expected_pre_updates}"
+            )
+        if observed_post_updates != expected_post_updates:
+            raise RuntimeError(
+                f"postsynaptic update mismatch: {observed_post_updates} != {expected_post_updates}"
+            )
+
+        excitatory_ticks, excitatory_keep = ticks_for_events(
+            times,
+            dt_ms=BRUNEL_DT_MS,
+            start_ms=args.brunel_presim_ms,
+            duration_ticks=actual_steps,
+        )
+        inhibitory_ticks, inhibitory_keep = ticks_for_events(
+            inhibitory_times,
+            dt_ms=BRUNEL_DT_MS,
+            start_ms=args.brunel_presim_ms,
+            duration_ticks=actual_steps,
+        )
+        interval_histograms = {
+            "excitatory_population_spike_gap": weighted_interval_histogram(
+                [excitatory_ticks]
+            ),
+            "inhibitory_population_spike_gap": weighted_interval_histogram(
+                [inhibitory_ticks]
+            ),
+            "excitatory_per_neuron_isi": weighted_interval_histogram(post_events),
+            "inhibitory_per_neuron_isi": weighted_interval_histogram(
+                inhibitory_events
+            ),
+            "ee_presynaptic_per_synapse": weighted_interval_histogram(
+                pre_events, ee_outdegrees
+            ),
+            "ee_postsynaptic_per_synapse": weighted_interval_histogram(
+                post_events, np.full(spec.ne, spec.ce, dtype=np.uint64)
+            ),
+            "ee_presynaptic_active_tick_gap": weighted_interval_histogram(
+                [np.flatnonzero(pre_series)]
+            ),
+            "ee_postsynaptic_active_tick_gap": weighted_interval_histogram(
+                [np.flatnonzero(post_series)]
+            ),
+        }
+        id_gap_histograms = {
+            "excitatory_within_tick_id_gap": within_tick_id_gap_histogram(
+                times,
+                ids,
+                dt_ms=BRUNEL_DT_MS,
+                start_ms=args.brunel_presim_ms,
+                duration_ticks=actual_steps,
+            ),
+            "inhibitory_within_tick_id_gap": within_tick_id_gap_histogram(
+                inhibitory_times,
+                inhibitory_ids,
+                dt_ms=BRUNEL_DT_MS,
+                start_ms=args.brunel_presim_ms,
+                duration_ticks=actual_steps,
+            ),
+        }
+
+        expected_pre_intervals = int(
+            np.dot(
+                np.maximum(excitatory_counts.astype(np.int64) - 1, 0).astype(
+                    np.uint64
+                ),
+                ee_outdegrees,
+            )
+        )
+        expected_post_intervals = int(
+            np.maximum(excitatory_counts.astype(np.int64) - 1, 0).sum(
+                dtype=np.int64
+            )
+            * spec.ce
+        )
+        observed_pre_intervals = int(
+            interval_histograms["ee_presynaptic_per_synapse"].sum(dtype=np.uint64)
+        )
+        observed_post_intervals = int(
+            interval_histograms["ee_postsynaptic_per_synapse"].sum(dtype=np.uint64)
+        )
+        if observed_pre_intervals != expected_pre_intervals:
+            raise RuntimeError(
+                f"presynaptic interval mismatch: {observed_pre_intervals} != {expected_pre_intervals}"
+            )
+        if observed_post_intervals != expected_post_intervals:
+            raise RuntimeError(
+                f"postsynaptic interval mismatch: {observed_post_intervals} != {expected_post_intervals}"
+            )
+
+        iat_windows_1000_ms = []
+        for window_index in range(int(elapsed_ms // 1000.0)):
+            window_start_ms = args.brunel_presim_ms + window_index * 1000.0
+            window_pre_events = events_by_neuron(
+                times,
+                ids,
+                spec.ne,
+                dt_ms=BRUNEL_DT_MS,
+                start_ms=window_start_ms,
+                duration_ticks=round(1000.0 / BRUNEL_DT_MS),
+                delay_ms=spec.delay_ms,
+            )
+            window_post_events = events_by_neuron(
+                times,
+                ids,
+                spec.ne,
+                dt_ms=BRUNEL_DT_MS,
+                start_ms=window_start_ms,
+                duration_ticks=round(1000.0 / BRUNEL_DT_MS),
+            )
+            window_histograms = {
+                "ee_presynaptic_per_synapse": weighted_interval_histogram(
+                    window_pre_events, ee_outdegrees
+                ),
+                "ee_postsynaptic_per_synapse": weighted_interval_histogram(
+                    window_post_events,
+                    np.full(spec.ne, spec.ce, dtype=np.uint64),
+                ),
+            }
+            window_expected_pre = int(
+                np.dot(
+                    np.asarray(
+                        [max(events.size - 1, 0) for events in window_pre_events],
+                        dtype=np.uint64,
+                    ),
+                    ee_outdegrees,
+                )
+            )
+            window_expected_post = int(
+                sum(max(events.size - 1, 0) for events in window_post_events)
+                * spec.ce
+            )
+            window_observed_pre = int(
+                window_histograms["ee_presynaptic_per_synapse"].sum(
+                    dtype=np.uint64
+                )
+            )
+            window_observed_post = int(
+                window_histograms["ee_postsynaptic_per_synapse"].sum(
+                    dtype=np.uint64
+                )
+            )
+            if window_observed_pre != window_expected_pre:
+                raise RuntimeError(
+                    "windowed presynaptic interval mismatch: "
+                    f"{window_observed_pre} != {window_expected_pre}"
+                )
+            if window_observed_post != window_expected_post:
+                raise RuntimeError(
+                    "windowed postsynaptic interval mismatch: "
+                    f"{window_observed_post} != {window_expected_post}"
+                )
+            iat_windows_1000_ms.append(
+                {
+                    "window_index": window_index,
+                    "start_ms": window_start_ms - args.brunel_presim_ms,
+                    "end_ms": window_start_ms
+                    - args.brunel_presim_ms
+                    + 1000.0,
+                    "interval_histograms": {
+                        name: interval_histogram_summary(
+                            histogram, BRUNEL_DT_MS
+                        )
+                        for name, histogram in window_histograms.items()
+                    },
+                    "conservation": {
+                        "expected_ee_presynaptic_intervals": window_expected_pre,
+                        "observed_ee_presynaptic_intervals": window_observed_pre,
+                        "expected_ee_postsynaptic_intervals": window_expected_post,
+                        "observed_ee_postsynaptic_intervals": window_observed_post,
+                    },
+                }
+            )
+
         for pre, post in zip(
             baseline_sample["pre"][: args.interval_edge_sample_size],
             baseline_sample["post"][: args.interval_edge_sample_size],
@@ -566,10 +824,28 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
         "case": case_name,
         "actual_simulation_ms": elapsed_ms,
         "termination": termination,
-        "excitatory_spikes": int(graph_arrays["firing_counts"].sum(dtype=np.uint64)),
+        "excitatory_spikes": recorded_population_totals["excitatory"],
+        "inhibitory_spikes": recorded_population_totals["inhibitory"],
+        "total_spikes": sum(recorded_population_totals.values()),
+        "individual_neurons": {
+            "excitatory": count_distribution_summary(excitatory_counts),
+            "inhibitory": count_distribution_summary(inhibitory_counts),
+        },
         "temporal": {
+            "zero_ee_update_tick_fraction": float(np.mean(traversal_series == 0)),
             "all_ee_synapse_traversals": temporal_summaries(traversal_series, BRUNEL_DT_MS),
             "weight_update_attempts": temporal_summaries(traversal_series, BRUNEL_DT_MS),
+            "ee_presynaptic_updates": temporal_summaries(pre_series, BRUNEL_DT_MS),
+            "ee_postsynaptic_updates": temporal_summaries(post_series, BRUNEL_DT_MS),
+            "interval_histograms": {
+                name: interval_histogram_summary(histogram, BRUNEL_DT_MS)
+                for name, histogram in interval_histograms.items()
+            },
+            "within_tick_neuron_id_gaps": {
+                name: id_gap_histogram_summary(histogram)
+                for name, histogram in id_gap_histograms.items()
+            },
+            "iat_windows_1000_ms": iat_windows_1000_ms,
         },
         "spatial": {
             **graph_summary,
@@ -579,6 +855,18 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
         },
         "selected_windows": selected_windows,
         "weight_sample_snapshots_ms": [float(item[0]) for item in snapshots],
+        "conservation": {
+            "recorded_population_spikes": recorded_population_totals,
+            "device_counter_population_spikes": counter_population_totals,
+            "expected_ee_presynaptic_updates": expected_pre_updates,
+            "observed_ee_presynaptic_updates": observed_pre_updates,
+            "expected_ee_postsynaptic_updates": expected_post_updates,
+            "observed_ee_postsynaptic_updates": observed_post_updates,
+            "expected_ee_presynaptic_intervals": expected_pre_intervals,
+            "observed_ee_presynaptic_intervals": observed_pre_intervals,
+            "expected_ee_postsynaptic_intervals": expected_post_intervals,
+            "observed_ee_postsynaptic_intervals": observed_post_intervals,
+        },
     }
     write_json(output / "summary.json", summary)
     arrays = {
@@ -586,6 +874,12 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
         "update_series": traversal_series,
         "pre_series": pre_series,
         "post_series": post_series,
+        "excitatory_firing_counts": excitatory_counts,
+        "inhibitory_firing_counts": inhibitory_counts,
+        "excitatory_spike_times_ms": times[excitatory_keep],
+        "excitatory_spike_ids": ids[excitatory_keep],
+        "inhibitory_spike_times_ms": inhibitory_times[inhibitory_keep],
+        "inhibitory_spike_ids": inhibitory_ids[inhibitory_keep],
         **graph_arrays,
         "sample_ordinal": baseline_sample["ordinal"],
         "sample_pre": baseline_sample["pre"],
@@ -597,6 +891,14 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
         "snapshot_times_ms": np.asarray([item[0] for item in snapshots]),
         "snapshot_weights": np.asarray([item[1] for item in snapshots]),
         "inter_update_gap_ticks": gaps,
+        **{
+            f"interval_histogram_{name}": histogram
+            for name, histogram in interval_histograms.items()
+        },
+        **{
+            f"id_gap_histogram_{name}": histogram
+            for name, histogram in id_gap_histograms.items()
+        },
     }
     np.savez_compressed(output / "locality.npz", **arrays)
     plot_temporal(
@@ -607,6 +909,14 @@ def run_brunel(args: argparse.Namespace, case_name: str, output: Path) -> None:
         title=case_name,
     )
     plot_brunel_spatial(output / "spatial.png", arrays, title=case_name)
+    plot_brunel_intervals(
+        output / "intervals.png",
+        excitatory_counts,
+        inhibitory_counts,
+        interval_histograms,
+        dt_ms=BRUNEL_DT_MS,
+        title=case_name,
+    )
 
 
 def parser() -> argparse.ArgumentParser:

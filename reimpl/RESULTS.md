@@ -1,5 +1,10 @@
 # Zero-delay three-trace reimplementation results
 
+Any Brunel references in this MNIST report concern historical runtime-build
+checks, not the current 5%-indegree, zero-delay GeNN Brunel default. In
+particular, they do not validate the Brian2, NEST, or NEST-GPU Brunel ports for
+the current configuration.
+
 Run dates: 2026-07-23 to 2026-08-05 UTC
 
 Host: AMD Ryzen 9 7950X, 16 physical/32 logical CPUs, 30 GiB RAM,

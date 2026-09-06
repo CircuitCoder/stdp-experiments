@@ -1,6 +1,45 @@
 # Performance baseline
 
-**WARNING: Every preserved GeNN CUDA runner used for this report had GeNN
+## Current GeNN Brunel default
+
+As of 2026-08-28, the source-of-record Brunel performance configuration is the
+FP32 GeNN workload in `genn-sweep`: 9,000 E and 2,250 I neurons, fixed
+indegrees 450 E and 112 I, 6,322,500 recurrent synapses including 4,050,000
+plastic E-to-E synapses, zero GeNN delay steps, and arrival-timed STDP.
+Delivered recurrent currents are scaled by `1 / sqrt(0.05) = 4.47213595499958`.
+External rate is scaled by 0.47 for additive and 0.32 for Morrison. The learned
+E-to-E weight variable, bounds, and STDP equations retain their original units;
+there is no periodic synaptic normalization.
+
+The minimal timing-disabled sweep used seed and state seed `20260724`, 100 ms
+untimed presimulation, and a 1,000 ms measured interval. Run 1 compiled fresh;
+runs 2 and 3 reused exactly matching generated models on the same RTX 3090.
+
+| Rule | Measured spikes (E + I) | Median us/step | Three-run range us/step | Historical full-density us/step | Workload speedup |
+|---|---:|---:|---:|---:|---:|
+| Additive | 49,896 | 42.204 | 42.119-42.634 | 95.157 | 2.25x |
+| Morrison | 67,089 | 42.193 | 41.858-42.311 | 121.039 | 2.87x |
+
+The full-density comparison uses the earlier minimal sweep, not the
+instrumented artifact tables below. It changes topology and delay as well as
+work volume, so it is a workload speedup rather than an isolated kernel
+speedup. Aggregate firing is 7.3% below the compatible additive control and
+3.4% below the Morrison control. Short-run firing level and weight stability
+are recovered, but temporal correlation statistics are not numerically
+matched. Exact commands, environment, source hashes, diagnostics, and raw
+three-run output are in `genn-sweep/README.md` and
+`genn-sweep/sparse005-zero-results-20260828.txt`.
+
+The MNIST cases executed in the same five-case sweep were unchanged repeats and
+are not added as new baseline evidence here.
+
+The matching instrumented 1-second and 10-second spatial/temporal locality
+captures are reported in `locality/RESULTS.md`. Their recording and analysis
+overhead is intentionally excluded from the performance baseline above.
+
+## Historical timing warning
+
+**Every preserved GeNN CUDA runner in the historical tables below had GeNN
 per-timestep timing enabled, including a CUDA synchronization every cycle. These
 are instrumented runtimes, not native-throughput baselines. Matched controls
 found 2.23-2.53x runtime inflation for MNIST and 1.37-1.46x for Brunel. Do not
@@ -15,12 +54,14 @@ baseline measurements, not isolated peak throughput.
 
 ## Scope and interpretation
 
-The report covers the primary zero-delay three-trace MNIST training runs and
-all 83 Brunel directories that contain `results.json`. Twenty Brunel directories
+The historical inventory covers the primary zero-delay three-trace MNIST
+training runs and all 83 legacy Brunel directories that contain `results.json`.
+Twenty Brunel directories
 have a manifest but no result and are listed at the end. The Brunel inventory
 includes smoke tests, parameter sweeps, early-stopped unstable runs, and
 superseded timing experiments so that no completed measurement is silently
-dropped. Use the canonical tables for architectural comparisons.
+dropped. Use the current GeNN default table above for new Brunel comparisons;
+use the historical tables only when reconstructing their exact configurations.
 
 Three timing scopes must not be mixed:
 
@@ -208,9 +249,10 @@ it starts from Brian-trained weights and theta. Its higher firing and active
 counts show that this is not a dynamics match. Checkpoint paths, exact commands,
 and SHA-256 values are recorded in `reimpl/RESULTS.md`.
 
-## Canonical full-scale Brunel runs
+## Historical full-density Brunel runs
 
-All rows use `N_E = C_E = 9,000`, `N_I = C_I = 2,250`, 0.1 ms cycles, and
+These are not measurements of the current GeNN default. All rows use
+`N_E = C_E = 9,000`, `N_I = C_I = 2,250`, 0.1 ms cycles, and
 126,562,500 recurrent synapses, of which 81,000,000 are E-to-E. Recorded firing
 is from 1,000 E neurons and all-E counts are estimates.
 

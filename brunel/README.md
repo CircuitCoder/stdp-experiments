@@ -1,5 +1,17 @@
 # Brunel STDP experiments
 
+The current validated default is the FP32 **GeNN-only** configuration in
+`genn-sweep/README.md`: 9,000 E and 2,250 I neurons, 5% fixed indegree (450 E
+and 112 I inputs per neuron), zero GeNN delay steps, arrival-timed STDP,
+recurrent delivery scale `sqrt(20)`, and external-rate scale 0.47 for additive
+or 0.32 for Morrison. `run_genn.py` now uses these defaults. The Brian2,
+Brian2CUDA, NEST, and NEST-GPU ports have not been validated with this
+configuration and retain historical behavior.
+
+The reports below primarily describe the older full-indegree, 1.5 ms-delay
+family. Their results remain valid for their recorded manifests but are not
+direct performance or dynamics comparisons with the current GeNN default.
+
 `STDP_REGIMES.md` documents why additive hard-bound STDP is expected to
 produce a bimodal weight distribution while the Morrison power-law rule used
 by NEST's HPC benchmark is expected to produce a unimodal distribution.

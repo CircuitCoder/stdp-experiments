@@ -35,6 +35,23 @@ Future work has two main, related tracks:
 - `copilot/`: historical reports and experiment notes. `copilot/tmp/` contains commands, helper scripts, logs, and checkpoints from earlier sessions.
 - `data/`: the root IDX files are Fashion-MNIST; `data/mnist/` contains real MNIST.
 
+## GeNN Brunel Default
+
+The current validated Brunel default is the FP32 GeNN configuration documented
+in `genn-sweep/README.md`: 9,000 excitatory and 2,250 inhibitory neurons, 5%
+fixed indegree (450 excitatory and 112 inhibitory inputs per neuron), zero GeNN
+delay steps, arrival-timed STDP, recurrent delivered-current scale
+`1 / sqrt(0.05)`, and external-rate scales 0.47 for additive and 0.32 for
+Morrison. The effective zero-delay delivery occurs on the following global
+0.1 ms tick because GeNN updates synapses before neurons.
+
+The Brian2, Brian2CUDA, NEST, and NEST-GPU Brunel implementations and their
+historical reports may still encode the older full-indegree, 1.5 ms-delay
+configuration. Do not treat those runtimes as implementations of the current
+default or compare their measurements directly until their delay, delivery
+scaling, external drive, event ordering, and dynamics have been ported and
+validated explicitly.
+
 ## Current Implementation Snapshot
 
 Always verify this section against the live diff because it can become stale. When this guidance was expanded, committed `HEAD` still represented the earlier current-based model, while the uncommitted worktree contained a large conductance-based alignment rewrite.

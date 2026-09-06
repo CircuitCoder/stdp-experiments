@@ -1,5 +1,10 @@
 # Scale-1 Morrison stability tuning
 
+**Legacy configuration:** this study concerns the historical full-indegree,
+1.5 ms-delay NEST family. Its tuned parameters and stability conclusions are
+not defaults for the current 5%-indegree, zero-delay GeNN network. NEST has not
+yet been ported or validated against the current GeNN configuration.
+
 Run date: 2026-07-24 to 2026-07-25 UTC
 
 ## Question and conclusion

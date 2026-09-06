@@ -1,5 +1,12 @@
 # Brunel STDP implementation and run report
 
+**Legacy configuration:** every measurement in this report predates the current
+5%-indegree, zero-delay GeNN default. These runs use backend-specific variants
+of the full-indegree, 1.5 ms-delay family and must not be compared directly with
+the current results in `genn-sweep/README.md` or `performance.md`. The non-GeNN
+ports require new implementation validation before they can represent the
+current default.
+
 Run dates: 2026-07-24 to 2026-07-26 UTC. Some artifact tags use the host-local
 date `20260725` (UTC+08:00).
 

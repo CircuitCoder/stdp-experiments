@@ -121,3 +121,77 @@ def plot_brunel_spatial(output: Path, arrays: dict[str, np.ndarray], *, title: s
     fig.suptitle(title)
     fig.savefig(output, dpi=180)
     plt.close(fig)
+
+
+def plot_brunel_intervals(
+    output: Path,
+    excitatory_counts: np.ndarray,
+    inhibitory_counts: np.ndarray,
+    interval_histograms: dict[str, np.ndarray],
+    *,
+    dt_ms: float,
+    title: str,
+) -> None:
+    plt = _pyplot()
+    fig, axes = plt.subplots(2, 2, figsize=(10.5, 8.0), constrained_layout=True)
+
+    for counts, label, color in (
+        (excitatory_counts, "E", "#2463a6"),
+        (inhibitory_counts, "I", "#b33a3a"),
+    ):
+        histogram = np.bincount(np.asarray(counts, dtype=np.int64))
+        axes[0, 0].step(
+            np.arange(histogram.size), histogram, where="mid", label=label, color=color
+        )
+    axes[0, 0].set_yscale("log")
+    axes[0, 0].set_xlabel("Spikes per neuron")
+    axes[0, 0].set_ylabel("Neurons")
+    axes[0, 0].set_title("Individual firing distribution")
+    axes[0, 0].legend(frameon=False)
+
+    def plot_intervals(axis, names: tuple[tuple[str, str, str], ...], panel_title: str) -> None:
+        for name, label, color in names:
+            histogram = np.asarray(interval_histograms[name], dtype=np.uint64)
+            values = np.flatnonzero(histogram)
+            if values.size:
+                axis.plot(
+                    values * dt_ms,
+                    histogram[values],
+                    linewidth=1.0,
+                    label=label,
+                    color=color,
+                )
+        axis.set_xscale("symlog", linthresh=dt_ms)
+        axis.set_yscale("log")
+        axis.set_xlabel("Gap (ms)")
+        axis.set_ylabel("Intervals")
+        axis.set_title(panel_title)
+        axis.legend(frameon=False)
+
+    plot_intervals(
+        axes[0, 1],
+        (
+            ("excitatory_per_neuron_isi", "E", "#2463a6"),
+            ("inhibitory_per_neuron_isi", "I", "#b33a3a"),
+        ),
+        "Per-neuron interspike intervals",
+    )
+    plot_intervals(
+        axes[1, 0],
+        (
+            ("ee_presynaptic_per_synapse", "presynaptic", "#2d7f5e"),
+            ("ee_postsynaptic_per_synapse", "postsynaptic", "#a13c43"),
+        ),
+        "Per-synapse update intervals",
+    )
+    plot_intervals(
+        axes[1, 1],
+        (
+            ("ee_presynaptic_active_tick_gap", "presynaptic", "#2d7f5e"),
+            ("ee_postsynaptic_active_tick_gap", "postsynaptic", "#a13c43"),
+        ),
+        "Active update-tick intervals",
+    )
+    fig.suptitle(title)
+    fig.savefig(output, dpi=180)
+    plt.close(fig)
