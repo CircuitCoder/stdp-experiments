@@ -1,0 +1,12 @@
+{
+  "gpu": "H800",
+  "source": "genn-sweep/hardware-comparison/measure_power.py",
+  "source_sha256": "966b833f430bb7ddd4cdec4f509e18526619baf907d40c79695a5da28d43a789",
+  "remote_script": "genn-sweep/hardware-comparison/measure_power_v2.py",
+  "output": "copilot/tmp/power_dense_20260910_v2_h800",
+  "reason": "v1 applied an extra final 2% weight-cap constraint that is absent from the dense model normalization policy. v2 uses the existing validator and records actual weight extrema. Simulation model and timed loop are unchanged.",
+  "excluded_attempt": "copilot/tmp/power_dense_20260910_v1_h800",
+  "excluded_readings": 5,
+  "selected_readings_per_case": 5,
+  "checkpoint_writing": false
+}

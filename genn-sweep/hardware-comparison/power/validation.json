@@ -1,0 +1,44 @@
+{
+  "selected_power_readings": 60,
+  "independent_ratio_checks": 72000,
+  "query_spacing_seconds_min": 4.990274676005356,
+  "query_spacing_seconds_max": 5.008550839032978,
+  "all_12_first_100_image_baseline_checks": true,
+  "all_simulation_source_hashes_match": true,
+  "no_checkpoint_files_written": true,
+  "violin_count": 4,
+  "unit_tests": "30 passed",
+  "hardware_power_W": 33,
+  "combined": [
+    {
+      "gpu": "RTX3090",
+      "mean_W": 167.71733333333333,
+      "equiv_us_33W": 150.59738551939714,
+      "sample_advantage": 50.89271930014052,
+      "energy_ratio": 43.665651376187746
+    },
+    {
+      "gpu": "A100",
+      "mean_W": 64.77333333333334,
+      "equiv_us_33W": 39.109297502054595,
+      "sample_advantage": 13.216689182770185,
+      "energy_ratio": 11.339725084884478
+    },
+    {
+      "gpu": "A800",
+      "mean_W": 82.41933333333333,
+      "equiv_us_33W": 44.271533373329085,
+      "sample_advantage": 14.961946387648979,
+      "energy_ratio": 12.836513300027093
+    },
+    {
+      "gpu": "H800",
+      "mean_W": 145.27266666666665,
+      "equiv_us_33W": 65.61797151753662,
+      "sample_advantage": 22.16284744368703,
+      "energy_ratio": 19.025904456543987
+    }
+  ],
+  "all_gpus_sample_advantage": 25.30855057856168,
+  "excluded_failed_h800_readings": 5
+}

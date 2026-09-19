@@ -1,0 +1,77 @@
+[
+  {
+    "class": "1-trace dense",
+    "presenting": null,
+    "cycles": 16679.860283985883
+  },
+  {
+    "class": "1-trace dense",
+    "presenting": null,
+    "cycles": 17233.696421517023
+  },
+  {
+    "class": "1-trace dense",
+    "presenting": null,
+    "cycles": 16315.571881611557
+  },
+  {
+    "class": "1-trace dense",
+    "presenting": null,
+    "cycles": 16423.5559401705
+  },
+  {
+    "class": "1-trace dense",
+    "presenting": null,
+    "cycles": 17131.60222496691
+  },
+  {
+    "class": "2-trace dense",
+    "presenting": null,
+    "cycles": 17626.87510729415
+  },
+  {
+    "class": "2-trace dense",
+    "presenting": null,
+    "cycles": 17829.268067641166
+  },
+  {
+    "class": "2-trace dense",
+    "presenting": null,
+    "cycles": 17239.668777266754
+  },
+  {
+    "class": "2-trace dense",
+    "presenting": null,
+    "cycles": 17215.565737626217
+  },
+  {
+    "class": "2-trace dense",
+    "presenting": null,
+    "cycles": 17813.305185149307
+  },
+  {
+    "class": "3-trace dense",
+    "presenting": null,
+    "cycles": 20575.36321271717
+  },
+  {
+    "class": "3-trace dense",
+    "presenting": null,
+    "cycles": 20212.43409660545
+  },
+  {
+    "class": "3-trace dense",
+    "presenting": null,
+    "cycles": 19645.46085416692
+  },
+  {
+    "class": "3-trace dense",
+    "presenting": null,
+    "cycles": 20049.75471781223
+  },
+  {
+    "class": "3-trace dense",
+    "presenting": null,
+    "cycles": 20370.02861124545
+  }
+]

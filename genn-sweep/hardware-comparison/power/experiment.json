@@ -1,0 +1,47 @@
+{
+  "batch": "power_dense_20260910_v1",
+  "cases": [
+    "mnist_1trace_dense",
+    "mnist_2trace_dense",
+    "mnist_3trace_dense"
+  ],
+  "hardware_power_w": 33,
+  "sampling": {
+    "count_per_case": 5,
+    "interval_seconds": 5,
+    "warmup_seconds": 10,
+    "measured_seconds": 25
+  },
+  "checkpoint_writing": false,
+  "commands": {
+    "RTX3090": "source copilot/tmp/power_env_3090_20260910.sh\nexec python genn-sweep/hardware-comparison/measure_power.py --inputs copilot/tmp/baseline_inputs_20260907_v2 --reference genn-sweep/hardware-comparison/power/reference.json --gpu RTX3090 --gpu-uuid GPU-08e3c2ec-d6e6-e141-f048-a33535188b81 --output copilot/tmp/power_dense_20260910_v1_rtx3090",
+    "A100": "cd /data/meow/stdp-baseline-20260907-v2\nsource copilot/tmp/power_env_a100_20260910.sh\nexec numactl --cpunodebind=0 --membind=0 python genn-sweep/hardware-comparison/measure_power.py --inputs copilot/tmp/baseline_inputs_20260907_v2 --reference genn-sweep/hardware-comparison/power/reference.json --gpu A100 --gpu-uuid GPU-0ebfab2e-68cf-4942-bf38-fa4a7dba8af2 --reuse-build-root copilot/tmp/baseline_a100_20260907_native_r1/builds --output copilot/tmp/power_dense_20260910_v1_a100",
+    "A800": "srun --jobid=499057 --overlap --immediate=30 -N1 -n1 -c8 --cpu-bind=cores bash -l copilot/tmp/power_cluster_20260910.sh a800",
+    "H800": "srun --jobid=499509 --overlap --immediate=30 -N1 -n1 -c8 --cpu-bind=cores bash -l copilot/tmp/power_cluster_20260910.sh h800"
+  },
+  "services": {
+    "RTX3090": "stdp-power-rtx3090-20260910-v1",
+    "A100": "stdp-power-a100-20260910-v1",
+    "A800": "stdp-power-a800-20260910-v1",
+    "H800": "stdp-power-h800-20260910-v1"
+  },
+  "logs": {
+    "RTX3090": "copilot/tmp/power_dense_20260910_v1_rtx3090.log",
+    "A100": "copilot/tmp/power_dense_20260910_v1_a100.log",
+    "A800": "copilot/tmp/power_dense_20260910_v1_a800.log",
+    "H800": "copilot/tmp/power_dense_20260910_v1_h800.log"
+  },
+  "notes": [
+    "One sustained training run per GPU/rule; five readings total per GPU/rule.",
+    "First 100 accepted images must reproduce cached baseline attempts and spike counters.",
+    "Measured window follows warmup and advances beyond the old 100-image timing workload.",
+    "Fresh measured timestep duration and mean sampled running power are paired for energy estimates.",
+    "No TDP substitution, idle subtraction, power caps, or host CPU energy measurement."
+  ],
+  "source_sha256": {
+    "genn-sweep/hardware-comparison/measure_power.py": "7e5ea3fead7a7c77561da516b4bd1b123ae84b030200fe7fc6c894bc6c02dc53",
+    "copilot/tmp/power_cluster_20260910.sh": "48e229ca46a63a4d61af76da3b4a8339a5e7817f324b169772a6d0ee211bcc66",
+    "copilot/tmp/power_env_3090_20260910.sh": "8800eaef894a58e4df5871bd5f19ae174cbb8cf94d5cb64baebfba5af06cfc66",
+    "copilot/tmp/baseline_env_a100_20260907.sh": "8583e385215cf8ecd33ca427bd08eafb1e5646f492e9dd7a8297db01e65ebcdb"
+  }
+}

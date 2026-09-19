@@ -64,6 +64,34 @@ def _import_genn() -> dict[str, Any]:
     }
 
 
+def create_two_trace_model(create_weight_update_model: Any) -> Any:
+    return create_weight_update_model(
+        "ZD3TwoTracePower",
+        params=["preTau", "postTau", "potentiationRate", "depressionRate",
+                "preTarget", "preExponent", "postExponent", "weightMin",
+                "weightMax", "plasticity"],
+        vars=[("g", "scalar")],
+        pre_vars=[("x", "scalar")],
+        post_vars=[("y", "scalar")],
+        pre_dynamics_code="x *= exp(-dt / preTau);",
+        post_dynamics_code="y *= exp(-dt / postTau);",
+        pre_spike_code="x += 1.0;",
+        post_spike_code="y += 1.0;",
+        pre_spike_syn_code="""
+        addToPost(g);
+        // Neuron traces already include this tick's spikes. Brian processes
+        // pre before post, so depression excludes a simultaneous post increment.
+        const scalar postBefore = fmax(0.0, y - ((st_post == st_pre) ? 1.0 : 0.0));
+        g = fmin(weightMax, fmax(weightMin, g - plasticity * depressionRate
+            * postBefore * pow(g, preExponent)));
+        """,
+        post_spike_syn_code="""
+        g = fmin(weightMax, fmax(weightMin, g + plasticity * potentiationRate
+            * (x - preTarget) * pow(weightMax - g, postExponent)));
+        """,
+    )
+
+
 class GeNNNetwork:
     def __init__(
         self,
@@ -84,6 +112,7 @@ class GeNNNetwork:
         reuse_build: Path | None,
         record_spikes: bool = False,
         recording_steps: int = 0,
+        weight_max_by_post: np.ndarray | None = None,
     ) -> None:
         api = _import_genn()
         if backend not in api["backend_modules"]:
@@ -108,6 +137,25 @@ class GeNNNetwork:
         self._feedforward_post = self._feedforward_post.astype(np.uint32)
         self._feedforward_outdegree = self.structural_mask.sum(axis=1).astype(np.int64)
         self._feedforward_indegree = self.structural_mask.sum(axis=0).astype(np.int64)
+        self.weight_max_by_post = (None if weight_max_by_post is None else
+                                   np.asarray(weight_max_by_post, dtype=self.scalar_dtype).copy())
+        cap_initial = {}
+        if self.weight_max_by_post is not None:
+            if (self.weight_max_by_post.shape != (MODEL.n_exc,) or
+                    not np.all(np.isfinite(self.weight_max_by_post)) or
+                    np.any(self.weight_max_by_post < 0) or
+                    np.any(self.weight_max_by_post[self._feedforward_indegree > 0] <= 0)):
+                raise ValueError("invalid postsynaptic weight caps")
+            cap_initial = {"weightMax": self.weight_max_by_post}
+            # Share exactly the existing learning kernels; only the storage of
+            # weightMax changes from a population parameter to a static post var.
+            create_uncapped = create_weight_update_model
+            def create_weight_update_model(name, **definition):
+                if "weightMax" in definition.get("params", []):
+                    definition["params"] = [p for p in definition["params"] if p != "weightMax"]
+                    definition["post_vars"] = [*definition.get("post_vars", []),
+                        ("weightMax", "scalar", api["module"].VarAccess.READ_ONLY)]
+                return create_uncapped(name, **definition)
 
         input_model = create_neuron_model(
             "ZD3PoissonInput",
@@ -355,10 +403,10 @@ class GeNNNetwork:
             self.exc.spike_recording_enabled = True
             self.inh.spike_recording_enabled = True
         triplet_params = {
-            "depressionRate": MODEL.depression_rate,
-            "potentiationRate": MODEL.potentiation_rate,
+            "depressionRate": variant.depression_rate,
+            "potentiationRate": variant.potentiation_rate,
             "weightMin": MODEL.weight_min,
-            "weightMax": MODEL.weight_max,
+            "weightMax": variant.weight_max,
             "preTau": MODEL.pre_tau_ms,
             "post1Tau": MODEL.post1_tau_ms,
             "post2Tau": MODEL.post2_tau_ms,
@@ -373,11 +421,15 @@ class GeNNNetwork:
             "weightMax": variant.weight_max,
             "plasticity": 1.0 if plasticity else 0.0,
         }
+        if cap_initial:
+            del triplet_params["weightMax"]
+            del one_trace_params["weightMax"]
         if variant.learning_rule == "three-trace":
             feedforward_update = init_weight_update(
                 triplet_model,
                 triplet_params,
                 {"g": np.asarray(weights[self.structural_mask], dtype=self.scalar_dtype)},
+                post_vars=cap_initial,
             )
         elif variant.learning_rule == "one-trace-power":
             feedforward_update = init_weight_update(
@@ -385,6 +437,18 @@ class GeNNNetwork:
                 one_trace_params,
                 {"g": np.asarray(weights[self.structural_mask], dtype=self.scalar_dtype)},
                 pre_vars={"x": 0.0},
+                post_vars=cap_initial,
+            )
+        elif variant.learning_rule == "two-trace-power":
+            two_trace_model = create_two_trace_model(create_weight_update_model)
+            feedforward_update = init_weight_update(
+                two_trace_model,
+                {**one_trace_params, "postTau": MODEL.post1_tau_ms,
+                 "depressionRate": variant.depression_rate,
+                 "preExponent": variant.pre_weight_exponent},
+                {"g": np.asarray(weights[self.structural_mask], dtype=self.scalar_dtype)},
+                pre_vars={"x": 0.0},
+                post_vars={"y": 0.0, **cap_initial},
             )
         else:
             raise ValueError(f"unsupported learning rule: {variant.learning_rule}")
@@ -501,7 +565,7 @@ class GeNNNetwork:
         )
         return dense
 
-    def normalize(self, *, validate: bool = True) -> None:
+    def normalize(self, *, validate: bool = True, check_weight_bound: bool = True) -> None:
         variable = self.feedforward.vars["g"]
         variable.pull_from_device()
         weights = np.zeros((MODEL.n_input, MODEL.n_exc), dtype=np.float64)
@@ -510,7 +574,9 @@ class GeNNNetwork:
         )
         if validate:
             normalize_columns(weights)
-            validate_normalized_weight_bound(weights, self.variant)
+            if check_weight_bound:
+                validate_normalized_weight_bound(weights, self.variant,
+                                                 weight_max_by_post=self.weight_max_by_post)
         else:
             sums = weights.sum(axis=0, dtype=np.float64)
             weights *= (MODEL.normalization_target / sums)[None, :]

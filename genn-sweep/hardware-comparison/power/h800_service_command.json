@@ -1,0 +1,15 @@
+[
+  "systemd-run",
+  "--unit=stdp-power-h800-20260910-v2",
+  "--property=WorkingDirectory=/root/workspace/stdp-experiments",
+  "--property=StandardOutput=append:/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v2_h800.log",
+  "--property=StandardError=append:/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v2_h800.log",
+  "--property=RuntimeMaxSec=600",
+  "/run/current-system/sw/bin/ssh",
+  "-o",
+  "BatchMode=yes",
+  "-o",
+  "ConnectTimeout=15",
+  "CRAFT-cluster",
+  "bash -lc 'cd ~/meow/stdp-experiments\nexec srun --jobid=499509 --overlap --immediate=30 -N1 -n1 -c8 --cpu-bind=cores bash -l copilot/tmp/power_cluster_20260910_v2.sh h800'"
+]

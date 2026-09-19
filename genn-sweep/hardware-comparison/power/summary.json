@@ -1,0 +1,366 @@
+{
+  "unit": "microseconds",
+  "hardware_clock_hz": 1000000000,
+  "groups": {
+    "1-trace": {
+      "hardware": {
+        "samples": 1200,
+        "presentation_samples": 840,
+        "rest_samples": 360,
+        "mean_us": 2.585805,
+        "median_us": 2.5655,
+        "min_us": 1.803,
+        "max_us": 5.995,
+        "q25_us": 2.12,
+        "q75_us": 2.86625,
+        "power_w": 33.0,
+        "energy_uJ_per_step": 85.331565
+      },
+      "gpus": {
+        "RTX3090": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 137.60157612102583,
+          "mean_sample_energy_advantage": 54.93796223888996,
+          "ratio_of_mean_energies": 53.214212255381135,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            137.44156853403828,
+            137.56528574047195,
+            137.5487901129475,
+            137.6477638780944,
+            137.80447233957707
+          ],
+          "measured_mean_us_per_step": 27.21778541540605,
+          "equal_rule_mean_power_w": 166.834,
+          "estimated_mean_energy_uJ_per_step": 4540.852011993853,
+          "historical_timing_projection_us_at_33w": 134.66373757182856,
+          "historical_timing_projection_mean_sample_advantage": 53.76501881898466
+        },
+        "A100": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 36.02308616521783,
+          "mean_sample_energy_advantage": 14.382356679783813,
+          "ratio_of_mean_energies": 13.93109154217655,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            36.097525506829335,
+            36.325287671461524,
+            36.11419103107071,
+            35.597559779587925,
+            35.980866837139665
+          ],
+          "measured_mean_us_per_step": 18.332076665518127,
+          "equal_rule_mean_power_w": 64.846,
+          "estimated_mean_energy_uJ_per_step": 1188.7618434521885,
+          "historical_timing_projection_us_at_33w": 37.11320175479657,
+          "historical_timing_projection_mean_sample_advantage": 14.81758955127089
+        },
+        "A800": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 41.09251723065281,
+          "mean_sample_energy_advantage": 16.40634666810028,
+          "ratio_of_mean_energies": 15.891576213462658,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            41.302478997524766,
+            41.0525245131534,
+            40.75257913190775,
+            41.0525245131534,
+            41.302478997524766
+          ],
+          "measured_mean_us_per_step": 16.496995968510255,
+          "equal_rule_mean_power_w": 82.2,
+          "estimated_mean_energy_uJ_per_step": 1356.053068611543,
+          "historical_timing_projection_us_at_33w": 41.73980830930366,
+          "historical_timing_projection_mean_sample_advantage": 16.66478013840598
+        },
+        "H800": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 60.07592081030655,
+          "mean_sample_energy_advantage": 23.985544075747313,
+          "ratio_of_mean_energies": 23.232966449638138,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            59.987995926896,
+            60.00043812737862,
+            60.10827053156138,
+            60.10827053156138,
+            60.17462893413538
+          ],
+          "measured_mean_us_per_step": 13.686420530887501,
+          "equal_rule_mean_power_w": 144.852,
+          "estimated_mean_energy_uJ_per_step": 1982.5053867401164,
+          "historical_timing_projection_us_at_33w": 63.16404543786064,
+          "historical_timing_projection_mean_sample_advantage": 25.218489794540066
+        }
+      },
+      "all_gpus": {
+        "equivalent_mean_us_at_33w": 68.69827508180076,
+        "mean_sample_energy_advantage": 27.42805241563034,
+        "ratio_of_mean_energies": 26.56746161516462,
+        "estimated_mean_energy_uJ_per_step": 2267.0430776994253,
+        "historical_timing_projection_mean_sample_advantage": 27.616469575800398
+      }
+    },
+    "2-trace": {
+      "hardware": {
+        "samples": 1200,
+        "presentation_samples": 840,
+        "rest_samples": 360,
+        "mean_us": 4.579499166666667,
+        "median_us": 4.9825,
+        "min_us": 2.13,
+        "max_us": 10.473,
+        "q25_us": 2.13,
+        "q75_us": 5.7357499999999995,
+        "power_w": 33.0,
+        "energy_uJ_per_step": 151.12347250000002
+      },
+      "gpus": {
+        "RTX3090": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 144.68712503111243,
+          "mean_sample_energy_advantage": 39.60952205104713,
+          "ratio_of_mean_energies": 31.594530267471914,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            144.45438434741624,
+            144.67850500579033,
+            144.63540487917993,
+            145.02330601867354,
+            144.64402490450203
+          ],
+          "measured_mean_us_per_step": 28.44608356286392,
+          "equal_rule_mean_power_w": 167.85,
+          "estimated_mean_energy_uJ_per_step": 4774.675126026709,
+          "historical_timing_projection_us_at_33w": 138.12754097799595,
+          "historical_timing_projection_mean_sample_advantage": 37.813771467560564
+        },
+        "A100": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 37.80355816900551,
+          "mean_sample_energy_advantage": 10.349095474675314,
+          "ratio_of_mean_energies": 8.254954699887417,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            37.85966387651007,
+            39.23892918599701,
+            37.40380500303557,
+            37.246007700679016,
+            37.26938507880591
+          ],
+          "measured_mean_us_per_step": 19.286336954690217,
+          "equal_rule_mean_power_w": 64.684,
+          "estimated_mean_energy_uJ_per_step": 1247.517419577182,
+          "historical_timing_projection_us_at_33w": 38.09993271455027,
+          "historical_timing_projection_mean_sample_advantage": 10.430230918444755
+        },
+        "A800": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 43.018271131059784,
+          "mean_sample_energy_advantage": 11.776674383413422,
+          "ratio_of_mean_energies": 9.393662836360333,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            42.83017981147553,
+            42.34156269635443,
+            42.61476796502429,
+            43.58149430031766,
+            43.72335088212701
+          ],
+          "measured_mean_us_per_step": 17.338026665587496,
+          "equal_rule_mean_power_w": 81.878,
+          "estimated_mean_energy_uJ_per_step": 1419.602947324973,
+          "historical_timing_projection_us_at_33w": 43.531645966287364,
+          "historical_timing_projection_mean_sample_advantage": 11.917215788545544
+        },
+        "H800": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 63.66197688043993,
+          "mean_sample_energy_advantage": 17.42809165996496,
+          "ratio_of_mean_energies": 13.901515114103253,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            63.62074446193867,
+            63.69092730194081,
+            63.64706302693946,
+            63.68215444694055,
+            63.66899516444014
+          ],
+          "measured_mean_us_per_step": 14.475210750441093,
+          "equal_rule_mean_power_w": 145.134,
+          "estimated_mean_energy_uJ_per_step": 2100.8452370545174,
+          "historical_timing_projection_us_at_33w": 64.58768606385424,
+          "historical_timing_projection_mean_sample_advantage": 17.68151364416308
+        }
+      },
+      "all_gpus": {
+        "equivalent_mean_us_at_33w": 72.29273280290441,
+        "mean_sample_energy_advantage": 19.790845892275208,
+        "ratio_of_mean_energies": 15.786165729455728,
+        "estimated_mean_energy_uJ_per_step": 2385.660182495845,
+        "historical_timing_projection_mean_sample_advantage": 19.460682954678486
+      }
+    },
+    "3-trace": {
+      "hardware": {
+        "samples": 1200,
+        "presentation_samples": 840,
+        "rest_samples": 360,
+        "mean_us": 3.181321666666667,
+        "median_us": 3.2794999999999996,
+        "min_us": 1.878,
+        "max_us": 6.051,
+        "q25_us": 2.129,
+        "q75_us": 3.808,
+        "power_w": 33.0,
+        "energy_uJ_per_step": 104.983615
+      },
+      "gpus": {
+        "RTX3090": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 169.50345540605318,
+          "mean_sample_energy_advantage": 58.13067361048447,
+          "ratio_of_mean_energies": 53.28082890267928,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            169.49540623562766,
+            169.49540623562766,
+            169.41491453137232,
+            169.4652218465319,
+            169.64632818110636
+          ],
+          "measured_mean_us_per_step": 33.20282800531706,
+          "equal_rule_mean_power_w": 168.46800000000002,
+          "estimated_mean_energy_uJ_per_step": 5593.614028399755,
+          "historical_timing_projection_us_at_33w": 166.61181762302834,
+          "historical_timing_projection_mean_sample_advantage": 57.13899558385022
+        },
+        "A100": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 43.501248171940446,
+          "mean_sample_energy_advantage": 14.918615393851427,
+          "ratio_of_mean_energies": 13.67395464210329,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            44.689660106873845,
+            43.03796894306811,
+            43.42739206298979,
+            42.782829657602186,
+            43.568390089168325
+          ],
+          "measured_mean_us_per_step": 22.15683268519887,
+          "equal_rule_mean_power_w": 64.79,
+          "estimated_mean_energy_uJ_per_step": 1435.541189674035,
+          "historical_timing_projection_us_at_33w": 43.01019730159266,
+          "historical_timing_projection_mean_sample_advantage": 14.750211051875327
+        },
+        "A800": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 48.70381175827466,
+          "mean_sample_energy_advantage": 16.70281811143323,
+          "ratio_of_mean_energies": 15.309301246895181,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            48.920455306610336,
+            48.727232682419064,
+            48.22368281331451,
+            48.727232682419064,
+            48.920455306610336
+          ],
+          "measured_mean_us_per_step": 19.322262419127963,
+          "equal_rule_mean_power_w": 83.17999999999999,
+          "estimated_mean_energy_uJ_per_step": 1607.2257880230638,
+          "historical_timing_projection_us_at_33w": 50.84215752333381,
+          "historical_timing_projection_mean_sample_advantage": 17.436157024420226
+        },
+        "H800": {
+          "power_samples": 5,
+          "equivalent_mean_us_at_33w": 73.11601686186336,
+          "mean_sample_energy_advantage": 25.07490659534882,
+          "ratio_of_mean_energies": 22.982906012919166,
+          "equivalent_us_at_33w_from_each_power_sample": [
+            73.03980838523957,
+            73.09997297204784,
+            73.15512384328873,
+            73.14008269658667,
+            73.14509641215403
+          ],
+          "measured_mean_us_per_step": 16.5452613722742,
+          "equal_rule_mean_power_w": 145.832,
+          "estimated_mean_energy_uJ_per_step": 2412.828556441491,
+          "historical_timing_projection_us_at_33w": 74.73060792060478,
+          "historical_timing_projection_mean_sample_advantage": 25.62862548931039
+        }
+      },
+      "all_gpus": {
+        "equivalent_mean_us_at_33w": 83.70613304953291,
+        "mean_sample_energy_advantage": 28.70675342777949,
+        "ratio_of_mean_energies": 26.31174770114923,
+        "estimated_mean_energy_uJ_per_step": 2762.302390634586,
+        "historical_timing_projection_mean_sample_advantage": 28.73849728736404
+      }
+    },
+    "Combined": {
+      "hardware": {
+        "samples": 3600,
+        "presentation_samples": 2520,
+        "rest_samples": 1080,
+        "mean_us": 3.4488752777777782,
+        "median_us": 2.9265,
+        "min_us": 1.803,
+        "max_us": 10.473,
+        "q25_us": 2.13,
+        "q75_us": 4.3985,
+        "power_w": 33.0,
+        "energy_uJ_per_step": 113.81288416666668
+      },
+      "gpus": {
+        "RTX3090": {
+          "power_samples": 15,
+          "equivalent_mean_us_at_33w": 150.59738551939714,
+          "mean_sample_energy_advantage": 50.89271930014052,
+          "ratio_of_mean_energies": 43.665651376187746,
+          "measured_mean_us_per_step": 29.622232327862342,
+          "equal_rule_mean_power_w": 167.71733333333333,
+          "estimated_mean_energy_uJ_per_step": 4969.713722140106,
+          "historical_timing_projection_us_at_33w": 146.46769872428428,
+          "historical_timing_projection_mean_sample_advantage": 49.57259529013181
+        },
+        "A100": {
+          "power_samples": 15,
+          "equivalent_mean_us_at_33w": 39.109297502054595,
+          "mean_sample_energy_advantage": 13.216689182770185,
+          "ratio_of_mean_energies": 11.339725084884478,
+          "measured_mean_us_per_step": 19.925082101802406,
+          "equal_rule_mean_power_w": 64.77333333333334,
+          "estimated_mean_energy_uJ_per_step": 1290.6068175678017,
+          "historical_timing_projection_us_at_33w": 39.407777256979834,
+          "historical_timing_projection_mean_sample_advantage": 13.33267717386366
+        },
+        "A800": {
+          "power_samples": 15,
+          "equivalent_mean_us_at_33w": 44.271533373329085,
+          "mean_sample_energy_advantage": 14.961946387648979,
+          "ratio_of_mean_energies": 12.836513300027093,
+          "measured_mean_us_per_step": 17.719095017741903,
+          "equal_rule_mean_power_w": 82.41933333333333,
+          "estimated_mean_energy_uJ_per_step": 1460.96060131986,
+          "historical_timing_projection_us_at_33w": 45.37120393297494,
+          "historical_timing_projection_mean_sample_advantage": 15.339384317123917
+        },
+        "H800": {
+          "power_samples": 15,
+          "equivalent_mean_us_at_33w": 65.61797151753662,
+          "mean_sample_energy_advantage": 22.16284744368703,
+          "ratio_of_mean_energies": 19.025904456543987,
+          "measured_mean_us_per_step": 14.902297551200933,
+          "equal_rule_mean_power_w": 145.27266666666665,
+          "estimated_mean_energy_uJ_per_step": 2165.3930600787085,
+          "historical_timing_projection_us_at_33w": 67.49411314077322,
+          "historical_timing_projection_mean_sample_advantage": 22.842876309337846
+        }
+      },
+      "all_gpus": {
+        "equivalent_mean_us_at_33w": 74.89904697807935,
+        "mean_sample_energy_advantage": 25.30855057856168,
+        "ratio_of_mean_energies": 21.716948554410827,
+        "estimated_mean_energy_uJ_per_step": 2471.668550276619,
+        "historical_timing_projection_mean_sample_advantage": 25.271883272614307
+      }
+    }
+  },
+  "schema": "dense-mnist-power-normalized-v1",
+  "hardware_power_w": 33.0,
+  "power_measurement": "Five board-power snapshots, five seconds apart, during each GPU/rule's single timed training run.",
+  "interpretation": "Energy and performance-per-watt estimates, not measured operation at a 33 W GPU cap."
+}

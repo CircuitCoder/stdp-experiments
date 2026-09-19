@@ -1,0 +1,524 @@
+{
+  "created_utc": "2026-09-10T09:08:26.608041+00:00",
+  "raw_directory": "/root/workspace/stdp-experiments/copilot/tmp/cpu_nest_mnist_t1_t32_20260910_a",
+  "service": {
+    "ActiveState": "inactive",
+    "SubState": "dead",
+    "Result": "success",
+    "ExecMainStatus": "0"
+  },
+  "validated_repetitions": 18,
+  "manifests": {
+    "1": {
+      "schema": "nest-mnist-latency-v1",
+      "created_utc": "2026-09-10T09:04:37.295563+00:00",
+      "command": [
+        "cpu-benchmark/run_nest_mnist.py",
+        "--nest-prefix",
+        "copilot/tmp/cpu_nest_build_20260910_c/install",
+        "--module",
+        "copilot/tmp/cpu_nest_mnist_module_20260910_b/cpumnistmodule.so",
+        "--output",
+        "copilot/tmp/cpu_nest_mnist_t1_t32_20260910_a/t1",
+        "--threads",
+        "1",
+        "--repetitions",
+        "3",
+        "--samples",
+        "20",
+        "--cases",
+        "mnist_1trace_dense",
+        "mnist_2trace_dense",
+        "mnist_3trace_dense"
+      ],
+      "cwd": "/root/workspace/stdp-experiments",
+      "host": {
+        "system": "Linux",
+        "node": "nixos",
+        "release": "6.6.87.2-microsoft-standard-WSL2+",
+        "version": "#2 SMP PREEMPT_DYNAMIC Sun Jul 20 18:39:21 CST 2025",
+        "machine": "x86_64",
+        "processor": ""
+      },
+      "nest_version": "3.9.0-post0.dev14",
+      "configuration": {
+        "output": "/root/workspace/stdp-experiments/copilot/tmp/cpu_nest_mnist_t1_t32_20260910_a/t1",
+        "module": "/root/workspace/stdp-experiments/copilot/tmp/cpu_nest_mnist_module_20260910_b/cpumnistmodule.so",
+        "nest_prefix": "copilot/tmp/cpu_nest_build_20260910_c/install",
+        "inputs": "/root/workspace/stdp-experiments/copilot/tmp/baseline_inputs_20260907_v2",
+        "data_path": "/root/workspace/stdp-experiments/data/mnist",
+        "cases": [
+          "mnist_1trace_dense",
+          "mnist_2trace_dense",
+          "mnist_3trace_dense"
+        ],
+        "threads": 1,
+        "repetitions": 3,
+        "samples": 20,
+        "seed": 20260724
+      },
+      "source_sha256": {
+        "cpu-benchmark/run_nest_mnist.py": "3fec5d0423359e76c9d7dbf6d0f7ee4bb74b6804f1460bbfa66694cd83c9ef48",
+        "cpu-benchmark/mnist_module/module.cpp": "2d95df928437be45db13cc2c0ae5df8fc4ff511428f67edc6505ad9bf0728d87",
+        "cpu-benchmark/mnist_module/mechanics.h": "9545093ad21328d9555ebc70b60faba6462acea721843565c9d67b011ac4083b",
+        "cpu-benchmark/mnist_module/CMakeLists.txt": "574371ca292ec65fe64833ee89b29809ef8cf9426252f2384fea923c67915aca",
+        "cpu-benchmark/shell.nix": "493d89f41437eeca2fd3cf9a819a9060ff15e4ed8c729e41d3826bab1360c2c0",
+        "cpu-benchmark/test_nest_mnist.py": "b750993fa16ac3a0e31a75cc4fa7bde0950bd3b8258d0e92904d9e707668f13c",
+        "genn-sweep/baseline.py": "af865ce843322477a9d92421c10a7bb1a6dcef4181414a249f0e7bdda0c295c2",
+        "genn-sweep/baseline_cases.py": "c8a2971f32418a9ed98da58bfd91ca14d703d20658ca8e2cc3982afc2c4f4ce5",
+        "reimpl/zd3/constants.py": "7d9a8e4dcdba24438b7d13f4f753585a501f89b7b873c71375d9685b9b226f4f",
+        "reimpl/zd3/io.py": "cb8f097baa7a1f762cb8f44228ab5549cfc7b56ab2c7d63e95f646b589c3e196",
+        "reimpl/zd3/variants.py": "5009689c67ba24d4b64e8c685635df6d990f139d37cc19c847c37c86cc67d028"
+      },
+      "module_sha256": "051776ce112c2a226490e56e32e88938c16ce10d8643e342e38a7182c30e6628",
+      "input_manifest_sha256": "e94363abf5e97f786c7217c509ce79ce96e395329ff2d5dff0b1c26639d57e80",
+      "environment": {
+        "CXX": "g++ -O3 -march=native",
+        "NIX_ENFORCE_NO_NATIVE": "0",
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OMP_WAIT_POLICY": "ACTIVE",
+        "GOMP_SPINCOUNT": "300000",
+        "OMP_PROC_BIND": "spread",
+        "OMP_PLACES": "cores"
+      },
+      "cpu": {
+        "returncode": 0,
+        "output": "Architecture:                         x86_64\nCPU op-mode(s):                       32-bit, 64-bit\nAddress sizes:                        48 bits physical, 48 bits virtual\nByte Order:                           Little Endian\nCPU(s):                               32\nOn-line CPU(s) list:                  0-31\nVendor ID:                            AuthenticAMD\nModel name:                           AMD Ryzen 9 7950X 16-Core Processor\nCPU family:                           25\nModel:                                97\nThread(s) per core:                   2\nCore(s) per socket:                   16\nSocket(s):                            1\nStepping:                             2\nBogoMIPS:                             8982.91\nFlags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl tsc_reliable nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy svm cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext perfctr_core ssbd ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx512_bf16 clzero xsaveerptr arat npt nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold v_vmsave_vmload avx512vbmi umip avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm\nVirtualization:                       AMD-V\nHypervisor vendor:                    Microsoft\nVirtualization type:                  full\nL1d cache:                            512 KiB (16 instances)\nL1i cache:                            512 KiB (16 instances)\nL2 cache:                             16 MiB (16 instances)\nL3 cache:                             32 MiB (1 instance)\nNUMA node(s):                         1\nNUMA node0 CPU(s):                    0-31\nVulnerability Gather data sampling:   Not affected\nVulnerability Itlb multihit:          Not affected\nVulnerability L1tf:                   Not affected\nVulnerability Mds:                    Not affected\nVulnerability Meltdown:               Not affected\nVulnerability Mmio stale data:        Not affected\nVulnerability Reg file data sampling: Not affected\nVulnerability Retbleed:               Not affected\nVulnerability Spec rstack overflow:   Vulnerable: Safe RET, no microcode\nVulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:             Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                  Not affected\nVulnerability Tsx async abort:        Not affected"
+      },
+      "compiler": {
+        "returncode": 0,
+        "output": "g++ (GCC) 14.3.0\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+      },
+      "git_revision": {
+        "returncode": 0,
+        "output": "695015042a46d7766c83ede502e7ed8fa708da46"
+      },
+      "git_status": {
+        "returncode": 0,
+        "output": "M .gitignore\n ? ref\n M reimpl/backends/genn_backend.py\n M reimpl/zd3/variants.py\n?? BASELINE.md\n?? cpu-benchmark/\n?? genn-sweep/baseline-20260907-matrix.json\n?? genn-sweep/baseline-20260907-rtx3090.json\n?? genn-sweep/baseline.py\n?? genn-sweep/baseline_cases.py\n?? genn-sweep/checkpoints/mnist_two_trace_dense_010000.npz\n?? genn-sweep/hardware-comparison/\n?? genn-sweep/profile-20260907-a100.json\n?? genn-sweep/summarize_baseline.py\n?? genn-sweep/test_baseline.py\n?? gpu-perf.md\n?? mnist_dense_results.json\n?? reimpl/tests/test_genn_two_trace.py"
+      },
+      "nest_revision": {
+        "returncode": 0,
+        "output": "182eba446a8b89108f21cd2ad54aa4c667afd86a"
+      },
+      "processes_before": {
+        "returncode": 0,
+        "output": "PID COMMAND         NLWP %CPU\n 186463 nix               18 50.1\n 186525 bash               1 48.1\n 186549 python3.13         1 45.6\n    753 codex             49  0.5\n    536 codex             49  0.4\n 184883 codex             49  0.4\n 184860 npm exec @opena   11  0.0\n    331 nsncd             11  0.0\n     95 systemd-oomd       1  0.0\n    963 codex-code-mode   19  0.0\n    897 codex-code-mode   19  0.0\n 185115 codex-code-mode   19  0.0\n      1 systemd            1  0.0\n    529 MainThread         7  0.0\n    518 npm exec @opena   11  0.0\n    735 npm exec @opena   11  0.0\n     93 systemd-journal    1  0.0\n    304 systemd-logind     1  0.0\n    404 dhcpcd             1  0.0\n 184876 MainThread         7  0.0\n    277 dbus-daemon        1  0.0\n  86250 bash               1  0.0\n    423 systemd            1  0.0\n    706 bash               1  0.0\n    480 bash               1  0.0\n    746 MainThread         7  0.0\n    425 (sd-pam)           1  0.0\n    482 (sd-pam)           1  0.0\n    708 (sd-pam)           1  0.0\n  13057 dbus-daemon        1  0.0\n 186571 ps                 1  0.0"
+      },
+      "precision": "FP32 neuron/trace/plastic state; FP64 normalization sum and scaling; NEST recurrent event buffers FP64",
+      "implementation": "NEST threads and native spike routing; eager target-owned plastic arrays; two alternating shared input-trace buffers; one barrier-separated tick per update",
+      "protocol": "same frozen model definitions, weights/theta checkpoints and masks as GeNN; other runtime state reset; native NEST input RNG; one network, sequential repetitions; synchronization included; normalization runs inside target nodes",
+      "weight_bound_policy": "normalization and final cap overshoots are recorded, not fatal; no bound check in timing; configured STDP clipping is unchanged",
+      "power": "deferred; no energy or per-watt claim"
+    },
+    "32": {
+      "schema": "nest-mnist-latency-v1",
+      "created_utc": "2026-09-10T09:05:24.590644+00:00",
+      "command": [
+        "cpu-benchmark/run_nest_mnist.py",
+        "--nest-prefix",
+        "copilot/tmp/cpu_nest_build_20260910_c/install",
+        "--module",
+        "copilot/tmp/cpu_nest_mnist_module_20260910_b/cpumnistmodule.so",
+        "--output",
+        "copilot/tmp/cpu_nest_mnist_t1_t32_20260910_a/t32",
+        "--threads",
+        "32",
+        "--repetitions",
+        "3",
+        "--samples",
+        "20",
+        "--cases",
+        "mnist_1trace_dense",
+        "mnist_2trace_dense",
+        "mnist_3trace_dense"
+      ],
+      "cwd": "/root/workspace/stdp-experiments",
+      "host": {
+        "system": "Linux",
+        "node": "nixos",
+        "release": "6.6.87.2-microsoft-standard-WSL2+",
+        "version": "#2 SMP PREEMPT_DYNAMIC Sun Jul 20 18:39:21 CST 2025",
+        "machine": "x86_64",
+        "processor": ""
+      },
+      "nest_version": "3.9.0-post0.dev14",
+      "configuration": {
+        "output": "/root/workspace/stdp-experiments/copilot/tmp/cpu_nest_mnist_t1_t32_20260910_a/t32",
+        "module": "/root/workspace/stdp-experiments/copilot/tmp/cpu_nest_mnist_module_20260910_b/cpumnistmodule.so",
+        "nest_prefix": "copilot/tmp/cpu_nest_build_20260910_c/install",
+        "inputs": "/root/workspace/stdp-experiments/copilot/tmp/baseline_inputs_20260907_v2",
+        "data_path": "/root/workspace/stdp-experiments/data/mnist",
+        "cases": [
+          "mnist_1trace_dense",
+          "mnist_2trace_dense",
+          "mnist_3trace_dense"
+        ],
+        "threads": 32,
+        "repetitions": 3,
+        "samples": 20,
+        "seed": 20260724
+      },
+      "source_sha256": {
+        "cpu-benchmark/run_nest_mnist.py": "3fec5d0423359e76c9d7dbf6d0f7ee4bb74b6804f1460bbfa66694cd83c9ef48",
+        "cpu-benchmark/mnist_module/module.cpp": "2d95df928437be45db13cc2c0ae5df8fc4ff511428f67edc6505ad9bf0728d87",
+        "cpu-benchmark/mnist_module/mechanics.h": "9545093ad21328d9555ebc70b60faba6462acea721843565c9d67b011ac4083b",
+        "cpu-benchmark/mnist_module/CMakeLists.txt": "574371ca292ec65fe64833ee89b29809ef8cf9426252f2384fea923c67915aca",
+        "cpu-benchmark/shell.nix": "493d89f41437eeca2fd3cf9a819a9060ff15e4ed8c729e41d3826bab1360c2c0",
+        "cpu-benchmark/test_nest_mnist.py": "b750993fa16ac3a0e31a75cc4fa7bde0950bd3b8258d0e92904d9e707668f13c",
+        "genn-sweep/baseline.py": "af865ce843322477a9d92421c10a7bb1a6dcef4181414a249f0e7bdda0c295c2",
+        "genn-sweep/baseline_cases.py": "c8a2971f32418a9ed98da58bfd91ca14d703d20658ca8e2cc3982afc2c4f4ce5",
+        "reimpl/zd3/constants.py": "7d9a8e4dcdba24438b7d13f4f753585a501f89b7b873c71375d9685b9b226f4f",
+        "reimpl/zd3/io.py": "cb8f097baa7a1f762cb8f44228ab5549cfc7b56ab2c7d63e95f646b589c3e196",
+        "reimpl/zd3/variants.py": "5009689c67ba24d4b64e8c685635df6d990f139d37cc19c847c37c86cc67d028"
+      },
+      "module_sha256": "051776ce112c2a226490e56e32e88938c16ce10d8643e342e38a7182c30e6628",
+      "input_manifest_sha256": "e94363abf5e97f786c7217c509ce79ce96e395329ff2d5dff0b1c26639d57e80",
+      "environment": {
+        "CXX": "g++ -O3 -march=native",
+        "NIX_ENFORCE_NO_NATIVE": "0",
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "OMP_WAIT_POLICY": "ACTIVE",
+        "GOMP_SPINCOUNT": "300000",
+        "OMP_PROC_BIND": "spread",
+        "OMP_PLACES": "cores"
+      },
+      "cpu": {
+        "returncode": 0,
+        "output": "Architecture:                         x86_64\nCPU op-mode(s):                       32-bit, 64-bit\nAddress sizes:                        48 bits physical, 48 bits virtual\nByte Order:                           Little Endian\nCPU(s):                               32\nOn-line CPU(s) list:                  0-31\nVendor ID:                            AuthenticAMD\nModel name:                           AMD Ryzen 9 7950X 16-Core Processor\nCPU family:                           25\nModel:                                97\nThread(s) per core:                   2\nCore(s) per socket:                   16\nSocket(s):                            1\nStepping:                             2\nBogoMIPS:                             8982.91\nFlags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl tsc_reliable nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy svm cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext perfctr_core ssbd ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx512_bf16 clzero xsaveerptr arat npt nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold v_vmsave_vmload avx512vbmi umip avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm\nVirtualization:                       AMD-V\nHypervisor vendor:                    Microsoft\nVirtualization type:                  full\nL1d cache:                            512 KiB (16 instances)\nL1i cache:                            512 KiB (16 instances)\nL2 cache:                             16 MiB (16 instances)\nL3 cache:                             32 MiB (1 instance)\nNUMA node(s):                         1\nNUMA node0 CPU(s):                    0-31\nVulnerability Gather data sampling:   Not affected\nVulnerability Itlb multihit:          Not affected\nVulnerability L1tf:                   Not affected\nVulnerability Mds:                    Not affected\nVulnerability Meltdown:               Not affected\nVulnerability Mmio stale data:        Not affected\nVulnerability Reg file data sampling: Not affected\nVulnerability Retbleed:               Not affected\nVulnerability Spec rstack overflow:   Vulnerable: Safe RET, no microcode\nVulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:             Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                  Not affected\nVulnerability Tsx async abort:        Not affected"
+      },
+      "compiler": {
+        "returncode": 0,
+        "output": "g++ (GCC) 14.3.0\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+      },
+      "git_revision": {
+        "returncode": 0,
+        "output": "695015042a46d7766c83ede502e7ed8fa708da46"
+      },
+      "git_status": {
+        "returncode": 0,
+        "output": "M .gitignore\n ? ref\n M reimpl/backends/genn_backend.py\n M reimpl/zd3/variants.py\n?? BASELINE.md\n?? cpu-benchmark/\n?? genn-sweep/baseline-20260907-matrix.json\n?? genn-sweep/baseline-20260907-rtx3090.json\n?? genn-sweep/baseline.py\n?? genn-sweep/baseline_cases.py\n?? genn-sweep/checkpoints/mnist_two_trace_dense_010000.npz\n?? genn-sweep/hardware-comparison/\n?? genn-sweep/profile-20260907-a100.json\n?? genn-sweep/summarize_baseline.py\n?? genn-sweep/test_baseline.py\n?? gpu-perf.md\n?? mnist_dense_results.json\n?? reimpl/tests/test_genn_two_trace.py"
+      },
+      "nest_revision": {
+        "returncode": 0,
+        "output": "182eba446a8b89108f21cd2ad54aa4c667afd86a"
+      },
+      "processes_before": {
+        "returncode": 0,
+        "output": "PID COMMAND         NLWP %CPU\n 187098 python3.13         1 61.9\n 186525 bash               1  1.8\n    753 codex             50  0.5\n    536 codex             49  0.4\n 184883 codex             49  0.4\n 184860 npm exec @opena   11  0.0\n    331 nsncd             11  0.0\n     95 systemd-oomd       1  0.0\n    963 codex-code-mode   20  0.0\n    897 codex-code-mode   18  0.0\n 185115 codex-code-mode   18  0.0\n      1 systemd            1  0.0\n    529 MainThread         7  0.0\n    518 npm exec @opena   11  0.0\n    735 npm exec @opena   11  0.0\n     93 systemd-journal    1  0.0\n    304 systemd-logind     1  0.0\n    404 dhcpcd             1  0.0\n 184876 MainThread         7  0.0\n    277 dbus-daemon        1  0.0\n  86250 bash               1  0.0\n    423 systemd            1  0.0\n    706 bash               1  0.0\n    480 bash               1  0.0\n    746 MainThread         7  0.0\n    425 (sd-pam)           1  0.0\n    482 (sd-pam)           1  0.0\n    708 (sd-pam)           1  0.0\n  13057 dbus-daemon        1  0.0\n 187121 ps                 1  0.0"
+      },
+      "precision": "FP32 neuron/trace/plastic state; FP64 normalization sum and scaling; NEST recurrent event buffers FP64",
+      "implementation": "NEST threads and native spike routing; eager target-owned plastic arrays; two alternating shared input-trace buffers; one barrier-separated tick per update",
+      "protocol": "same frozen model definitions, weights/theta checkpoints and masks as GeNN; other runtime state reset; native NEST input RNG; one network, sequential repetitions; synchronization included; normalization runs inside target nodes",
+      "weight_bound_policy": "normalization and final cap overshoots are recorded, not fatal; no bound check in timing; configured STDP clipping is unchanged",
+      "power": "deferred; no energy or per-watt claim"
+    }
+  },
+  "rows": [
+    {
+      "case": "mnist_1trace_dense",
+      "t1_median_us_per_step": 123.01300859980984,
+      "t1_min_us_per_step": 118.87988325033803,
+      "t1_max_us_per_step": 126.83787739952095,
+      "t1_attempts": 20,
+      "t1_steps": 20000,
+      "t1_exc_spikes": 328,
+      "t1_input_spikes": 49255,
+      "t32_median_us_per_step": 104.04435844975524,
+      "t32_min_us_per_step": 98.76645229960559,
+      "t32_max_us_per_step": 105.61478765011998,
+      "t32_attempts": 20,
+      "t32_steps": 20000,
+      "t32_exc_spikes": 262,
+      "t32_input_spikes": 49145,
+      "speedup_32_vs_1": 1.182313105993295
+    },
+    {
+      "case": "mnist_2trace_dense",
+      "t1_median_us_per_step": 137.967522899271,
+      "t1_min_us_per_step": 137.25667289982084,
+      "t1_max_us_per_step": 139.68704510043608,
+      "t1_attempts": 20,
+      "t1_steps": 20000,
+      "t1_exc_spikes": 320,
+      "t1_input_spikes": 49255,
+      "t32_median_us_per_step": 98.43043423773322,
+      "t32_min_us_per_step": 95.11893842829436,
+      "t32_max_us_per_step": 99.4350468099583,
+      "t32_attempts": 21,
+      "t32_steps": 21000,
+      "t32_exc_spikes": 266,
+      "t32_input_spikes": 50843,
+      "speedup_32_vs_1": 1.4016754469054375
+    },
+    {
+      "case": "mnist_3trace_dense",
+      "t1_median_us_per_step": 126.2392318007187,
+      "t1_min_us_per_step": 126.16246014949866,
+      "t1_max_us_per_step": 126.59051994996844,
+      "t1_attempts": 20,
+      "t1_steps": 20000,
+      "t1_exc_spikes": 400,
+      "t1_input_spikes": 49255,
+      "t32_median_us_per_step": 101.17340976250402,
+      "t32_min_us_per_step": 100.75119295201841,
+      "t32_max_us_per_step": 1439.5061366667505,
+      "t32_attempts": 21,
+      "t32_steps": 21000,
+      "t32_exc_spikes": 407,
+      "t32_input_spikes": 50843,
+      "speedup_32_vs_1": 1.2477510849644642
+    }
+  ],
+  "thread_placement": {
+    "1": {
+      "created_utc": "2026-09-10T09:05:03.921388+00:00",
+      "pid": 186549,
+      "requested_threads": 1,
+      "native_thread_count": 1,
+      "tasks": [
+        {
+          "tid": 186549,
+          "allowed_cpus": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    "32": {
+      "created_utc": "2026-09-10T09:06:13.031577+00:00",
+      "pid": 187098,
+      "requested_threads": 32,
+      "native_thread_count": 32,
+      "tasks": [
+        {
+          "tid": 187098,
+          "allowed_cpus": [
+            0,
+            1
+          ]
+        },
+        {
+          "tid": 187122,
+          "allowed_cpus": [
+            0,
+            1
+          ]
+        },
+        {
+          "tid": 187123,
+          "allowed_cpus": [
+            2,
+            3
+          ]
+        },
+        {
+          "tid": 187124,
+          "allowed_cpus": [
+            2,
+            3
+          ]
+        },
+        {
+          "tid": 187125,
+          "allowed_cpus": [
+            4,
+            5
+          ]
+        },
+        {
+          "tid": 187126,
+          "allowed_cpus": [
+            4,
+            5
+          ]
+        },
+        {
+          "tid": 187127,
+          "allowed_cpus": [
+            6,
+            7
+          ]
+        },
+        {
+          "tid": 187128,
+          "allowed_cpus": [
+            6,
+            7
+          ]
+        },
+        {
+          "tid": 187129,
+          "allowed_cpus": [
+            8,
+            9
+          ]
+        },
+        {
+          "tid": 187130,
+          "allowed_cpus": [
+            8,
+            9
+          ]
+        },
+        {
+          "tid": 187131,
+          "allowed_cpus": [
+            10,
+            11
+          ]
+        },
+        {
+          "tid": 187132,
+          "allowed_cpus": [
+            10,
+            11
+          ]
+        },
+        {
+          "tid": 187133,
+          "allowed_cpus": [
+            12,
+            13
+          ]
+        },
+        {
+          "tid": 187134,
+          "allowed_cpus": [
+            12,
+            13
+          ]
+        },
+        {
+          "tid": 187135,
+          "allowed_cpus": [
+            14,
+            15
+          ]
+        },
+        {
+          "tid": 187136,
+          "allowed_cpus": [
+            14,
+            15
+          ]
+        },
+        {
+          "tid": 187137,
+          "allowed_cpus": [
+            16,
+            17
+          ]
+        },
+        {
+          "tid": 187138,
+          "allowed_cpus": [
+            16,
+            17
+          ]
+        },
+        {
+          "tid": 187139,
+          "allowed_cpus": [
+            18,
+            19
+          ]
+        },
+        {
+          "tid": 187140,
+          "allowed_cpus": [
+            18,
+            19
+          ]
+        },
+        {
+          "tid": 187141,
+          "allowed_cpus": [
+            20,
+            21
+          ]
+        },
+        {
+          "tid": 187142,
+          "allowed_cpus": [
+            20,
+            21
+          ]
+        },
+        {
+          "tid": 187143,
+          "allowed_cpus": [
+            22,
+            23
+          ]
+        },
+        {
+          "tid": 187144,
+          "allowed_cpus": [
+            22,
+            23
+          ]
+        },
+        {
+          "tid": 187145,
+          "allowed_cpus": [
+            24,
+            25
+          ]
+        },
+        {
+          "tid": 187146,
+          "allowed_cpus": [
+            24,
+            25
+          ]
+        },
+        {
+          "tid": 187147,
+          "allowed_cpus": [
+            26,
+            27
+          ]
+        },
+        {
+          "tid": 187148,
+          "allowed_cpus": [
+            26,
+            27
+          ]
+        },
+        {
+          "tid": 187149,
+          "allowed_cpus": [
+            28,
+            29
+          ]
+        },
+        {
+          "tid": 187150,
+          "allowed_cpus": [
+            28,
+            29
+          ]
+        },
+        {
+          "tid": 187151,
+          "allowed_cpus": [
+            30,
+            31
+          ]
+        },
+        {
+          "tid": 187152,
+          "allowed_cpus": [
+            30,
+            31
+          ]
+        }
+      ]
+    }
+  }
+}

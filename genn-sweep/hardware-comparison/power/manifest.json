@@ -1,0 +1,414 @@
+{
+  "command": [
+    "/root/.nix-profile/bin/python3",
+    "genn-sweep/hardware-comparison/power_report.py",
+    "--run",
+    "H800",
+    "copilot/tmp/power_dense_20260910_v2_h800"
+  ],
+  "hardware_sha256": "57d42412d461e65f5c2b38458c300317d90d160b800984173cccc06015952417",
+  "gpu_baseline_sha256": "99509f200fa4111f7a05bdd7c6102c6ede43c23fccccaa1e408508b478843d5a",
+  "measurement_manifests": {
+    "RTX3090": {
+      "baseline_timing_comparability": "Fresh 25-second continuation after 10-second warmup; different image range from historical 100-image timings.",
+      "cases": [
+        "mnist_1trace_dense",
+        "mnist_2trace_dense",
+        "mnist_3trace_dense"
+      ],
+      "checkpoint_writing": false,
+      "command": [
+        "/nix/store/sl5508rzvs49c7fvdidqiy1ccykfd5wf-stdp-power-cuda128-20260910/bin/python",
+        "genn-sweep/hardware-comparison/measure_power.py",
+        "--inputs",
+        "copilot/tmp/baseline_inputs_20260907_v2",
+        "--reference",
+        "genn-sweep/hardware-comparison/power/reference.json",
+        "--gpu",
+        "RTX3090",
+        "--gpu-uuid",
+        "GPU-08e3c2ec-d6e6-e141-f048-a33535188b81",
+        "--output",
+        "copilot/tmp/power_dense_20260910_v1_rtx3090"
+      ],
+      "cpu": {
+        "output": "Architecture:                         x86_64\nCPU op-mode(s):                       32-bit, 64-bit\nAddress sizes:                        48 bits physical, 48 bits virtual\nByte Order:                           Little Endian\nCPU(s):                               32\nOn-line CPU(s) list:                  0-31\nVendor ID:                            AuthenticAMD\nModel name:                           AMD Ryzen 9 7950X 16-Core Processor\nCPU family:                           25\nModel:                                97\nThread(s) per core:                   2\nCore(s) per socket:                   16\nSocket(s):                            1\nStepping:                             2\nBogoMIPS:                             8982.91\nFlags:                                fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl tsc_reliable nonstop_tsc cpuid extd_apicid tsc_known_freq pni pclmulqdq ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm cmp_legacy svm cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw topoext perfctr_core ssbd ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx512_bf16 clzero xsaveerptr arat npt nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold v_vmsave_vmload avx512vbmi umip avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm\nVirtualization:                       AMD-V\nHypervisor vendor:                    Microsoft\nVirtualization type:                  full\nL1d cache:                            512 KiB (16 instances)\nL1i cache:                            512 KiB (16 instances)\nL2 cache:                             16 MiB (16 instances)\nL3 cache:                             32 MiB (1 instance)\nNUMA node(s):                         1\nNUMA node0 CPU(s):                    0-31\nVulnerability Gather data sampling:   Not affected\nVulnerability Itlb multihit:          Not affected\nVulnerability L1tf:                   Not affected\nVulnerability Mds:                    Not affected\nVulnerability Meltdown:               Not affected\nVulnerability Mmio stale data:        Not affected\nVulnerability Reg file data sampling: Not affected\nVulnerability Retbleed:               Not affected\nVulnerability Spec rstack overflow:   Vulnerable: Safe RET, no microcode\nVulnerability Spec store bypass:      Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:             Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:             Mitigation; Retpolines; IBPB conditional; IBRS_FW; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                  Not affected\nVulnerability Tsx async abort:        Not affected",
+        "returncode": 0
+      },
+      "created_utc": "2026-09-09T16:58:04.982973+00:00",
+      "cwd": "/root/workspace/stdp-experiments",
+      "environment": {
+        "CUDAHOSTCXX": "/nix/store/ab1zq4gjrwp035wfvcinjwd3mam6iyfv-gcc-wrapper-13.4.0/bin/g++",
+        "CUDA_PATH": "/nix/store/sl5508rzvs49c7fvdidqiy1ccykfd5wf-stdp-power-cuda128-20260910",
+        "CUDA_VISIBLE_DEVICES": "0",
+        "LD_LIBRARY_PATH": "/nix/store/alrbhz7im0w0jdwcfdgcfk7pxhkl1fzj-gcc-14.3.0-lib/lib:/nix/store/sl5508rzvs49c7fvdidqiy1ccykfd5wf-stdp-power-cuda128-20260910/lib:/usr/lib/wsl/lib",
+        "NVCC_PREPEND_FLAGS": "-I/nix/store/sl5508rzvs49c7fvdidqiy1ccykfd5wf-stdp-power-cuda128-20260910/include -ccbin=/nix/store/ab1zq4gjrwp035wfvcinjwd3mam6iyfv-gcc-wrapper-13.4.0/bin/g++",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "PATH": "/nix/store/sl5508rzvs49c7fvdidqiy1ccykfd5wf-stdp-power-cuda128-20260910/bin:/run/current-system/sw/bin:/root/.nix-profile/bin"
+      },
+      "genn": "5.4.0",
+      "gpu": {
+        "output": "0, NVIDIA GeForce RTX 3090, GPU-08e3c2ec-d6e6-e141-f048-a33535188b81, 596.49, 8.6, 24576 MiB, 390.00 W, 210 MHz, 405 MHz, [N/A]",
+        "returncode": 0
+      },
+      "gpu_label": "RTX3090",
+      "gpu_processes": {
+        "output": "",
+        "returncode": 0
+      },
+      "gpu_uuid": "GPU-08e3c2ec-d6e6-e141-f048-a33535188b81",
+      "hardware_reference_power_w": 33,
+      "host": {
+        "machine": "x86_64",
+        "node": "nixos",
+        "processor": "",
+        "release": "6.6.87.2-microsoft-standard-WSL2+",
+        "system": "Linux",
+        "version": "#2 SMP PREEMPT_DYNAMIC Sun Jul 20 18:39:21 CST 2025"
+      },
+      "input_manifest_sha256": "e94363abf5e97f786c7217c509ce79ce96e395329ff2d5dff0b1c26639d57e80",
+      "measurement_scope": "Training normalization, transfers, retry decisions, presentation and rest; build/load/warmup/final diagnostics excluded. Running board power; no idle subtraction.",
+      "numpy": "2.3.4",
+      "nvcc": {
+        "output": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Fri_Feb_21_20:23:50_PST_2025\nCuda compilation tools, release 12.8, V12.8.93\nBuild cuda_12.8.r12.8/compiler.35583870_0",
+        "returncode": 0
+      },
+      "power_sample_count_per_case": 5,
+      "power_sample_interval_seconds": 5.0,
+      "python": "3.13.12 (main, Feb  3 2026, 17:53:27) [GCC 14.3.0]",
+      "reuse_build_root": null,
+      "schema": "mnist-gpu-power-five-samples-v1",
+      "script_sha256": "7e5ea3fead7a7c77561da516b4bd1b123ae84b030200fe7fc6c894bc6c02dc53",
+      "seed": 20260724,
+      "source_sha256": {
+        "brunel/ports/common.py": "4b9e762ef3bbc189acdd7c797709e53b56d9353f2df10ceed3449d5c4192148d",
+        "brunel/ports/genn_port.py": "ef8b39684afe5eb550cbc628684af57209cc21cd3210d08db10fe29ec21a79fe",
+        "genn-sweep/baseline.py": "0fd0ba82269dc2a994f2c8b97efa1be2ad14778d29483f47bd64dcc81437c481",
+        "genn-sweep/baseline_cases.py": "c8a2971f32418a9ed98da58bfd91ca14d703d20658ca8e2cc3982afc2c4f4ce5",
+        "genn-sweep/run.py": "ab835191e5cd9f019dde9cc210377740bc2e819e853c7a59ad8646f0ec9ad1f5",
+        "reimpl/backends/genn_backend.py": "d11066ffa46861c45492c7d47001534a4bc3f13124fb494d9716d83646c30013",
+        "reimpl/zd3/constants.py": "7d9a8e4dcdba24438b7d13f4f753585a501f89b7b873c71375d9685b9b226f4f",
+        "reimpl/zd3/io.py": "cb8f097baa7a1f762cb8f44228ab5549cfc7b56ab2c7d63e95f646b589c3e196",
+        "reimpl/zd3/variants.py": "0d17e789f6adf7c9155697bbbd17c6d02266ad138e14ad06c2fc205319c6cd06"
+      },
+      "stopping_rule": "Finish an attempt after the fifth power query completes; synchronize final rest.",
+      "warmup_seconds": 10.0
+    },
+    "A100": {
+      "baseline_timing_comparability": "Fresh 25-second continuation after 10-second warmup; different image range from historical 100-image timings.",
+      "cases": [
+        "mnist_1trace_dense",
+        "mnist_2trace_dense",
+        "mnist_3trace_dense"
+      ],
+      "checkpoint_writing": false,
+      "command": [
+        "/data/meow/stdp-baseline-20260907-v1/.venv/bin/python",
+        "genn-sweep/hardware-comparison/measure_power.py",
+        "--inputs",
+        "copilot/tmp/baseline_inputs_20260907_v2",
+        "--reference",
+        "genn-sweep/hardware-comparison/power/reference.json",
+        "--gpu",
+        "A100",
+        "--gpu-uuid",
+        "GPU-0ebfab2e-68cf-4942-bf38-fa4a7dba8af2",
+        "--reuse-build-root",
+        "copilot/tmp/baseline_a100_20260907_native_r1/builds",
+        "--output",
+        "copilot/tmp/power_dense_20260910_v1_a100"
+      ],
+      "cpu": {
+        "output": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           43 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  256\nOn-line CPU(s) list:                     0-255\nVendor ID:                               AuthenticAMD\nModel name:                              AMD EPYC 7742 64-Core Processor\nCPU family:                              23\nModel:                                   49\nThread(s) per core:                      2\nCore(s) per socket:                      64\nSocket(s):                               2\nStepping:                                0\nFrequency boost:                         enabled\nCPU(s) scaling MHz:                      68%\nCPU max MHz:                             2250.0000\nCPU min MHz:                             1500.0000\nBogoMIPS:                                4499.63\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr rdpru wbnoinvd amd_ppin arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sev sev_es\nVirtualization:                          AMD-V\nL1d cache:                               4 MiB (128 instances)\nL1i cache:                               4 MiB (128 instances)\nL2 cache:                                64 MiB (128 instances)\nL3 cache:                                512 MiB (32 instances)\nNUMA node(s):                            2\nNUMA node0 CPU(s):                       0-63,128-191\nNUMA node1 CPU(s):                       64-127,192-255\nVulnerability Gather data sampling:      Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Vulnerable\nVulnerability Spec rstack overflow:      Vulnerable\nVulnerability Spec store bypass:         Vulnerable\nVulnerability Spectre v1:                Vulnerable: __user pointer sanitization and usercopy barriers only; no swapgs barriers\nVulnerability Spectre v2:                Vulnerable; IBPB: disabled; STIBP: disabled; PBRSB-eIBRS: Not affected; BHI: Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Vulnerable",
+        "returncode": 0
+      },
+      "created_utc": "2026-09-09T16:58:05.353301+00:00",
+      "cwd": "/data/meow/stdp-baseline-20260907-v2",
+      "environment": {
+        "CUDAHOSTCXX": "/usr/bin/g++-13",
+        "CUDA_PATH": "/usr/local/cuda-12.8",
+        "CUDA_VISIBLE_DEVICES": "0",
+        "LD_LIBRARY_PATH": "/usr/local/cuda-12.8/lib64:/data/meow/stdp-experiments/3rdparty/genn/pygenn",
+        "NVCC_PREPEND_FLAGS": "-I/usr/local/cuda-12.8/include -ccbin=/usr/bin/g++-13",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "PATH": "/data/meow/stdp-baseline-20260907-v1/.venv/bin:/usr/local/cuda-12.8/bin:/usr/bin:/bin"
+      },
+      "genn": "5.4.0",
+      "gpu": {
+        "output": "0, NVIDIA A100-PCIE-40GB, GPU-0ebfab2e-68cf-4942-bf38-fa4a7dba8af2, 570.211.01, 8.0, 40960 MiB, 250.00 W, 210 MHz, 1215 MHz, Disabled\n1, NVIDIA A100-PCIE-40GB, GPU-003bdb2f-fe60-fd86-a87d-ead401eb9028, 570.211.01, 8.0, 40960 MiB, 250.00 W, 210 MHz, 1215 MHz, Disabled\n2, NVIDIA A100-PCIE-40GB, GPU-b9b07424-f28c-3491-528f-601238e024cb, 570.211.01, 8.0, 40960 MiB, 250.00 W, 210 MHz, 1215 MHz, Disabled\n3, NVIDIA A100-PCIE-40GB, GPU-c2c92bac-ad72-00e6-23c7-13d6d4b57b2c, 570.211.01, 8.0, 40960 MiB, 250.00 W, 210 MHz, 1215 MHz, Disabled\n4, NVIDIA A100-PCIE-40GB, GPU-af97bf55-7653-c5ee-bb9b-76758f5878ca, 570.211.01, 8.0, 40960 MiB, 250.00 W, 210 MHz, 1215 MHz, Disabled\n5, NVIDIA A100-PCIE-40GB, GPU-9a667180-fd56-1d43-ad00-f56ffffba1ef, 570.211.01, 8.0, 40960 MiB, 250.00 W, 1410 MHz, 1215 MHz, Disabled\n6, NVIDIA A100-PCIE-40GB, GPU-49ad4907-6370-f434-5da5-4306918689e1, 570.211.01, 8.0, 40960 MiB, 250.00 W, 1410 MHz, 1215 MHz, Disabled",
+        "returncode": 0
+      },
+      "gpu_label": "A100",
+      "gpu_processes": {
+        "output": "GPU-9a667180-fd56-1d43-ad00-f56ffffba1ef, 2618745, 9640 MiB\nGPU-49ad4907-6370-f434-5da5-4306918689e1, 2618811, 9640 MiB",
+        "returncode": 0
+      },
+      "gpu_uuid": "GPU-0ebfab2e-68cf-4942-bf38-fa4a7dba8af2",
+      "hardware_reference_power_w": 33,
+      "host": {
+        "machine": "x86_64",
+        "node": "a100",
+        "processor": "x86_64",
+        "release": "6.8.0-111-generic",
+        "system": "Linux",
+        "version": "#111-Ubuntu SMP PREEMPT_DYNAMIC Sat Apr 11 23:16:02 UTC 2026"
+      },
+      "input_manifest_sha256": "e94363abf5e97f786c7217c509ce79ce96e395329ff2d5dff0b1c26639d57e80",
+      "measurement_scope": "Training normalization, transfers, retry decisions, presentation and rest; build/load/warmup/final diagnostics excluded. Running board power; no idle subtraction.",
+      "numpy": "2.3.4",
+      "nvcc": {
+        "output": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Wed_Jan_15_19:20:09_PST_2025\nCuda compilation tools, release 12.8, V12.8.61\nBuild cuda_12.8.r12.8/compiler.35404655_0",
+        "returncode": 0
+      },
+      "power_sample_count_per_case": 5,
+      "power_sample_interval_seconds": 5.0,
+      "python": "3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]",
+      "reuse_build_root": "copilot/tmp/baseline_a100_20260907_native_r1/builds",
+      "schema": "mnist-gpu-power-five-samples-v1",
+      "script_sha256": "7e5ea3fead7a7c77561da516b4bd1b123ae84b030200fe7fc6c894bc6c02dc53",
+      "seed": 20260724,
+      "source_sha256": {
+        "brunel/ports/common.py": "4b9e762ef3bbc189acdd7c797709e53b56d9353f2df10ceed3449d5c4192148d",
+        "brunel/ports/genn_port.py": "ef8b39684afe5eb550cbc628684af57209cc21cd3210d08db10fe29ec21a79fe",
+        "genn-sweep/baseline.py": "0fd0ba82269dc2a994f2c8b97efa1be2ad14778d29483f47bd64dcc81437c481",
+        "genn-sweep/baseline_cases.py": "c8a2971f32418a9ed98da58bfd91ca14d703d20658ca8e2cc3982afc2c4f4ce5",
+        "genn-sweep/run.py": "ab835191e5cd9f019dde9cc210377740bc2e819e853c7a59ad8646f0ec9ad1f5",
+        "reimpl/backends/genn_backend.py": "d11066ffa46861c45492c7d47001534a4bc3f13124fb494d9716d83646c30013",
+        "reimpl/zd3/constants.py": "7d9a8e4dcdba24438b7d13f4f753585a501f89b7b873c71375d9685b9b226f4f",
+        "reimpl/zd3/io.py": "cb8f097baa7a1f762cb8f44228ab5549cfc7b56ab2c7d63e95f646b589c3e196",
+        "reimpl/zd3/variants.py": "0d17e789f6adf7c9155697bbbd17c6d02266ad138e14ad06c2fc205319c6cd06"
+      },
+      "stopping_rule": "Finish an attempt after the fifth power query completes; synchronize final rest.",
+      "warmup_seconds": 10.0
+    },
+    "A800": {
+      "baseline_timing_comparability": "Fresh 25-second continuation after 10-second warmup; different image range from historical 100-image timings.",
+      "cases": [
+        "mnist_1trace_dense",
+        "mnist_2trace_dense",
+        "mnist_3trace_dense"
+      ],
+      "checkpoint_writing": false,
+      "command": [
+        "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+        "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/hardware-comparison/measure_power.py",
+        "--gpu",
+        "A800",
+        "--gpu-uuid",
+        "GPU-359f06ed-350a-b206-7ce9-d1c8efb10511",
+        "--inputs",
+        "copilot/tmp/baseline_inputs_20260907_v2",
+        "--reference",
+        "genn-sweep/hardware-comparison/power/reference.json",
+        "--reuse-build-root",
+        "copilot/tmp/baseline_a800_20260907_native_r1/builds",
+        "--output",
+        "copilot/tmp/power_dense_20260910_v1_a800"
+      ],
+      "cpu": {
+        "output": "Architecture:                       x86_64\nCPU op-mode(s):                     32-bit, 64-bit\nAddress sizes:                      52 bits physical, 57 bits virtual\nByte Order:                         Little Endian\nCPU(s):                             104\nOn-line CPU(s) list:                0-103\nVendor ID:                          GenuineIntel\nModel name:                         Intel(R) Xeon(R) Platinum 8470\nCPU family:                         6\nModel:                              143\nThread(s) per core:                 1\nCore(s) per socket:                 52\nSocket(s):                          2\nStepping:                           8\nCPU max MHz:                        3800.0000\nCPU min MHz:                        800.0000\nBogoMIPS:                           4000.00\nFlags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb cat_l3 cat_l2 cdp_l3 invpcid_single intel_ppin cdp_l2 ssbd mba ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local split_lock_detect avx_vnni avx512_bf16 wbnoinvd dtherm ida arat pln pts hwp hwp_act_window hwp_epp hwp_pkg_req vnmi avx512vbmi umip pku ospke waitpkg avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg tme avx512_vpopcntdq la57 rdpid bus_lock_detect cldemote movdiri movdir64b enqcmd fsrm md_clear serialize tsxldtrk pconfig arch_lbr ibt amx_bf16 avx512_fp16 amx_tile amx_int8 flush_l1d arch_capabilities\nVirtualization:                     VT-x\nL1d cache:                          4.9 MiB (104 instances)\nL1i cache:                          3.3 MiB (104 instances)\nL2 cache:                           208 MiB (104 instances)\nL3 cache:                           210 MiB (2 instances)\nNUMA node(s):                       2\nNUMA node0 CPU(s):                  0-51\nNUMA node1 CPU(s):                  52-103\nVulnerability Gather data sampling: Not affected\nVulnerability Itlb multihit:        Not affected\nVulnerability L1tf:                 Not affected\nVulnerability Mds:                  Not affected\nVulnerability Meltdown:             Not affected\nVulnerability Mmio stale data:      Not affected\nVulnerability Retbleed:             Not affected\nVulnerability Spec rstack overflow: Not affected\nVulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:           Mitigation; Enhanced / Automatic IBRS, IBPB conditional, RSB filling, PBRSB-eIBRS SW sequence\nVulnerability Srbds:                Not affected\nVulnerability Tsx async abort:      Not affected",
+        "returncode": 0
+      },
+      "created_utc": "2026-09-09T16:57:55.143583+00:00",
+      "cwd": "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments",
+      "environment": {
+        "CUDAHOSTCXX": "/apps/compilers/gcc/v12.4.0/bin/g++",
+        "CUDA_PATH": "/apps/gpu/cuda/v12.8.1",
+        "CUDA_VISIBLE_DEVICES": "0",
+        "LD_LIBRARY_PATH": "/home/fit/zhangyouh/meow/stdp-experiments/3rdparty/genn/pygenn:/apps/gpu/cuda/v12.8.1/lib64:/apps/compilers/gcc/v12.4.0/lib64:/apps/compilers/gcc/v12.4.0/lib64:/apps/gpu/cuda/v12.8.1/lib64:/rmprog/munge/v0.5.16/lib:/rmprog/pmix/v3.2.5/lib:/rmprog/slurm/v24.05.1/lib:/rmprog/ucx/v1.15.0/lib:/rmprog/munge/v0.5.16/lib:/rmprog/pmix/v3.2.5/lib:/rmprog/slurm/v24.05.1/lib:/rmprog/ucx/v1.15.0/lib:",
+        "NVCC_PREPEND_FLAGS": "-I/apps/gpu/cuda/v12.8.1/include -ccbin=/apps/compilers/gcc/v12.4.0/bin/g++",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "PATH": "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin:/apps/gpu/cuda/v12.8.1/bin:/apps/compilers/gcc/v12.4.0/bin:/apps/gpu/cuda/v12.8.1/bin:/apps/soft/anaconda3/bin:/home/fit/zhangyouh/.local/bin:/home/fit/zhangyouh/WORK/lyc/local/node-v20.11.0-linux-x64/bin:/home/fit/zhangyouh/WORK/lyc/local/npm/bin:/rmprog/munge/v0.5.16/bin:/rmprog/pmix/v3.2.5/bin:/rmprog/slurm/v24.05.1/bin:/rmprog/ucx/v1.15.0/bin:/home/fit/zhangyouh/.local/bin:/home/fit/zhangyouh/WORK/lyc/local/node-v20.11.0-linux-x64/bin:/home/fit/zhangyouh/WORK/lyc/local/npm/bin:/rmprog/munge/v0.5.16/bin:/rmprog/pmix/v3.2.5/bin:/rmprog/slurm/v24.05.1/bin:/rmprog/ucx/v1.15.0/bin:/apps/management/modules/5.4.0/bin:/home/fit/zhangyouh/WORK/lyc/local/node-v20.11.0-linux-x64/bin:/home/fit/zhangyouh/WORK/lyc/local/npm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "genn": "5.4.0",
+      "gpu": {
+        "output": "0, NVIDIA A800-SXM4-80GB, GPU-359f06ed-350a-b206-7ce9-d1c8efb10511, 610.43.02, 8.0, 81920 MiB, 400.00 W, 210 MHz, 1593 MHz, Disabled",
+        "returncode": 0
+      },
+      "gpu_label": "A800",
+      "gpu_processes": {
+        "output": "",
+        "returncode": 0
+      },
+      "gpu_uuid": "GPU-359f06ed-350a-b206-7ce9-d1c8efb10511",
+      "hardware_reference_power_w": 33,
+      "host": {
+        "machine": "x86_64",
+        "node": "g55",
+        "processor": "x86_64",
+        "release": "6.5.0-18-generic",
+        "system": "Linux",
+        "version": "#18~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Feb  7 11:40:03 UTC 2"
+      },
+      "input_manifest_sha256": "e94363abf5e97f786c7217c509ce79ce96e395329ff2d5dff0b1c26639d57e80",
+      "measurement_scope": "Training normalization, transfers, retry decisions, presentation and rest; build/load/warmup/final diagnostics excluded. Running board power; no idle subtraction.",
+      "numpy": "2.3.4",
+      "nvcc": {
+        "output": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Wed_Jan_15_19:20:09_PST_2025\nCuda compilation tools, release 12.8, V12.8.61\nBuild cuda_12.8.r12.8/compiler.35404655_0",
+        "returncode": 0
+      },
+      "power_sample_count_per_case": 5,
+      "power_sample_interval_seconds": 5.0,
+      "python": "3.12.4 | packaged by Anaconda, Inc. | (main, Jun 18 2024, 15:12:24) [GCC 11.2.0]",
+      "reuse_build_root": "copilot/tmp/baseline_a800_20260907_native_r1/builds",
+      "schema": "mnist-gpu-power-five-samples-v1",
+      "script_sha256": "7e5ea3fead7a7c77561da516b4bd1b123ae84b030200fe7fc6c894bc6c02dc53",
+      "seed": 20260724,
+      "source_sha256": {
+        "brunel/ports/common.py": "4b9e762ef3bbc189acdd7c797709e53b56d9353f2df10ceed3449d5c4192148d",
+        "brunel/ports/genn_port.py": "ef8b39684afe5eb550cbc628684af57209cc21cd3210d08db10fe29ec21a79fe",
+        "genn-sweep/baseline.py": "0fd0ba82269dc2a994f2c8b97efa1be2ad14778d29483f47bd64dcc81437c481",
+        "genn-sweep/baseline_cases.py": "c8a2971f32418a9ed98da58bfd91ca14d703d20658ca8e2cc3982afc2c4f4ce5",
+        "genn-sweep/run.py": "ab835191e5cd9f019dde9cc210377740bc2e819e853c7a59ad8646f0ec9ad1f5",
+        "reimpl/backends/genn_backend.py": "d11066ffa46861c45492c7d47001534a4bc3f13124fb494d9716d83646c30013",
+        "reimpl/zd3/constants.py": "7d9a8e4dcdba24438b7d13f4f753585a501f89b7b873c71375d9685b9b226f4f",
+        "reimpl/zd3/io.py": "cb8f097baa7a1f762cb8f44228ab5549cfc7b56ab2c7d63e95f646b589c3e196",
+        "reimpl/zd3/variants.py": "0d17e789f6adf7c9155697bbbd17c6d02266ad138e14ad06c2fc205319c6cd06"
+      },
+      "stopping_rule": "Finish an attempt after the fifth power query completes; synchronize final rest.",
+      "warmup_seconds": 10.0
+    },
+    "H800": {
+      "baseline_timing_comparability": "Fresh 25-second continuation after 10-second warmup; different image range from historical 100-image timings.",
+      "cases": [
+        "mnist_1trace_dense",
+        "mnist_2trace_dense",
+        "mnist_3trace_dense"
+      ],
+      "checkpoint_writing": false,
+      "command": [
+        "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+        "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/hardware-comparison/measure_power_v2.py",
+        "--gpu",
+        "H800",
+        "--gpu-uuid",
+        "GPU-b71c5082-3a1f-f89f-be22-93092c3938dc",
+        "--inputs",
+        "copilot/tmp/baseline_inputs_20260907_v2",
+        "--reference",
+        "genn-sweep/hardware-comparison/power/reference.json",
+        "--reuse-build-root",
+        "copilot/tmp/baseline_h800_20260907_native_r1/builds",
+        "--output",
+        "copilot/tmp/power_dense_20260910_v2_h800"
+      ],
+      "cpu": {
+        "output": "Architecture:                       x86_64\nCPU op-mode(s):                     32-bit, 64-bit\nAddress sizes:                      52 bits physical, 57 bits virtual\nByte Order:                         Little Endian\nCPU(s):                             104\nOn-line CPU(s) list:                0-103\nVendor ID:                          GenuineIntel\nModel name:                         Intel(R) Xeon(R) Platinum 8470\nCPU family:                         6\nModel:                              143\nThread(s) per core:                 1\nCore(s) per socket:                 52\nSocket(s):                          2\nStepping:                           8\nCPU max MHz:                        3800.0000\nCPU min MHz:                        800.0000\nBogoMIPS:                           4000.00\nFlags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb cat_l3 cat_l2 cdp_l3 invpcid_single intel_ppin cdp_l2 ssbd mba ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local split_lock_detect avx_vnni avx512_bf16 wbnoinvd dtherm ida arat pln pts hwp hwp_act_window hwp_epp hwp_pkg_req vnmi avx512vbmi umip pku ospke waitpkg avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg tme avx512_vpopcntdq la57 rdpid bus_lock_detect cldemote movdiri movdir64b enqcmd fsrm md_clear serialize tsxldtrk pconfig arch_lbr ibt amx_bf16 avx512_fp16 amx_tile amx_int8 flush_l1d arch_capabilities\nVirtualization:                     VT-x\nL1d cache:                          4.9 MiB (104 instances)\nL1i cache:                          3.3 MiB (104 instances)\nL2 cache:                           208 MiB (104 instances)\nL3 cache:                           210 MiB (2 instances)\nNUMA node(s):                       2\nNUMA node0 CPU(s):                  0-51\nNUMA node1 CPU(s):                  52-103\nVulnerability Gather data sampling: Not affected\nVulnerability Itlb multihit:        Not affected\nVulnerability L1tf:                 Not affected\nVulnerability Mds:                  Not affected\nVulnerability Meltdown:             Not affected\nVulnerability Mmio stale data:      Not affected\nVulnerability Retbleed:             Not affected\nVulnerability Spec rstack overflow: Not affected\nVulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:           Mitigation; Enhanced / Automatic IBRS, IBPB conditional, RSB filling, PBRSB-eIBRS SW sequence\nVulnerability Srbds:                Not affected\nVulnerability Tsx async abort:      Not affected",
+        "returncode": 0
+      },
+      "created_utc": "2026-09-09T17:04:14.959434+00:00",
+      "cwd": "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments",
+      "environment": {
+        "CUDAHOSTCXX": "/apps/compilers/gcc/v12.4.0/bin/g++",
+        "CUDA_PATH": "/apps/gpu/cuda/v12.8.1",
+        "CUDA_VISIBLE_DEVICES": "0",
+        "LD_LIBRARY_PATH": "/home/fit/zhangyouh/meow/stdp-experiments/3rdparty/genn/pygenn:/apps/gpu/cuda/v12.8.1/lib64:/apps/compilers/gcc/v12.4.0/lib64:/apps/compilers/gcc/v12.4.0/lib64:/apps/gpu/cuda/v12.8.1/lib64:/rmprog/munge/v0.5.16/lib:/rmprog/pmix/v3.2.5/lib:/rmprog/slurm/v24.05.1/lib:/rmprog/ucx/v1.15.0/lib:/rmprog/munge/v0.5.16/lib:/rmprog/pmix/v3.2.5/lib:/rmprog/slurm/v24.05.1/lib:/rmprog/ucx/v1.15.0/lib:",
+        "NVCC_PREPEND_FLAGS": "-I/apps/gpu/cuda/v12.8.1/include -ccbin=/apps/compilers/gcc/v12.4.0/bin/g++",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "PATH": "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin:/apps/gpu/cuda/v12.8.1/bin:/apps/compilers/gcc/v12.4.0/bin:/apps/gpu/cuda/v12.8.1/bin:/apps/soft/anaconda3/bin:/home/fit/zhangyouh/.local/bin:/home/fit/zhangyouh/WORK/lyc/local/node-v20.11.0-linux-x64/bin:/home/fit/zhangyouh/WORK/lyc/local/npm/bin:/rmprog/munge/v0.5.16/bin:/rmprog/pmix/v3.2.5/bin:/rmprog/slurm/v24.05.1/bin:/rmprog/ucx/v1.15.0/bin:/home/fit/zhangyouh/.local/bin:/home/fit/zhangyouh/WORK/lyc/local/node-v20.11.0-linux-x64/bin:/home/fit/zhangyouh/WORK/lyc/local/npm/bin:/rmprog/munge/v0.5.16/bin:/rmprog/pmix/v3.2.5/bin:/rmprog/slurm/v24.05.1/bin:/rmprog/ucx/v1.15.0/bin:/apps/management/modules/5.4.0/bin:/home/fit/zhangyouh/WORK/lyc/local/node-v20.11.0-linux-x64/bin:/home/fit/zhangyouh/WORK/lyc/local/npm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "genn": "5.4.0",
+      "gpu": {
+        "output": "0, NVIDIA H800, GPU-b71c5082-3a1f-f89f-be22-93092c3938dc, 610.43.02, 9.0, 81559 MiB, 700.00 W, 345 MHz, 2619 MHz, Disabled",
+        "returncode": 0
+      },
+      "gpu_label": "H800",
+      "gpu_processes": {
+        "output": "",
+        "returncode": 0
+      },
+      "gpu_uuid": "GPU-b71c5082-3a1f-f89f-be22-93092c3938dc",
+      "hardware_reference_power_w": 33,
+      "host": {
+        "machine": "x86_64",
+        "node": "g40",
+        "processor": "x86_64",
+        "release": "6.5.0-18-generic",
+        "system": "Linux",
+        "version": "#18~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Wed Feb  7 11:40:03 UTC 2"
+      },
+      "input_manifest_sha256": "e94363abf5e97f786c7217c509ce79ce96e395329ff2d5dff0b1c26639d57e80",
+      "measurement_scope": "Training normalization, transfers, retry decisions, presentation and rest; build/load/warmup/final diagnostics excluded. Running board power; no idle subtraction.",
+      "numpy": "2.3.4",
+      "nvcc": {
+        "output": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Wed_Jan_15_19:20:09_PST_2025\nCuda compilation tools, release 12.8, V12.8.61\nBuild cuda_12.8.r12.8/compiler.35404655_0",
+        "returncode": 0
+      },
+      "power_sample_count_per_case": 5,
+      "power_sample_interval_seconds": 5.0,
+      "python": "3.12.4 | packaged by Anaconda, Inc. | (main, Jun 18 2024, 15:12:24) [GCC 11.2.0]",
+      "reuse_build_root": "copilot/tmp/baseline_h800_20260907_native_r1/builds",
+      "schema": "mnist-gpu-power-five-samples-v1",
+      "script_sha256": "966b833f430bb7ddd4cdec4f509e18526619baf907d40c79695a5da28d43a789",
+      "seed": 20260724,
+      "source_sha256": {
+        "brunel/ports/common.py": "4b9e762ef3bbc189acdd7c797709e53b56d9353f2df10ceed3449d5c4192148d",
+        "brunel/ports/genn_port.py": "ef8b39684afe5eb550cbc628684af57209cc21cd3210d08db10fe29ec21a79fe",
+        "genn-sweep/baseline.py": "0fd0ba82269dc2a994f2c8b97efa1be2ad14778d29483f47bd64dcc81437c481",
+        "genn-sweep/baseline_cases.py": "c8a2971f32418a9ed98da58bfd91ca14d703d20658ca8e2cc3982afc2c4f4ce5",
+        "genn-sweep/run.py": "ab835191e5cd9f019dde9cc210377740bc2e819e853c7a59ad8646f0ec9ad1f5",
+        "reimpl/backends/genn_backend.py": "d11066ffa46861c45492c7d47001534a4bc3f13124fb494d9716d83646c30013",
+        "reimpl/zd3/constants.py": "7d9a8e4dcdba24438b7d13f4f753585a501f89b7b873c71375d9685b9b226f4f",
+        "reimpl/zd3/io.py": "cb8f097baa7a1f762cb8f44228ab5549cfc7b56ab2c7d63e95f646b589c3e196",
+        "reimpl/zd3/variants.py": "0d17e789f6adf7c9155697bbbd17c6d02266ad138e14ad06c2fc205319c6cd06"
+      },
+      "stopping_rule": "Finish an attempt after the fifth power query completes; synchronize final rest.",
+      "warmup_seconds": 10.0
+    }
+  },
+  "report_script_sha256": "a1d45aa8fef18b6d6b097beae4e66f914ed8961e094117e5f67cc9ce4afab49c",
+  "plot_script_sha256": "aa091250848b151c55aff0fc19aff1384db22793728b492bc56ead6ac4fa3ba7",
+  "software": {
+    "python": "3.13.12 (main, Feb  3 2026, 17:53:27) [GCC 14.3.0]",
+    "numpy": "2.3.4",
+    "matplotlib": "3.10.8"
+  },
+  "plot": {
+    "y_scale": "linear",
+    "hardware_label": "ActiveN",
+    "center_bar": "25th to 75th percentile",
+    "diamond": "arithmetic mean",
+    "solid_gpu_bars": "measured_mean_us_per_step from the selected power measurement runs",
+    "dashed_gpu_bars": "equivalent_mean_us_at_33w from the same runs",
+    "absolute_gpu_multiplier": "measured_mean_us_per_step / ActiveN mean_us for the same group",
+    "top_strip": {
+      "gpu": "RTX3090",
+      "series": "33 W adjusted",
+      "included_in_axis_limits": false,
+      "placement": "fixed row above the axes; labels retain actual microseconds"
+    }
+  },
+  "selected_runs": {
+    "RTX3090": "/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_rtx3090",
+    "A100": "/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_a100",
+    "A800": "/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_a800",
+    "H800": "copilot/tmp/power_dense_20260910_v2_h800"
+  },
+  "output_sha256": {
+    "reference.json": "d7ecbc674a05b776d8898c3492aa8e3ba412ace0275c63cc3e2b078610b204e6",
+    "experiment.json": "df99d243a7bf9466361758b7387fefc66070d50295b2a58371fed66baa1a9cae",
+    "summary.json": "8fe4b21a8c0f643434067fa96af694a50291fa3afc9ced107bf21a331a72bce7",
+    "power_samples.csv": "678b6fb3d439b7643a1b2c41e984d7bcd6267d2e6cbc09a5491bb8879e00a638",
+    "report.md": "afab27c135bbb47d60b97ef74eef12d54b96f04ebfbb9bad7e814e38381c742d",
+    "service_commands.json": "ef22a9e1293e8bdadf0edb3c1dba23c9365b68f7b43eb493ed9796a943cf1b45",
+    "mnist_dense_33w.png": "2e703ccbe1dc4d13424cf2faeeecb907088cac0cb8a634b2e00288b63c29627b",
+    "h800_rerun.json": "89d69e27a7ea1cfedaaf0c5d6b30b02748a5dd74b310827d96820eab9021b3e6",
+    "mnist_dense_33w.svg": "c3502b11a5832cc00e4fce59f7a70c711b1f7f5fc4366120912d8096ea663f7f",
+    "h800_service_command.json": "a208a76110658694a0cc363afd7b8790016095425f08160d3ce37177a2e9351b",
+    "validation.json": "83f2fce080901d0693f5f59e319515097bc6f2e22f9ed6ccf324abf31f9fc5bb",
+    "comparison.csv": "8d1517bb560f6b6fdb6040b958dbdbe4938b732334153d3a6a0b572bf253b9ee",
+    "data/a800_measurements.json": "7e3038a7cdd676eac4c52d4a65473c465bbcf04d6f6726dd0351ac10bb528252",
+    "data/a800_33w.json": "efe74d0d9986be9b3d1f953880bab3d57ea111333c31046685f3ce4983f34ca6",
+    "data/h800_measurements.json": "d9d7a7179f82c06bfdc9e6f97a429ea687f48f9a758ab71fc8fd29ec177d95ae",
+    "data/rtx3090_33w.json": "fae3d7f6dfe1041d3764e3619da1e7829112209802ea8bf605b6c0a6fa24b13a",
+    "data/h800_33w.json": "d709c917ae91dc13ce204dd4f94b706b120512c8a3845815f03a482b1176c4a8",
+    "data/a100_33w.json": "e71f51dbf5e6224f295f7a9141a9ccee209518d9f784bd14585a1abf297d60ba",
+    "data/a100_measurements.json": "b146554f9eb06c7078deaf1a3e804ddc0c8999f2efb3dcfe1b7691a2de016758",
+    "data/rtx3090_measurements.json": "500961edb07d3014965a5cbca2c38e7bf63bc9abb93d6f992a4bb8398f05f953"
+  },
+  "gpu_json_cycles_field": "Equivalent nanoseconds at 33 W, not physical GPU cycles or observed GPU latency."
+}

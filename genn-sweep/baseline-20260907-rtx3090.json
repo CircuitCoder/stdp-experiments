@@ -1,0 +1,833 @@
+{
+  "batch_label": "gpu_baseline_20260907_3090",
+  "preflight_clock_utc": "2026-09-06T16:31:17+00:00",
+  "clock_note": "The batch label follows the conversation date; the UTC clock value is recorded independently.",
+  "repository_head": "695015042a46d7766c83ede502e7ed8fa708da46",
+  "genn_head": "563c45c531eb6adce53ad3ff3f46d614a19abdb2",
+  "source_state": "No simulation source changes; BASELINE.md added. Existing ref submodule artifacts preserved.",
+  "source_sha256": {
+    "genn-sweep/run.py": "ab835191e5cd9f019dde9cc210377740bc2e819e853c7a59ad8646f0ec9ad1f5",
+    "reimpl/backends/genn_backend.py": "9d65788c2a7de4c53c8e8230175b88d8ea8298edd4a43fbfa48169449fa4e4a4",
+    "reimpl/zd3/variants.py": "d05fd98767acc8b8f7f97f32b142654cc20fa71681ce55fd422929d6edae67d7",
+    "reimpl/zd3/constants.py": "7d9a8e4dcdba24438b7d13f4f753585a501f89b7b873c71375d9685b9b226f4f",
+    "brunel/ports/genn_port.py": "ef8b39684afe5eb550cbc628684af57209cc21cd3210d08db10fe29ec21a79fe",
+    "brunel/ports/common.py": "4b9e762ef3bbc189acdd7c797709e53b56d9353f2df10ceed3449d5c4192148d"
+  },
+  "input_sha256": {
+    "genn-sweep/checkpoints/mnist_one_trace_dense_010000.npz": "eab026d59dad20f1dd979f800e6a37e3f8a3e2b0386febb3f9b1fe672e44d289",
+    "genn-sweep/checkpoints/mnist_one_trace_sparse_0125_010000.npz": "c32bf0269d8dd33879a7ecfadc096e078cb4e6967d0d58215a1fe061253cc82d",
+    "genn-sweep/checkpoints/mnist_triplet_dense_010000.npz": "e4cef93ef2ad8c8e93b7d3d1b93b28276d62616f1e3b59b4dbc0db99149becce",
+    "data/mnist/train-images-idx3-ubyte": "ba891046e6505d7aadcbbe25680a0738ad16aec93bde7f9b65e87a2fc25776db",
+    "data/mnist/train-labels-idx1-ubyte": "65a50cbbf4e906d70832878ad85ccda5333a97f0f4c3dd2ef09a8a9eef7101c5"
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "gpu_uuid": "GPU-08e3c2ec-d6e6-e141-f048-a33535188b81",
+    "compute_capability": "8.6",
+    "driver": "596.49",
+    "power_limit_w": 390,
+    "clock_lock": false,
+    "platform": "NixOS container on WSL2",
+    "preflight": "No compute processes listed; desktop GPU memory remained allocated. Background desktop contention cannot be excluded.",
+    "host_cpu": "AMD Ryzen 9 7950X, 16 cores / 32 threads",
+    "kernel": "6.6.87.2-microsoft-standard-WSL2+",
+    "gpu_memory_mib": 24576
+  },
+  "software": {
+    "genn": "5.4.0",
+    "cuda_nvcc": "13.0.88",
+    "cuda_runtime": "13.0.96",
+    "genn_linked_cuda_runtime": "12.8.90",
+    "gcc_nvcc_host": "13.4.0",
+    "libstdcxx": "14.3.0",
+    "python": "3.13.12",
+    "numpy": "2.3.4",
+    "scipy": "1.16.3"
+  },
+  "environment": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "3rdparty/genn",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "CUDA_VISIBLE_DEVICES": "0",
+    "CUDA_PATH": "/nix/store/xj87iyswn34m00hh5536jaqfyh7by083-stdp-baseline-tools-20260907-v2",
+    "CUDAHOSTCXX": "/nix/store/ab1zq4gjrwp035wfvcinjwd3mam6iyfv-gcc-wrapper-13.4.0/bin/g++",
+    "NVCC_PREPEND_FLAGS": "-I/nix/store/xj87iyswn34m00hh5536jaqfyh7by083-stdp-baseline-tools-20260907-v2/include -ccbin=/nix/store/ab1zq4gjrwp035wfvcinjwd3mam6iyfv-gcc-wrapper-13.4.0/bin/g++",
+    "PATH": "/nix/store/xj87iyswn34m00hh5536jaqfyh7by083-stdp-baseline-tools-20260907-v2/bin:/run/current-system/sw/bin:/root/.nix-profile/bin",
+    "LD_LIBRARY_PATH": "/nix/store/alrbhz7im0w0jdwcfdgcfk7pxhkl1fzj-gcc-14.3.0-lib/lib:/nix/store/xj87iyswn34m00hh5536jaqfyh7by083-stdp-baseline-tools-20260907-v2/lib:/usr/lib/wsl/lib"
+  },
+  "timing_protocol": {
+    "cases": [
+      "mnist_triplet_dense",
+      "mnist_one_trace_dense",
+      "mnist_one_trace_sparse_0125",
+      "brunel_additive",
+      "brunel_morrison"
+    ],
+    "precision": "float",
+    "mnist_seed": 20260724,
+    "brunel_seed": 20260724,
+    "mnist_accepted_samples": 100,
+    "brunel_presim_ms": 100,
+    "brunel_measured_ms": 1000,
+    "repetitions": 5,
+    "first_command": [
+      "python",
+      "genn-sweep/run.py",
+      "--precision",
+      "float",
+      "--mnist-seed",
+      "20260724",
+      "--brunel-seed",
+      "20260724",
+      "--work-dir",
+      "copilot/tmp/gpu_baseline_20260907_3090_native_r1"
+    ],
+    "repeat_command_template": [
+      "python",
+      "genn-sweep/run.py",
+      "--precision",
+      "float",
+      "--mnist-seed",
+      "20260724",
+      "--brunel-seed",
+      "20260724",
+      "--reuse-build-root",
+      "copilot/tmp/gpu_baseline_20260907_3090_native_r1/builds",
+      "--work-dir",
+      "copilot/tmp/gpu_baseline_20260907_3090_native_r{repetition}"
+    ],
+    "stdout_template": "copilot/tmp/gpu_baseline_20260907_3090_native_r{repetition}.txt",
+    "diagnostics": "Separate instrumented runs; their times are excluded from the timing summary.",
+    "seed_note": "GeNN seed zero selects std::random_device. Historical seed-zero controls are not paired deterministic trajectories."
+  },
+  "validation_tests": "reimpl/tests and brunel/tests: 25 passed; no simulation source changes",
+  "a100_status": "Not measured: SSH alias unavailable in benchmark container",
+  "raw_logs": {
+    "copilot/tmp/gpu_baseline_20260907_3090_native_r1.txt": "c28efe2097214fcd821638514fc83ba7aaa74ad53ea935122cd4cb357621823a",
+    "copilot/tmp/gpu_baseline_20260907_3090_native_r2.txt": "773cf02293ab39eb19794d8f6706b06b170cb21356c84bca048242e48d3d52e8",
+    "copilot/tmp/gpu_baseline_20260907_3090_native_r3.txt": "69bd86e27a91c3d9ce263fcb72c05eae38a34c24870a62ae9c84c1247d4f1e51",
+    "copilot/tmp/gpu_baseline_20260907_3090_native_r4.txt": "eed0876c4cfd0d35ec57bd7c048a829929af0bfccd25f08fb7f0fe6ccfe67e40",
+    "copilot/tmp/gpu_baseline_20260907_3090_native_r5.txt": "eda4c6603b39caa0cc4d83f68c348558ff3ff32b4d3d637e8d80040c720c225c",
+    "copilot/tmp/gpu_baseline_20260907_3090_triplet_diagnostic_seed20260724_b/results/performance.json": "d999076986f25e8d3af6f7d2ac2bb9aaca19ff5f25627389a1010a2a5e997e69",
+    "copilot/tmp/gpu_baseline_20260907_3090_triplet_diagnostic_seed20260724_b.log": "2f55605ba54b8c8c4795a6b488c6493a97466597b6966b93761968204e193d93",
+    "copilot/tmp/gpu_baseline_20260907_3090_one_trace_dense_diagnostic_seed20260724_b/results/performance.json": "4431da80e8e73142208c58a8d79f34e3c065609a0f948cafac88d074618deae9",
+    "copilot/tmp/gpu_baseline_20260907_3090_one_trace_dense_diagnostic_seed20260724_b.log": "01c973f48cc3cac89ec46f43e36eb5a925c55a441ee54181c144b17946591410",
+    "copilot/tmp/gpu_baseline_20260907_3090_one_trace_sparse_diagnostic_seed20260724_b/results/performance.json": "9ff223fca78d60237a4bb0dd7c9882f90168022d25529787c37edbba70d0f267",
+    "copilot/tmp/gpu_baseline_20260907_3090_one_trace_sparse_diagnostic_seed20260724_b.log": "f8bf95db8ab93332e3eab6ee21eb8fecdbbedaf8d12807f0d0aa7c2ebff84db9",
+    "copilot/tmp/gpu_baseline_20260907_3090_brunel_additive_diagnostic_b/results.json": "35c19d856b6966401709f4d3da2762f2016e40e49bff95800622740a1f9a0191",
+    "copilot/tmp/gpu_baseline_20260907_3090_brunel_additive_diagnostic_b.log": "0231fd85b3e1b93cb8ead66d48ed47cf3784d7ff944510af0823b48172e7096c",
+    "copilot/tmp/gpu_baseline_20260907_3090_brunel_morrison_diagnostic_b/results.json": "f71ad0e4c237629c3f052e0a808d99589cd1e920a80c1c31e6e718671f5fc6a0",
+    "copilot/tmp/gpu_baseline_20260907_3090_brunel_morrison_diagnostic_b.log": "5418ec36ccb3d1e18d3d5b3144d8252bb69af84850c680d5ac122eba1fbe1573"
+  },
+  "results": {
+    "mnist_triplet_dense": {
+      "config": {
+        "variant": {
+          "name": "triplet-dense",
+          "learning_rule": "three-trace",
+          "topology": "dense",
+          "connection_rate": 1,
+          "connectivity_seed": 20260723,
+          "weight_max": 1,
+          "potentiation_rate": 0.01,
+          "pre_trace_target": 0.4,
+          "post_weight_exponent": 0.2,
+          "normalization_weight_max_tolerance": null
+        },
+        "structural_synapses": 313600,
+        "mask_shape": [
+          784,
+          400
+        ],
+        "mask_hash_encoding": "numpy.packbits(mask, bitorder=big), flattened C order",
+        "mask_sha256": "b05fc705408a6c38180671b545fe8150b241c834a6454652194f168e9bcf7d8a"
+      },
+      "simulation_steps_per_repetition": 103000,
+      "total_spikes_per_repetition": 246757,
+      "median_us_per_step": 32.317585203890005,
+      "min_us_per_step": 31.87814870882,
+      "max_us_per_step": 33.6841242816,
+      "iqr_us_per_step": 0.6299181650500003,
+      "raw_repetitions": [
+        {
+          "repetition": 1,
+          "wall_seconds": 3.469464801,
+          "us_per_step": 33.6841242816,
+          "spike_count": 246757
+        },
+        {
+          "repetition": 2,
+          "wall_seconds": 3.362760199,
+          "us_per_step": 32.648157271849996,
+          "spike_count": 246757
+        },
+        {
+          "repetition": 3,
+          "wall_seconds": 3.297878628,
+          "us_per_step": 32.018239106799996,
+          "spike_count": 246757
+        },
+        {
+          "repetition": 4,
+          "wall_seconds": 3.328711276,
+          "us_per_step": 32.317585203890005,
+          "spike_count": 246757
+        },
+        {
+          "repetition": 5,
+          "wall_seconds": 3.283449317,
+          "us_per_step": 31.87814870882,
+          "spike_count": 246757
+        }
+      ],
+      "diagnostic": {
+        "directory": "copilot/tmp/gpu_baseline_20260907_3090_triplet_diagnostic_seed20260724_b",
+        "command": [
+          "reimpl/run_genn.py",
+          "train",
+          "--backend",
+          "cuda",
+          "--precision",
+          "float",
+          "--variant",
+          "triplet-dense",
+          "--parallelism",
+          "postsynaptic",
+          "--num-threads-per-spike",
+          "1",
+          "--seed",
+          "20260724",
+          "--resume",
+          "genn-sweep/checkpoints/mnist_triplet_dense_010000.npz",
+          "--samples",
+          "10100",
+          "--stats-interval",
+          "25",
+          "--checkpoint-interval",
+          "10100",
+          "--no-genn-timing",
+          "--no-profile-accounting",
+          "--output",
+          "copilot/tmp/gpu_baseline_20260907_3090_triplet_diagnostic_seed20260724_b"
+        ],
+        "input_spikes": 240978,
+        "excitatory_spikes": 1647,
+        "inhibitory_spikes": 4132,
+        "accepted_samples": 100,
+        "attempts": 103,
+        "exc_hz_including_rest": 0.07995145631067961,
+        "inh_hz_including_rest": 0.20058252427184467,
+        "runtime_guards_passed": true,
+        "accepted_stimulus_mean_exc_spikes": 16.35,
+        "accepted_stimulus_mean_active_exc_neurons": 5.67,
+        "final_snapshot": {
+          "theta_mean_mv": 26.045171,
+          "theta_min_mv": 15.654054,
+          "theta_max_mv": 40.98204,
+          "weight_mean": 0.099495097,
+          "weight_min": 0,
+          "weight_max": 0.736144841,
+          "weight_zero_fraction": 0.001521046,
+          "weight_saturated_fraction": 0,
+          "colsum_mean": 78.004155909,
+          "colsum_min": 77.987528289,
+          "colsum_max": 79.723868376,
+          "e_v_min_mv": -72.053833,
+          "e_v_max_mv": -64.450562,
+          "i_v_min_mv": -60.000038,
+          "i_v_max_mv": -59.999962,
+          "e_ge_max": 0,
+          "e_gi_max": 0,
+          "i_ge_max": 0
+        }
+      }
+    },
+    "mnist_one_trace_dense": {
+      "config": {
+        "variant": {
+          "name": "one-trace-dense",
+          "learning_rule": "one-trace-power",
+          "topology": "dense",
+          "connection_rate": 1,
+          "connectivity_seed": 20260723,
+          "weight_max": 1,
+          "potentiation_rate": 0.0005,
+          "pre_trace_target": 0.4,
+          "post_weight_exponent": 0.2,
+          "normalization_weight_max_tolerance": null
+        },
+        "structural_synapses": 313600,
+        "mask_shape": [
+          784,
+          400
+        ],
+        "mask_hash_encoding": "numpy.packbits(mask, bitorder=big), flattened C order",
+        "mask_sha256": "b05fc705408a6c38180671b545fe8150b241c834a6454652194f168e9bcf7d8a"
+      },
+      "simulation_steps_per_repetition": 102000,
+      "total_spikes_per_repetition": 244828,
+      "median_us_per_step": 26.349933696,
+      "min_us_per_step": 26.13708709809,
+      "max_us_per_step": 27.377045490239997,
+      "iqr_us_per_step": 0.8071497059600006,
+      "raw_repetitions": [
+        {
+          "repetition": 1,
+          "wall_seconds": 2.79245864,
+          "us_per_step": 27.377045490239997,
+          "spike_count": 244828
+        },
+        {
+          "repetition": 2,
+          "wall_seconds": 2.665982884,
+          "us_per_step": 26.13708709809,
+          "spike_count": 244828
+        },
+        {
+          "repetition": 3,
+          "wall_seconds": 2.687693237,
+          "us_per_step": 26.349933696,
+          "spike_count": 244828
+        },
+        {
+          "repetition": 4,
+          "wall_seconds": 2.684280284,
+          "us_per_step": 26.31647337251,
+          "spike_count": 244828
+        },
+        {
+          "repetition": 5,
+          "wall_seconds": 2.766609554,
+          "us_per_step": 27.12362307847,
+          "spike_count": 244828
+        }
+      ],
+      "diagnostic": {
+        "directory": "copilot/tmp/gpu_baseline_20260907_3090_one_trace_dense_diagnostic_seed20260724_b",
+        "command": [
+          "reimpl/run_genn.py",
+          "train",
+          "--backend",
+          "cuda",
+          "--precision",
+          "float",
+          "--variant",
+          "one-trace-dense",
+          "--parallelism",
+          "postsynaptic",
+          "--num-threads-per-spike",
+          "1",
+          "--seed",
+          "20260724",
+          "--resume",
+          "genn-sweep/checkpoints/mnist_one_trace_dense_010000.npz",
+          "--samples",
+          "10100",
+          "--stats-interval",
+          "25",
+          "--checkpoint-interval",
+          "10100",
+          "--no-genn-timing",
+          "--no-profile-accounting",
+          "--output",
+          "copilot/tmp/gpu_baseline_20260907_3090_one_trace_dense_diagnostic_seed20260724_b"
+        ],
+        "input_spikes": 239701,
+        "excitatory_spikes": 1477,
+        "inhibitory_spikes": 3650,
+        "accepted_samples": 100,
+        "attempts": 102,
+        "exc_hz_including_rest": 0.07240196078431373,
+        "inh_hz_including_rest": 0.17892156862745098,
+        "runtime_guards_passed": true,
+        "accepted_stimulus_mean_exc_spikes": 14.7,
+        "accepted_stimulus_mean_active_exc_neurons": 5.5600000000000005,
+        "final_snapshot": {
+          "theta_mean_mv": 24.484512,
+          "theta_min_mv": 18.972561,
+          "theta_max_mv": 42.584393,
+          "weight_mean": 0.099487241,
+          "weight_min": 0,
+          "weight_max": 0.999112904,
+          "weight_zero_fraction": 0.183147321,
+          "weight_saturated_fraction": 0,
+          "colsum_mean": 77.997997282,
+          "colsum_min": 77.713062027,
+          "colsum_max": 78.000000227,
+          "e_v_min_mv": -66.71386,
+          "e_v_max_mv": -59.853607,
+          "i_v_min_mv": -60.000038,
+          "i_v_max_mv": -59.999962,
+          "e_ge_max": 0,
+          "e_gi_max": 0,
+          "i_ge_max": 0
+        }
+      }
+    },
+    "mnist_one_trace_sparse_0125": {
+      "config": {
+        "variant": {
+          "name": "one-trace-bernoulli-0125",
+          "learning_rule": "one-trace-power",
+          "topology": "bernoulli",
+          "connection_rate": 0.125,
+          "connectivity_seed": 20260723,
+          "weight_max": 8,
+          "potentiation_rate": 0.002639015821545789,
+          "pre_trace_target": 0.4,
+          "post_weight_exponent": 0.2,
+          "normalization_weight_max_tolerance": 0.02
+        },
+        "structural_synapses": 39001,
+        "mask_shape": [
+          784,
+          400
+        ],
+        "mask_hash_encoding": "numpy.packbits(mask, bitorder=big), flattened C order",
+        "mask_sha256": "3bc34d4f3f0b0c15dcbcb4640d749d04cb8a9189ef4d3a901baf60927abb194d"
+      },
+      "simulation_steps_per_repetition": 100000,
+      "total_spikes_per_repetition": 242939,
+      "median_us_per_step": 23.67332447,
+      "min_us_per_step": 23.60315026992,
+      "max_us_per_step": 24.42210010995,
+      "iqr_us_per_step": 0.25946474007999853,
+      "raw_repetitions": [
+        {
+          "repetition": 1,
+          "wall_seconds": 2.442210011,
+          "us_per_step": 24.42210010995,
+          "spike_count": 242939
+        },
+        {
+          "repetition": 2,
+          "wall_seconds": 2.360315027,
+          "us_per_step": 23.60315026992,
+          "spike_count": 242939
+        },
+        {
+          "repetition": 3,
+          "wall_seconds": 2.367332447,
+          "us_per_step": 23.67332447,
+          "spike_count": 242939
+        },
+        {
+          "repetition": 4,
+          "wall_seconds": 2.364963383,
+          "us_per_step": 23.64963382992,
+          "spike_count": 242939
+        },
+        {
+          "repetition": 5,
+          "wall_seconds": 2.390909857,
+          "us_per_step": 23.909098569999998,
+          "spike_count": 242939
+        }
+      ],
+      "diagnostic": {
+        "directory": "copilot/tmp/gpu_baseline_20260907_3090_one_trace_sparse_diagnostic_seed20260724_b",
+        "command": [
+          "reimpl/run_genn.py",
+          "train",
+          "--backend",
+          "cuda",
+          "--precision",
+          "float",
+          "--variant",
+          "one-trace-bernoulli-0125",
+          "--parallelism",
+          "presynaptic",
+          "--num-threads-per-spike",
+          "32",
+          "--seed",
+          "20260724",
+          "--resume",
+          "genn-sweep/checkpoints/mnist_one_trace_sparse_0125_010000.npz",
+          "--samples",
+          "10100",
+          "--stats-interval",
+          "25",
+          "--checkpoint-interval",
+          "10100",
+          "--no-genn-timing",
+          "--no-profile-accounting",
+          "--output",
+          "copilot/tmp/gpu_baseline_20260907_3090_one_trace_sparse_diagnostic_seed20260724_b"
+        ],
+        "input_spikes": 236750,
+        "excitatory_spikes": 1680,
+        "inhibitory_spikes": 4509,
+        "accepted_samples": 100,
+        "attempts": 100,
+        "exc_hz_including_rest": 0.084,
+        "inh_hz_including_rest": 0.22545,
+        "runtime_guards_passed": true,
+        "accepted_stimulus_mean_exc_spikes": 16.8,
+        "accepted_stimulus_mean_active_exc_neurons": 4.84,
+        "final_snapshot": {
+          "theta_mean_mv": 26.84666,
+          "theta_min_mv": 12.649276,
+          "theta_max_mv": 48.51796,
+          "weight_mean": 0.099487841,
+          "weight_min": 0,
+          "weight_max": 6.291373253,
+          "weight_zero_fraction": 0.901709184,
+          "weight_saturated_fraction": 0,
+          "colsum_mean": 77.998467517,
+          "colsum_min": 77.496875633,
+          "colsum_max": 78.000000822,
+          "e_v_min_mv": -72.008179,
+          "e_v_max_mv": -63.3866,
+          "i_v_min_mv": -60.000038,
+          "i_v_max_mv": -59.999962,
+          "e_ge_max": 0,
+          "e_gi_max": 0,
+          "i_ge_max": 0
+        }
+      }
+    },
+    "brunel_additive": {
+      "config": {
+        "capacitance_pf": 250,
+        "ce": 450,
+        "ci": 112,
+        "delay_ms": 0,
+        "dt_ms": 0.1,
+        "external_rate_hz": 9802.337484422467,
+        "external_rate_scale": 0.47,
+        "indegree_scale": 0.05,
+        "je_pa": 45.609600316540956,
+        "ne": 9000,
+        "network_scale": 1,
+        "ni": 2250,
+        "plastic_synapses": 4050000,
+        "recurrent_delivery_scale": 4.47213595499958,
+        "recurrent_synapses": 6322500,
+        "refractory_ms": 0.5,
+        "rule": {
+          "depression_ratio": 1.05,
+          "external_drive_eta": 1.685,
+          "inhibitory_weight_ratio": 5,
+          "learning_rate": 0.01,
+          "mu_minus": 0,
+          "mu_plus": 0,
+          "name": "additive",
+          "weight_max_pa": 91.21920063308191
+        },
+        "tau_m_ms": 10,
+        "tau_minus_ms": 30,
+        "tau_plus_ms": 20,
+        "tau_syn_ms": 0.3258272240372284,
+        "v_reset_mv": 0,
+        "v_rest_mv": 0,
+        "v_threshold_mv": 20,
+        "vm_mean_mv": 5.7,
+        "vm_std_mv": 7.2
+      },
+      "simulation_steps_per_repetition": 10000,
+      "total_spikes_per_repetition": 49896,
+      "median_us_per_step": 40.375376700829996,
+      "min_us_per_step": 39.94643470069,
+      "max_us_per_step": 40.964849300510004,
+      "iqr_us_per_step": 0.31290499900999436,
+      "raw_repetitions": [
+        {
+          "repetition": 1,
+          "wall_seconds": 0.409648493,
+          "us_per_step": 40.964849300510004,
+          "spike_count": 49896
+        },
+        {
+          "repetition": 2,
+          "wall_seconds": 0.404335531,
+          "us_per_step": 40.43355309987,
+          "spike_count": 49896
+        },
+        {
+          "repetition": 3,
+          "wall_seconds": 0.401206481,
+          "us_per_step": 40.12064810086,
+          "spike_count": 49896
+        },
+        {
+          "repetition": 4,
+          "wall_seconds": 0.403753767,
+          "us_per_step": 40.375376700829996,
+          "spike_count": 49896
+        },
+        {
+          "repetition": 5,
+          "wall_seconds": 0.399464347,
+          "us_per_step": 39.94643470069,
+          "spike_count": 49896
+        }
+      ],
+      "diagnostic": {
+        "directory": "copilot/tmp/gpu_baseline_20260907_3090_brunel_additive_diagnostic_b",
+        "command": [
+          "brunel/run_genn.py",
+          "--backend",
+          "cuda",
+          "--precision",
+          "float",
+          "--rule",
+          "additive",
+          "--seed",
+          "20260724",
+          "--state-seed",
+          "20260724",
+          "--indegree-scale",
+          "0.05",
+          "--delay-ms",
+          "0",
+          "--recurrent-delivery-scale",
+          "4.47213595499958",
+          "--external-rate-scale",
+          "0.47",
+          "--stdp-timing",
+          "arrival",
+          "--stdp-tie-order",
+          "nest_causal_boundary",
+          "--presim-ms",
+          "100",
+          "--sim-ms",
+          "1000",
+          "--chunk-ms",
+          "100",
+          "--record-neurons",
+          "9000",
+          "--weight-sample-size",
+          "100000",
+          "--abort-rate-hz",
+          "100",
+          "--no-genn-timing",
+          "--no-profile-accounting",
+          "--output",
+          "copilot/tmp/gpu_baseline_20260907_3090_brunel_additive_diagnostic_b"
+        ],
+        "event_counters": {
+          "ee_postsynaptic_plastic_traversals": 17889750,
+          "excitatory_spikes": 39755,
+          "inhibitory_spikes": 10141,
+          "presynaptic_traversals_enqueued": {
+            "ee": 17883991,
+            "ei": 4473041,
+            "ie": 4542606,
+            "ii": 1137495
+          },
+          "structural_synapses": {
+            "ee": 4050000,
+            "ei": 1012500,
+            "ie": 1008000,
+            "ii": 252000
+          },
+          "total_spikes": 49896
+        },
+        "excitatory_hz": 4.417222222222223,
+        "inhibitory_hz": 4.5071111111111115,
+        "spike_stats_all_9000_exc": {
+          "mean_cv_isi": 0.5635916389998381,
+          "population_fano_3ms": 1113.8005472892728,
+          "rate_hz": 4.417222222222223
+        },
+        "exc_rate_per_100ms": [
+          5.618888888888889,
+          3.1422222222222222,
+          8.226666666666667,
+          2.606666666666667,
+          6.366666666666666,
+          4.692222222222223,
+          2.471111111111111,
+          4.942222222222222,
+          3.8166666666666664,
+          2.2888888888888888
+        ],
+        "final_weight_stats": {
+          "mean": 45.47692877471924,
+          "std": 1.0154068656008741,
+          "minimum": 39.977481842041016,
+          "maximum": 50.74134063720703,
+          "boundary_fraction": 0,
+          "histogram_mode_count": 1,
+          "sample_size": 100000
+        },
+        "termination": {
+          "completed_requested_duration": true,
+          "reason": "requested_duration_completed"
+        }
+      }
+    },
+    "brunel_morrison": {
+      "config": {
+        "capacitance_pf": 250,
+        "ce": 450,
+        "ci": 112,
+        "delay_ms": 0,
+        "dt_ms": 0.1,
+        "external_rate_hz": 12674.529432475041,
+        "external_rate_scale": 0.32,
+        "indegree_scale": 0.05,
+        "je_pa": 45.609600316540956,
+        "ne": 9000,
+        "network_scale": 1,
+        "ni": 2250,
+        "plastic_synapses": 4050000,
+        "recurrent_delivery_scale": 4.47213595499958,
+        "recurrent_synapses": 6322500,
+        "refractory_ms": 0.5,
+        "rule": {
+          "depression_ratio": 0.1026,
+          "external_drive_eta": 3.2,
+          "inhibitory_weight_ratio": 8,
+          "learning_rate": 0.1,
+          "mu_minus": 1,
+          "mu_plus": 0.4,
+          "name": "morrison",
+          "weight_max_pa": null
+        },
+        "tau_m_ms": 10,
+        "tau_minus_ms": 30,
+        "tau_plus_ms": 20,
+        "tau_syn_ms": 0.3258272240372284,
+        "v_reset_mv": 0,
+        "v_rest_mv": 0,
+        "v_threshold_mv": 20,
+        "vm_mean_mv": 5.7,
+        "vm_std_mv": 7.2
+      },
+      "simulation_steps_per_repetition": 10000,
+      "total_spikes_per_repetition": 67089,
+      "median_us_per_step": 40.767392700950005,
+      "min_us_per_step": 40.5991363994,
+      "max_us_per_step": 41.62021910015,
+      "iqr_us_per_step": 0.07363140030999915,
+      "raw_repetitions": [
+        {
+          "repetition": 1,
+          "wall_seconds": 0.416202191,
+          "us_per_step": 41.62021910015,
+          "spike_count": 67089
+        },
+        {
+          "repetition": 2,
+          "wall_seconds": 0.407972695,
+          "us_per_step": 40.797269500039995,
+          "spike_count": 67089
+        },
+        {
+          "repetition": 3,
+          "wall_seconds": 0.407673927,
+          "us_per_step": 40.767392700950005,
+          "spike_count": 67089
+        },
+        {
+          "repetition": 4,
+          "wall_seconds": 0.407236381,
+          "us_per_step": 40.723638099729996,
+          "spike_count": 67089
+        },
+        {
+          "repetition": 5,
+          "wall_seconds": 0.405991364,
+          "us_per_step": 40.5991363994,
+          "spike_count": 67089
+        }
+      ],
+      "diagnostic": {
+        "directory": "copilot/tmp/gpu_baseline_20260907_3090_brunel_morrison_diagnostic_b",
+        "command": [
+          "brunel/run_genn.py",
+          "--backend",
+          "cuda",
+          "--precision",
+          "float",
+          "--rule",
+          "morrison",
+          "--seed",
+          "20260724",
+          "--state-seed",
+          "20260724",
+          "--indegree-scale",
+          "0.05",
+          "--delay-ms",
+          "0",
+          "--recurrent-delivery-scale",
+          "4.47213595499958",
+          "--external-rate-scale",
+          "0.32",
+          "--stdp-timing",
+          "arrival",
+          "--stdp-tie-order",
+          "nest_causal_boundary",
+          "--presim-ms",
+          "100",
+          "--sim-ms",
+          "1000",
+          "--chunk-ms",
+          "100",
+          "--record-neurons",
+          "9000",
+          "--weight-sample-size",
+          "100000",
+          "--abort-rate-hz",
+          "100",
+          "--no-genn-timing",
+          "--no-profile-accounting",
+          "--output",
+          "copilot/tmp/gpu_baseline_20260907_3090_brunel_morrison_diagnostic_b"
+        ],
+        "event_counters": {
+          "ee_postsynaptic_plastic_traversals": 24118650,
+          "excitatory_spikes": 53597,
+          "inhibitory_spikes": 13492,
+          "presynaptic_traversals_enqueued": {
+            "ee": 24129383,
+            "ei": 6031518,
+            "ie": 6045992,
+            "ii": 1511544
+          },
+          "structural_synapses": {
+            "ee": 4050000,
+            "ei": 1012500,
+            "ie": 1008000,
+            "ii": 252000
+          },
+          "total_spikes": 67089
+        },
+        "excitatory_hz": 5.955222222222222,
+        "inhibitory_hz": 5.996444444444444,
+        "spike_stats_all_9000_exc": {
+          "mean_cv_isi": 0.7132175659705164,
+          "population_fano_3ms": 40.25037223349819,
+          "rate_hz": 5.955222222222222
+        },
+        "exc_rate_per_100ms": [
+          6.062222222222222,
+          6.211111111111111,
+          5.44,
+          5.406666666666666,
+          6.147777777777778,
+          5.778888888888889,
+          6.136666666666667,
+          6.601111111111112,
+          5.802222222222222,
+          5.9655555555555555
+        ],
+        "final_weight_stats": {
+          "mean": 45.45371171627045,
+          "std": 0.4481508310326814,
+          "minimum": 42.61085510253906,
+          "maximum": 47.843048095703125,
+          "boundary_fraction": 0,
+          "histogram_mode_count": 1,
+          "sample_size": 100000
+        },
+        "termination": {
+          "completed_requested_duration": true,
+          "reason": "requested_duration_completed"
+        }
+      }
+    }
+  }
+}

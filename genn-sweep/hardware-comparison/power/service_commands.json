@@ -1,0 +1,57 @@
+{
+  "RTX3090": [
+    "systemd-run",
+    "--unit=stdp-power-rtx3090-20260910-v1",
+    "--property=WorkingDirectory=/root/workspace/stdp-experiments",
+    "--property=StandardOutput=append:/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_rtx3090.log",
+    "--property=StandardError=append:/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_rtx3090.log",
+    "--property=RuntimeMaxSec=900",
+    "/run/current-system/sw/bin/bash",
+    "copilot/tmp/power_run_rtx3090_20260910.sh"
+  ],
+  "A100": [
+    "systemd-run",
+    "--unit=stdp-power-a100-20260910-v1",
+    "--property=WorkingDirectory=/root/workspace/stdp-experiments",
+    "--property=StandardOutput=append:/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_a100.log",
+    "--property=StandardError=append:/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_a100.log",
+    "--property=RuntimeMaxSec=900",
+    "/run/current-system/sw/bin/ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=15",
+    "CRAFT-A100",
+    "bash /data/meow/stdp-baseline-20260907-v2/copilot/tmp/power_run_a100_20260910.sh"
+  ],
+  "A800": [
+    "systemd-run",
+    "--unit=stdp-power-a800-20260910-v1",
+    "--property=WorkingDirectory=/root/workspace/stdp-experiments",
+    "--property=StandardOutput=append:/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_a800.log",
+    "--property=StandardError=append:/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_a800.log",
+    "--property=RuntimeMaxSec=900",
+    "/run/current-system/sw/bin/ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=15",
+    "CRAFT-cluster",
+    "bash -lc 'cd ~/meow/stdp-experiments\nexec srun --jobid=499057 --overlap --immediate=30 -N1 -n1 -c8 --cpu-bind=cores bash -l copilot/tmp/power_cluster_20260910.sh a800'"
+  ],
+  "H800": [
+    "systemd-run",
+    "--unit=stdp-power-h800-20260910-v1",
+    "--property=WorkingDirectory=/root/workspace/stdp-experiments",
+    "--property=StandardOutput=append:/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_h800.log",
+    "--property=StandardError=append:/root/workspace/stdp-experiments/copilot/tmp/power_dense_20260910_v1_h800.log",
+    "--property=RuntimeMaxSec=900",
+    "/run/current-system/sw/bin/ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=15",
+    "CRAFT-cluster",
+    "bash -lc 'cd ~/meow/stdp-experiments\nexec srun --jobid=499509 --overlap --immediate=30 -N1 -n1 -c8 --cpu-bind=cores bash -l copilot/tmp/power_cluster_20260910.sh h800'"
+  ]
+}

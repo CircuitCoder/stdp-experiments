@@ -1,0 +1,266 @@
+{
+  "unit": "microseconds",
+  "hardware_clock_hz": 1000000000,
+  "groups": {
+    "1-trace": {
+      "hardware": {
+        "samples": 1200,
+        "presentation_samples": 840,
+        "rest_samples": 360,
+        "mean_us": 2.585805,
+        "median_us": 2.5655,
+        "min_us": 1.803,
+        "max_us": 5.995,
+        "q25_us": 2.12,
+        "q75_us": 2.86625
+      },
+      "gpus": {
+        "RTX3090": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            26.473034411787477,
+            26.431802617712403,
+            27.16135263714629,
+            27.137282068639145,
+            25.97991234321015
+          ],
+          "mean_us": 26.636676815699094,
+          "mean_sample_speedup": 10.634796390582817,
+          "ratio_of_mean_durations": 10.301115828803445
+        },
+        "A100": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            18.836997754702928,
+            18.8481462942482,
+            18.75472664673283,
+            18.940541314020496,
+            19.053759558957218
+          ],
+          "mean_us": 18.886834313732333,
+          "mean_sample_speedup": 7.540641754185908,
+          "ratio_of_mean_durations": 7.30404431646328
+        },
+        "A800": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            16.67986028398588,
+            17.233696421517024,
+            16.315571881611557,
+            16.4235559401705,
+            17.13160222496691
+          ],
+          "mean_us": 16.756857350450375,
+          "mean_sample_speedup": 6.6902402015498454,
+          "ratio_of_mean_durations": 6.480325218046362
+        },
+        "H800": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            14.342919921082462,
+            14.975818440172018,
+            14.904679843525896,
+            13.676765979742449,
+            14.04958176449416
+          ],
+          "mean_us": 14.389953189803398,
+          "mean_sample_speedup": 5.745244547675022,
+          "ratio_of_mean_durations": 5.564980031287509
+        }
+      },
+      "all_gpus": {
+        "mean_us": 19.1675804174213,
+        "mean_sample_speedup": 7.652730723498398,
+        "ratio_of_mean_durations": 7.412616348650148
+      }
+    },
+    "2-trace": {
+      "hardware": {
+        "samples": 1200,
+        "presentation_samples": 840,
+        "rest_samples": 360,
+        "mean_us": 4.579499166666667,
+        "median_us": 4.9825,
+        "min_us": 2.13,
+        "max_us": 10.473,
+        "q25_us": 2.13,
+        "q75_us": 5.7357499999999995
+      },
+      "gpus": {
+        "RTX3090": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            26.80257234939383,
+            26.813964679604396,
+            27.51269718438265,
+            27.353204844702596,
+            27.299772805898243
+          ],
+          "mean_us": 27.15644237279634,
+          "mean_sample_speedup": 7.434342915874282,
+          "ratio_of_mean_durations": 5.930002689041434
+        },
+        "A100": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            20.04613135930024,
+            19.5975266018367,
+            18.9951058834321,
+            18.888499456100636,
+            19.66043223301401
+          ],
+          "mean_us": 19.437539106736736,
+          "mean_sample_speedup": 5.321217307350767,
+          "ratio_of_mean_durations": 4.244468313963022
+        },
+        "A800": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            17.626875107294147,
+            17.829268067641166,
+            17.239668777266754,
+            17.215565737626218,
+            17.813305185149307
+          ],
+          "mean_us": 17.544936574995518,
+          "mean_sample_speedup": 4.8030987691688,
+          "ratio_of_mean_durations": 3.831191127340275
+        },
+        "H800": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            14.370450942135118,
+            14.847416203532331,
+            15.823327155232212,
+            14.113567855426119,
+            14.27371222277181
+          ],
+          "mean_us": 14.685694875819518,
+          "mean_sample_speedup": 4.020353261519571,
+          "ratio_of_mean_durations": 3.206834271903354
+        }
+      },
+      "all_gpus": {
+        "mean_us": 19.70615323258703,
+        "mean_sample_speedup": 5.394753063478356,
+        "ratio_of_mean_durations": 4.303124100562021
+      }
+    },
+    "3-trace": {
+      "hardware": {
+        "samples": 1200,
+        "presentation_samples": 840,
+        "rest_samples": 360,
+        "mean_us": 3.181321666666667,
+        "median_us": 3.2794999999999996,
+        "min_us": 1.878,
+        "max_us": 6.051,
+        "q25_us": 2.129,
+        "q75_us": 3.808
+      },
+      "gpus": {
+        "RTX3090": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            32.76347513584696,
+            32.44412942714334,
+            33.03571379612408,
+            32.26517836884844,
+            32.67353135926843
+          ],
+          "mean_us": 32.63640561744624,
+          "mean_sample_speedup": 11.192552023334144,
+          "ratio_of_mean_durations": 10.258756905786926
+        },
+        "A100": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            22.604272543742024,
+            21.77042707753395,
+            21.77510403878806,
+            21.629910407479382,
+            21.753895359263005
+          ],
+          "mean_us": 21.906721885361286,
+          "mean_sample_speedup": 7.512840943230218,
+          "ratio_of_mean_durations": 6.886044286214781
+        },
+        "A800": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            20.57536321271717,
+            20.212434096605453,
+            19.64546085416692,
+            20.04975471781223,
+            20.37002861124545
+          ],
+          "mean_us": 20.170608298509443,
+          "mean_sample_speedup": 6.9174462828308165,
+          "ratio_of_mean_durations": 6.340323429049491
+        },
+        "H800": {
+          "repetitions": 5,
+          "raw_repetition_means_us": [
+            16.83477297972309,
+            17.401471728395705,
+            17.62566276717461,
+            16.102630485672034,
+            16.588580057712146
+          ],
+          "mean_us": 16.91062360373552,
+          "mean_sample_speedup": 5.799444848505424,
+          "ratio_of_mean_durations": 5.31559690455765
+        }
+      },
+      "all_gpus": {
+        "mean_us": 22.906089851263122,
+        "mean_sample_speedup": 7.85557102447515,
+        "ratio_of_mean_durations": 7.2001803814022125
+      }
+    },
+    "Combined": {
+      "hardware": {
+        "samples": 3600,
+        "presentation_samples": 2520,
+        "rest_samples": 1080,
+        "mean_us": 3.4488752777777782,
+        "median_us": 2.9265,
+        "min_us": 1.803,
+        "max_us": 10.473,
+        "q25_us": 2.13,
+        "q75_us": 4.3985
+      },
+      "gpus": {
+        "RTX3090": {
+          "repetitions": 15,
+          "mean_us": 28.80984160198056,
+          "mean_sample_speedup": 9.753897109930415,
+          "ratio_of_mean_durations": 8.353401988065997
+        },
+        "A100": {
+          "repetitions": 15,
+          "mean_us": 20.077031768610116,
+          "mean_sample_speedup": 6.791566668255632,
+          "ratio_of_mean_durations": 5.8213272883403295
+        },
+        "A800": {
+          "repetitions": 15,
+          "mean_us": 18.157467407985113,
+          "mean_sample_speedup": 6.136928417849821,
+          "ratio_of_mean_durations": 5.264750373833337
+        },
+        "H800": {
+          "repetitions": 15,
+          "mean_us": 15.328757223119478,
+          "mean_sample_speedup": 5.188347552566673,
+          "ratio_of_mean_durations": 4.444566993155024
+        }
+      },
+      "all_gpus": {
+        "mean_us": 20.593274500423817,
+        "mean_sample_speedup": 6.967684937150635,
+        "ratio_of_mean_durations": 5.971011660848672
+      }
+    }
+  }
+}

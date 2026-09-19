@@ -1,0 +1,49 @@
+{
+  "source_sha256": {
+    "brunel/ports/common.py": "4b9e762ef3bbc189acdd7c797709e53b56d9353f2df10ceed3449d5c4192148d",
+    "brunel/ports/genn_port.py": "ef8b39684afe5eb550cbc628684af57209cc21cd3210d08db10fe29ec21a79fe",
+    "genn-sweep/baseline.py": "0fd0ba82269dc2a994f2c8b97efa1be2ad14778d29483f47bd64dcc81437c481",
+    "genn-sweep/baseline_cases.py": "c8a2971f32418a9ed98da58bfd91ca14d703d20658ca8e2cc3982afc2c4f4ce5",
+    "genn-sweep/run.py": "ab835191e5cd9f019dde9cc210377740bc2e819e853c7a59ad8646f0ec9ad1f5",
+    "reimpl/backends/genn_backend.py": "d11066ffa46861c45492c7d47001534a4bc3f13124fb494d9716d83646c30013",
+    "reimpl/zd3/constants.py": "7d9a8e4dcdba24438b7d13f4f753585a501f89b7b873c71375d9685b9b226f4f",
+    "reimpl/zd3/io.py": "cb8f097baa7a1f762cb8f44228ab5549cfc7b56ab2c7d63e95f646b589c3e196",
+    "reimpl/zd3/variants.py": "0d17e789f6adf7c9155697bbbd17c6d02266ad138e14ad06c2fc205319c6cd06"
+  },
+  "input_manifest_sha256": "e94363abf5e97f786c7217c509ce79ce96e395329ff2d5dff0b1c26639d57e80",
+  "first_100": {
+    "mnist_1trace_dense": {
+      "attempts": 102,
+      "event_counters": {
+        "excitatory_spikes": 1477,
+        "feedforward_post_synapse_updates": 1157968,
+        "feedforward_pre_synapse_updates": 95880400,
+        "inhibitory_spikes": 3650,
+        "input_spikes": 239701,
+        "total_firing_count": 244828
+      }
+    },
+    "mnist_2trace_dense": {
+      "attempts": 103,
+      "event_counters": {
+        "excitatory_spikes": 1292,
+        "feedforward_post_synapse_updates": 1012928,
+        "feedforward_pre_synapse_updates": 96652400,
+        "inhibitory_spikes": 3155,
+        "input_spikes": 241631,
+        "total_firing_count": 246078
+      }
+    },
+    "mnist_3trace_dense": {
+      "attempts": 103,
+      "event_counters": {
+        "excitatory_spikes": 1647,
+        "feedforward_post_synapse_updates": 1291248,
+        "feedforward_pre_synapse_updates": 96391200,
+        "inhibitory_spikes": 4132,
+        "input_spikes": 240978,
+        "total_firing_count": 246757
+      }
+    }
+  }
+}

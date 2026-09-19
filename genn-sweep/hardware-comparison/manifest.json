@@ -1,0 +1,341 @@
+{
+  "schema": "dense-mnist-hardware-comparison-v1",
+  "command": [
+    "/root/.nix-profile/bin/python3",
+    "genn-sweep/hardware-comparison/compare.py"
+  ],
+  "working_directory": "/root/workspace/stdp-experiments",
+  "hardware": {
+    "path": "/root/workspace/stdp-experiments/mnist_dense_results.json",
+    "sha256": "57d42412d461e65f5c2b38458c300317d90d160b800984173cccc06015952417",
+    "clock_hz": 1000000000,
+    "sample_unit": "simulation timestep",
+    "provenance": "User-supplied cycles; clock and workload supplied in conversation. Source/checkpoint/seed/timing boundaries absent from the JSON."
+  },
+  "gpu_baseline": {
+    "path": "/root/workspace/stdp-experiments/genn-sweep/baseline-20260907-matrix.json",
+    "sha256": "99509f200fa4111f7a05bdd7c6102c6ede43c23fccccaa1e408508b478843d5a",
+    "input_manifest_sha256": "e94363abf5e97f786c7217c509ce79ce96e395329ff2d5dff0b1c26639d57e80",
+    "source_sha256": {
+      "brunel/ports/common.py": "4b9e762ef3bbc189acdd7c797709e53b56d9353f2df10ceed3449d5c4192148d",
+      "brunel/ports/genn_port.py": "ef8b39684afe5eb550cbc628684af57209cc21cd3210d08db10fe29ec21a79fe",
+      "genn-sweep/baseline.py": "0fd0ba82269dc2a994f2c8b97efa1be2ad14778d29483f47bd64dcc81437c481",
+      "genn-sweep/baseline_cases.py": "c8a2971f32418a9ed98da58bfd91ca14d703d20658ca8e2cc3982afc2c4f4ce5",
+      "genn-sweep/run.py": "ab835191e5cd9f019dde9cc210377740bc2e819e853c7a59ad8646f0ec9ad1f5",
+      "reimpl/backends/genn_backend.py": "d11066ffa46861c45492c7d47001534a4bc3f13124fb494d9716d83646c30013",
+      "reimpl/zd3/constants.py": "7d9a8e4dcdba24438b7d13f4f753585a501f89b7b873c71375d9685b9b226f4f",
+      "reimpl/zd3/io.py": "cb8f097baa7a1f762cb8f44228ab5549cfc7b56ab2c7d63e95f646b589c3e196",
+      "reimpl/zd3/variants.py": "0d17e789f6adf7c9155697bbbd17c6d02266ad138e14ad06c2fc205319c6cd06"
+    },
+    "record_location": "machines[GPU].cases[mnist_Ntrace_dense].raw_repetitions; extracted rows retain rule order 1,2,3 and repetition order 1..5",
+    "timing_commands": {
+      "RTX3090": [
+        [
+          "/nix/store/iyfj3hi8034mp1jk285h5l2ndpjycpcy-stdp-baseline-cuda128-20260907/bin/python",
+          "genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_3090_cuda128_20260907_native_r1",
+          "--mode",
+          "timing"
+        ],
+        [
+          "/nix/store/iyfj3hi8034mp1jk285h5l2ndpjycpcy-stdp-baseline-cuda128-20260907/bin/python",
+          "genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_3090_cuda128_20260907_native_r2",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_3090_cuda128_20260907_native_r1/builds"
+        ],
+        [
+          "/nix/store/iyfj3hi8034mp1jk285h5l2ndpjycpcy-stdp-baseline-cuda128-20260907/bin/python",
+          "genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_3090_cuda128_20260907_native_r3",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_3090_cuda128_20260907_native_r1/builds"
+        ],
+        [
+          "/nix/store/iyfj3hi8034mp1jk285h5l2ndpjycpcy-stdp-baseline-cuda128-20260907/bin/python",
+          "genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_3090_cuda128_20260907_native_r4",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_3090_cuda128_20260907_native_r1/builds"
+        ],
+        [
+          "/nix/store/iyfj3hi8034mp1jk285h5l2ndpjycpcy-stdp-baseline-cuda128-20260907/bin/python",
+          "genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_3090_cuda128_20260907_native_r5",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_3090_cuda128_20260907_native_r1/builds"
+        ]
+      ],
+      "A100": [
+        [
+          "/data/meow/stdp-baseline-20260907-v1/.venv/bin/python",
+          "genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_a100_20260907_native_r1",
+          "--mode",
+          "timing"
+        ],
+        [
+          "/data/meow/stdp-baseline-20260907-v1/.venv/bin/python",
+          "genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_a100_20260907_native_r2",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_a100_20260907_native_r1/builds"
+        ],
+        [
+          "/data/meow/stdp-baseline-20260907-v1/.venv/bin/python",
+          "genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_a100_20260907_native_r3",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_a100_20260907_native_r1/builds"
+        ],
+        [
+          "/data/meow/stdp-baseline-20260907-v1/.venv/bin/python",
+          "genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_a100_20260907_native_r4",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_a100_20260907_native_r1/builds"
+        ],
+        [
+          "/data/meow/stdp-baseline-20260907-v1/.venv/bin/python",
+          "genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_a100_20260907_native_r5",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_a100_20260907_native_r1/builds"
+        ]
+      ],
+      "A800": [
+        [
+          "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+          "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_a800_20260907_native_r1",
+          "--mode",
+          "timing"
+        ],
+        [
+          "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+          "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_a800_20260907_native_r2",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_a800_20260907_native_r1/builds"
+        ],
+        [
+          "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+          "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_a800_20260907_native_r3",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_a800_20260907_native_r1/builds"
+        ],
+        [
+          "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+          "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_a800_20260907_native_r4",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_a800_20260907_native_r1/builds"
+        ],
+        [
+          "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+          "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_a800_20260907_native_r5",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_a800_20260907_native_r1/builds"
+        ]
+      ],
+      "H800": [
+        [
+          "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+          "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_h800_20260907_native_r1",
+          "--mode",
+          "timing"
+        ],
+        [
+          "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+          "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_h800_20260907_native_r2",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_h800_20260907_native_r1/builds"
+        ],
+        [
+          "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+          "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_h800_20260907_native_r3",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_h800_20260907_native_r1/builds"
+        ],
+        [
+          "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+          "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_h800_20260907_native_r4",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_h800_20260907_native_r1/builds"
+        ],
+        [
+          "/home/fit/zhangyouh/meow/stdp-experiments/.venv/bin/python",
+          "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/genn-sweep/baseline.py",
+          "run",
+          "--inputs",
+          "copilot/tmp/baseline_inputs_20260907_v2",
+          "--output",
+          "copilot/tmp/baseline_h800_20260907_native_r5",
+          "--mode",
+          "timing",
+          "--reuse-build-root",
+          "copilot/tmp/baseline_h800_20260907_native_r1/builds"
+        ]
+      ]
+    }
+  },
+  "current_repository_head": "695015042a46d7766c83ede502e7ed8fa708da46",
+  "current_simulation_source_matches_baseline": {
+    "brunel/ports/common.py": true,
+    "brunel/ports/genn_port.py": true,
+    "genn-sweep/baseline.py": true,
+    "genn-sweep/baseline_cases.py": true,
+    "genn-sweep/run.py": true,
+    "reimpl/backends/genn_backend.py": true,
+    "reimpl/zd3/constants.py": true,
+    "reimpl/zd3/io.py": true,
+    "reimpl/zd3/variants.py": true
+  },
+  "script_sha256": "aa091250848b151c55aff0fc19aff1384db22793728b492bc56ead6ac4fa3ba7",
+  "software": {
+    "python": "3.13.12",
+    "numpy": "2.3.4",
+    "matplotlib": "3.10.8"
+  },
+  "plot": {
+    "y_scale": "linear",
+    "kde_space": "linear microseconds",
+    "bandwidth": "Scott",
+    "density_points": 512,
+    "support": "observed min to max",
+    "violin_width": "equal maximum width",
+    "center_bar": "25th to 75th percentile",
+    "diamond": "arithmetic mean",
+    "hardware_label": "ActiveN",
+    "absolute_gpu_multiplier": "GPU mean duration / ActiveN mean duration"
+  },
+  "export_schema": {
+    "class": "N-trace dense",
+    "cycles": "nanoseconds; GPU values are equivalent 1 GHz cycles, not actual GPU cycles",
+    "presenting": "hardware boolean; GPU null = both phases"
+  },
+  "output_sha256": {
+    "comparison.csv": "f99fd6ba10c45950cd6c04de205f89c0d525eab24bd6670a6d3543a965840b94",
+    "data/a100.json": "093ddc960df325a8151495237e5853c1d8293bd9e2e1547392a2aafe4ac8fd74",
+    "data/a800.json": "0fe56fa44ed497db305a6b1b5ef7cefaee9f7687ed7fb27eb1a66477fb9a8203",
+    "data/h800.json": "0d760b3193a6f09d6a21f8bacc1374d522efbebf75bd3108bd799ef58d12d1d5",
+    "data/hardware.json": "7da5084ecc02d7a18d02a7f7d2c597750304f0d1561b267979c8170ea0d9aa98",
+    "data/rtx3090.json": "0c7ba1ec68182ace4fe8720f32093b0c449f039fda1f58c8079c2c2853518498",
+    "mnist_dense_violin.png": "643ac09ba66e68cebc13418d49620b6c9259b16dcdd2fa4a5a0d31df2b2888de",
+    "mnist_dense_violin.svg": "ad0c99c980d967b40605dd58e213a012f50129029dc8ce9f66ca95f383ac8b21",
+    "report.md": "c04dcafa7292ee6ef2baf4c3c0a5ff04ad6eedecad9505daafd8a5cee0ebceeb",
+    "summary.json": "a6d6071af770a4d9689fbcd1472a4e97cdc67b4c74f18e0f6acc017d9c685d30"
+  }
+}

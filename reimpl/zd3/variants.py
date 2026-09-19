@@ -20,6 +20,8 @@ class NetworkVariant:
     pre_trace_target: float = 0.4
     post_weight_exponent: float = 0.2
     normalization_weight_max_tolerance: float | None = None
+    depression_rate: float = MODEL.depression_rate
+    pre_weight_exponent: float = 0.2
 
     def as_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -67,23 +69,33 @@ def get_variant(name: str) -> NetworkVariant:
 def connectivity_mask(variant: NetworkVariant) -> np.ndarray:
     if variant.topology == "dense":
         return np.ones((MODEL.n_input, MODEL.n_exc), dtype=bool)
-    if variant.topology == "bernoulli":
+    if variant.topology in ("bernoulli", "fixed-fanout"):
         scores = np.random.RandomState(variant.connectivity_seed).uniform(
             size=(MODEL.n_input, MODEL.n_exc)
         )
-        return scores < variant.connection_rate
+        if variant.topology == "bernoulli":
+            return scores < variant.connection_rate
+        degree = round(MODEL.n_exc * variant.connection_rate)
+        if not 0 < degree <= MODEL.n_exc:
+            raise ValueError("fixed fan-out must select at least one target")
+        # Ranking the same scores makes the masks nested across connection rates.
+        targets = np.argsort(scores, axis=1, kind="stable")[:, :degree]
+        mask = np.zeros(scores.shape, dtype=bool)
+        np.put_along_axis(mask, targets, True, axis=1)
+        return mask
     raise ValueError(f"unsupported topology: {variant.topology}")
 
 
 def prepare_initial_weights(
-    weights: np.ndarray, variant: NetworkVariant
+    weights: np.ndarray, variant: NetworkVariant, *, weight_max_by_post: np.ndarray | None = None
 ) -> tuple[np.ndarray, np.ndarray]:
     if weights.shape != (MODEL.n_input, MODEL.n_exc):
         raise ValueError(f"unexpected feedforward shape {weights.shape}")
     mask = connectivity_mask(variant)
     prepared = np.where(mask, weights, 0.0).astype(np.float64, copy=False)
     normalize_columns(prepared)
-    if np.max(prepared[mask]) > variant.weight_max * (1.0 + 1.0e-12):
+    caps = variant.weight_max if weight_max_by_post is None else weight_max_by_post
+    if np.any(prepared > caps * (1.0 + 1.0e-12)):
         raise ValueError(
             f"normalized initial weight exceeds wmax={variant.weight_max}"
         )
@@ -102,10 +114,21 @@ def validate_checkpoint_topology(
 
 
 def validate_normalized_weight_bound(
-    weights: np.ndarray, variant: NetworkVariant
+    weights: np.ndarray, variant: NetworkVariant, *, weight_max_by_post: np.ndarray | None = None
 ) -> None:
     tolerance = variant.normalization_weight_max_tolerance
     if tolerance is None:
+        return
+    if weight_max_by_post is not None:
+        limits = np.asarray(weight_max_by_post, dtype=np.float64) * (1.0 + tolerance)
+        violations = np.argwhere(weights > limits[None, :])
+        if len(violations):
+            pre, post = violations[0]
+            raise RuntimeError(
+                f"normalization exceeded postsynaptic wmax tolerance: pre={pre} post={post} "
+                f"weight={weights[pre, post]:.9f} wmax={weight_max_by_post[post]:.9f} "
+                f"limit={limits[post]:.9f}"
+            )
         return
     maximum = float(np.max(weights))
     limit = variant.weight_max * (1.0 + tolerance)

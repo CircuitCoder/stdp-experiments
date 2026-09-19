@@ -1,0 +1,540 @@
+{
+  "schema": "genn-a100-profile-v1",
+  "gpu": "A100-PCIE-40GB",
+  "ncu": "2025.1.0",
+  "nsys": "2024.6.2",
+  "notes": [
+    "These profiler runs are separate from native timing repetitions.",
+    "Nsight Systems uses three accepted MNIST images (3000 steps); Brunel uses 100 ms warmup plus 50 ms measured.",
+    "Kernel durations include GPU execution overhead, memory stalls and idle lanes; they are not pure arithmetic time.",
+    "CPU launch durations overlap GPU execution and cannot be subtracted from wall time as an independent component.",
+    "NCU samples 30 matching launches after skipping 900 matching launches; clocks and caches are not controlled.",
+    "The short Brunel profile covers the first 50 ms after warmup, not the complete 1000 ms baseline interval. Its averages are activity-dependent and are not substitutes for the baseline.",
+    "No explicit Synchronize API calls occur inside the selected kernel span. Synchronous memcpy operations at presentation boundaries still wait for device completion.",
+    "The first NCU attempt hit a lock owned elsewhere in /tmp; successful ncub runs used a private TMPDIR under the task directory."
+  ],
+  "cases": {
+    "brunel_additive": {
+      "sqlite_sha256": "150fd014dc21ae40b65074c83453184ef1b40f49601e2a277a51bdf8407a59e5",
+      "profiled_steps": 500,
+      "kernels_per_step": 4,
+      "gpu_kernel_sum_us_per_step": 74.4083,
+      "first_to_last_kernel_span_us_per_step": 82.38808999999999,
+      "gpu_kernel_busy_fraction_of_span": 0.9031438888800554,
+      "cpu_launch_api_us_per_step": 17.394455999999998,
+      "explicit_sync_calls_in_kernel_span": 0,
+      "stages": {
+        "updatePresynapticKernel": {
+          "count": 500,
+          "mean_gpu_us": 29.733113999999997,
+          "median_gpu_us": 4.096,
+          "min_gpu_us": 4.064,
+          "max_gpu_us": 889.346,
+          "grid_block_pairs": [
+            [
+              48,
+              32
+            ]
+          ]
+        },
+        "updatePostsynapticKernel": {
+          "count": 500,
+          "mean_gpu_us": 35.484316,
+          "median_gpu_us": 3.584,
+          "min_gpu_us": 3.52,
+          "max_gpu_us": 930.882,
+          "grid_block_pairs": [
+            [
+              15,
+              32
+            ]
+          ]
+        },
+        "neuronSpikeQueueUpdateKernel": {
+          "count": 500,
+          "mean_gpu_us": 2.8099939999999997,
+          "median_gpu_us": 2.784,
+          "min_gpu_us": 2.752,
+          "max_gpu_us": 3.904,
+          "grid_block_pairs": [
+            [
+              1,
+              32
+            ]
+          ]
+        },
+        "updateNeuronsKernel": {
+          "count": 500,
+          "mean_gpu_us": 6.380876,
+          "median_gpu_us": 6.112,
+          "min_gpu_us": 5.984,
+          "max_gpu_us": 10.592,
+          "grid_block_pairs": [
+            [
+              353,
+              32
+            ]
+          ]
+        }
+      }
+    },
+    "mnist_1trace_bernoulli_0125": {
+      "sqlite_sha256": "f82782f27f9f12369137751827b76d6ccb9a0c8fd5f93b80cc34452e1f048934",
+      "profiled_steps": 3000,
+      "kernels_per_step": 4,
+      "gpu_kernel_sum_us_per_step": 14.742604,
+      "first_to_last_kernel_span_us_per_step": 23.259307333333336,
+      "gpu_kernel_busy_fraction_of_span": 0.6338367599998177,
+      "cpu_launch_api_us_per_step": 15.398647666666667,
+      "explicit_sync_calls_in_kernel_span": 0,
+      "stages": {
+        "updatePresynapticKernel": {
+          "count": 3000,
+          "mean_gpu_us": 4.662795666666666,
+          "median_gpu_us": 4.736,
+          "min_gpu_us": 4.256,
+          "max_gpu_us": 5.472,
+          "grid_block_pairs": [
+            [
+              798,
+              32
+            ]
+          ]
+        },
+        "updatePostsynapticKernel": {
+          "count": 3000,
+          "mean_gpu_us": 3.2623753333333334,
+          "median_gpu_us": 3.232,
+          "min_gpu_us": 3.2,
+          "max_gpu_us": 5.632,
+          "grid_block_pairs": [
+            [
+              25,
+              32
+            ]
+          ]
+        },
+        "neuronSpikeQueueUpdateKernel": {
+          "count": 3000,
+          "mean_gpu_us": 2.486756666666666,
+          "median_gpu_us": 2.496,
+          "min_gpu_us": 2.432,
+          "max_gpu_us": 2.56,
+          "grid_block_pairs": [
+            [
+              1,
+              32
+            ]
+          ]
+        },
+        "updateNeuronsKernel": {
+          "count": 3000,
+          "mean_gpu_us": 4.330676333333334,
+          "median_gpu_us": 4.32,
+          "min_gpu_us": 4.288,
+          "max_gpu_us": 4.704,
+          "grid_block_pairs": [
+            [
+              51,
+              32
+            ]
+          ]
+        }
+      },
+      "ncu_sample": {
+        "updatePresynapticKernel": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.172,
+            "min": 0.14,
+            "max": 0.2,
+            "samples": 10
+          },
+          "gpu__time_duration.sum": {
+            "mean": 3676.8,
+            "min": 3488,
+            "max": 4512,
+            "samples": 10
+          },
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 1.099,
+            "min": 1.06,
+            "max": 1.13,
+            "samples": 10
+          },
+          "sm__warps_active.avg.pct_of_peak_sustained_active": {
+            "mean": 7.912000000000001,
+            "min": 7.52,
+            "max": 8.03,
+            "samples": 10
+          }
+        },
+        "updatePostsynapticKernel": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.047,
+            "min": 0.02,
+            "max": 0.08,
+            "samples": 10
+          },
+          "gpu__time_duration.sum": {
+            "mean": 2636.8,
+            "min": 2560,
+            "max": 2784,
+            "samples": 10
+          },
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.030000000000000006,
+            "min": 0.03,
+            "max": 0.03,
+            "samples": 10
+          },
+          "sm__warps_active.avg.pct_of_peak_sustained_active": {
+            "mean": 1.56,
+            "min": 1.56,
+            "max": 1.56,
+            "samples": 10
+          }
+        },
+        "updateNeuronsKernel": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.211,
+            "min": 0.15,
+            "max": 0.27,
+            "samples": 10
+          },
+          "gpu__time_duration.sum": {
+            "mean": 3488,
+            "min": 3424,
+            "max": 3648,
+            "samples": 10
+          },
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.288,
+            "min": 0.27,
+            "max": 0.29,
+            "samples": 10
+          },
+          "sm__warps_active.avg.pct_of_peak_sustained_active": {
+            "mean": 1.56,
+            "min": 1.56,
+            "max": 1.56,
+            "samples": 10
+          }
+        }
+      }
+    },
+    "mnist_1trace_dense": {
+      "sqlite_sha256": "d3558d9f2b92a8ca6fcf838011cd8fbd570d0169cec34b653629891a629525d4",
+      "profiled_steps": 3000,
+      "kernels_per_step": 4,
+      "gpu_kernel_sum_us_per_step": 15.221399666666667,
+      "first_to_last_kernel_span_us_per_step": 25.959258000000002,
+      "gpu_kernel_busy_fraction_of_span": 0.5863572705609177,
+      "cpu_launch_api_us_per_step": 17.03964433333333,
+      "explicit_sync_calls_in_kernel_span": 0,
+      "stages": {
+        "updatePresynapticKernel": {
+          "count": 3000,
+          "mean_gpu_us": 5.047021666666667,
+          "median_gpu_us": 5.344,
+          "min_gpu_us": 3.424,
+          "max_gpu_us": 10.624,
+          "grid_block_pairs": [
+            [
+              27,
+              32
+            ]
+          ]
+        },
+        "updatePostsynapticKernel": {
+          "count": 3000,
+          "mean_gpu_us": 3.382889333333334,
+          "median_gpu_us": 3.36,
+          "min_gpu_us": 3.296,
+          "max_gpu_us": 8.992,
+          "grid_block_pairs": [
+            [
+              25,
+              32
+            ]
+          ]
+        },
+        "neuronSpikeQueueUpdateKernel": {
+          "count": 3000,
+          "mean_gpu_us": 2.485257333333333,
+          "median_gpu_us": 2.496,
+          "min_gpu_us": 2.432,
+          "max_gpu_us": 2.72,
+          "grid_block_pairs": [
+            [
+              1,
+              32
+            ]
+          ]
+        },
+        "updateNeuronsKernel": {
+          "count": 3000,
+          "mean_gpu_us": 4.306231333333333,
+          "median_gpu_us": 4.32,
+          "min_gpu_us": 4.256,
+          "max_gpu_us": 4.672,
+          "grid_block_pairs": [
+            [
+              51,
+              32
+            ]
+          ]
+        }
+      },
+      "ncu_sample": {
+        "updatePresynapticKernel": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.24699999999999997,
+            "min": 0.22,
+            "max": 0.32,
+            "samples": 10
+          },
+          "gpu__time_duration.sum": {
+            "mean": 4483.2,
+            "min": 4032,
+            "max": 4832,
+            "samples": 10
+          },
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.08299999999999999,
+            "min": 0.08,
+            "max": 0.09,
+            "samples": 10
+          },
+          "sm__warps_active.avg.pct_of_peak_sustained_active": {
+            "mean": 1.56,
+            "min": 1.56,
+            "max": 1.56,
+            "samples": 10
+          }
+        },
+        "updatePostsynapticKernel": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.11600000000000002,
+            "min": 0.1,
+            "max": 0.13,
+            "samples": 10
+          },
+          "gpu__time_duration.sum": {
+            "mean": 2688,
+            "min": 2624,
+            "max": 2848,
+            "samples": 10
+          },
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.030000000000000006,
+            "min": 0.03,
+            "max": 0.03,
+            "samples": 10
+          },
+          "sm__warps_active.avg.pct_of_peak_sustained_active": {
+            "mean": 1.56,
+            "min": 1.56,
+            "max": 1.56,
+            "samples": 10
+          }
+        },
+        "updateNeuronsKernel": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.193,
+            "min": 0.14,
+            "max": 0.24,
+            "samples": 10
+          },
+          "gpu__time_duration.sum": {
+            "mean": 3504,
+            "min": 3424,
+            "max": 3712,
+            "samples": 10
+          },
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.28600000000000003,
+            "min": 0.27,
+            "max": 0.29,
+            "samples": 10
+          },
+          "sm__warps_active.avg.pct_of_peak_sustained_active": {
+            "mean": 1.56,
+            "min": 1.56,
+            "max": 1.56,
+            "samples": 10
+          }
+        }
+      }
+    },
+    "mnist_3trace_dense": {
+      "sqlite_sha256": "76a259b95abee2658b63925657feceea278a2dc4d01601462dfaea5b05778bc7",
+      "profiled_steps": 3000,
+      "kernels_per_step": 5,
+      "gpu_kernel_sum_us_per_step": 21.141621333333333,
+      "first_to_last_kernel_span_us_per_step": 33.730190666666665,
+      "gpu_kernel_busy_fraction_of_span": 0.6267862978381029,
+      "cpu_launch_api_us_per_step": 20.117638666666664,
+      "explicit_sync_calls_in_kernel_span": 0,
+      "stages": {
+        "updatePresynapticKernel": {
+          "count": 3000,
+          "mean_gpu_us": 6.499024333333334,
+          "median_gpu_us": 6.72,
+          "min_gpu_us": 4.032,
+          "max_gpu_us": 15.456,
+          "grid_block_pairs": [
+            [
+              27,
+              32
+            ]
+          ]
+        },
+        "updatePostsynapticKernel": {
+          "count": 3000,
+          "mean_gpu_us": 3.5158393333333335,
+          "median_gpu_us": 3.488,
+          "min_gpu_us": 3.424,
+          "max_gpu_us": 8.544,
+          "grid_block_pairs": [
+            [
+              25,
+              32
+            ]
+          ]
+        },
+        "neuronPrevSpikeTimeUpdateKernel": {
+          "count": 3000,
+          "mean_gpu_us": 4.010291333333333,
+          "median_gpu_us": 4.096,
+          "min_gpu_us": 3.744,
+          "max_gpu_us": 4.161,
+          "grid_block_pairs": [
+            [
+              38,
+              32
+            ]
+          ]
+        },
+        "neuronSpikeQueueUpdateKernel": {
+          "count": 3000,
+          "mean_gpu_us": 2.4805733333333326,
+          "median_gpu_us": 2.432,
+          "min_gpu_us": 2.368,
+          "max_gpu_us": 2.624,
+          "grid_block_pairs": [
+            [
+              1,
+              32
+            ]
+          ]
+        },
+        "updateNeuronsKernel": {
+          "count": 3000,
+          "mean_gpu_us": 4.6358929999999985,
+          "median_gpu_us": 4.64,
+          "min_gpu_us": 4.544,
+          "max_gpu_us": 4.896,
+          "grid_block_pairs": [
+            [
+              51,
+              32
+            ]
+          ]
+        }
+      },
+      "ncu_sample": {
+        "updatePresynapticKernel": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.198,
+            "min": 0.17,
+            "max": 0.22,
+            "samples": 10
+          },
+          "gpu__time_duration.sum": {
+            "mean": 5308.8,
+            "min": 4640,
+            "max": 6400,
+            "samples": 10
+          },
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.10200000000000001,
+            "min": 0.09,
+            "max": 0.12,
+            "samples": 10
+          },
+          "sm__warps_active.avg.pct_of_peak_sustained_active": {
+            "mean": 1.56,
+            "min": 1.56,
+            "max": 1.56,
+            "samples": 10
+          }
+        },
+        "updatePostsynapticKernel": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.14499999999999996,
+            "min": 0.12,
+            "max": 0.18,
+            "samples": 10
+          },
+          "gpu__time_duration.sum": {
+            "mean": 2713.6,
+            "min": 2592,
+            "max": 2912,
+            "samples": 10
+          },
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.030000000000000006,
+            "min": 0.03,
+            "max": 0.03,
+            "samples": 10
+          },
+          "sm__warps_active.avg.pct_of_peak_sustained_active": {
+            "mean": 1.56,
+            "min": 1.56,
+            "max": 1.56,
+            "samples": 10
+          }
+        },
+        "updateNeuronsKernel": {
+          "dram__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.16899999999999998,
+            "min": 0.15,
+            "max": 0.18,
+            "samples": 10
+          },
+          "gpu__time_duration.sum": {
+            "mean": 3577.6,
+            "min": 3488,
+            "max": 3648,
+            "samples": 10
+          },
+          "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+            "mean": 0.259,
+            "min": 0.25,
+            "max": 0.27,
+            "samples": 10
+          },
+          "sm__warps_active.avg.pct_of_peak_sustained_active": {
+            "mean": 1.56,
+            "min": 1.56,
+            "max": 1.56,
+            "samples": 10
+          }
+        }
+      }
+    }
+  },
+  "ncu_metric_units": {
+    "gpu__time_duration.sum": "ns",
+    "sm__throughput.avg.pct_of_peak_sustained_elapsed": "percent",
+    "dram__throughput.avg.pct_of_peak_sustained_elapsed": "percent",
+    "sm__warps_active.avg.pct_of_peak_sustained_active": "percent"
+  },
+  "commands": {
+    "nsys_mnist_template": "numactl --cpunodebind=0 --membind=0 /usr/local/cuda-12.8/nsight-systems-2024.6.2/bin/nsys profile --trace=cuda --sample=none --cpuctxsw=none --force-overwrite=false -o profiles/CASE python genn-sweep/baseline.py run --inputs copilot/tmp/baseline_inputs_20260907_v2 --output UNIQUE_OUTPUT --mode timing --samples 3 --cases CASE --reuse-build-root copilot/tmp/baseline_a100_20260907_native_r1/builds",
+    "ncu_mnist_template": "numactl --cpunodebind=0 --membind=0 /usr/local/cuda-12.8/nsight-compute-2025.1.0/ncu --target-processes all --kernel-name 'regex:(updateNeuronsKernel|updatePresynapticKernel|updatePostsynapticKernel)' --launch-skip 900 --launch-count 30 --cache-control none --clock-control none --metrics gpu__time_duration.sum,sm__throughput.avg.pct_of_peak_sustained_elapsed,dram__throughput.avg.pct_of_peak_sustained_elapsed,sm__warps_active.avg.pct_of_peak_sustained_active --csv --log-file profiles/CASE_ncub.csv python genn-sweep/baseline.py run --inputs copilot/tmp/baseline_inputs_20260907_v2 --output UNIQUE_OUTPUT --mode timing --samples 3 --cases CASE --reuse-build-root copilot/tmp/baseline_a100_20260907_native_r1/builds",
+    "nsys_brunel": "numactl --cpunodebind=0 --membind=0 /usr/local/cuda-12.8/nsight-systems-2024.6.2/bin/nsys profile --trace=cuda --sample=none --cpuctxsw=none --force-overwrite=false -o profiles/brunel_additive python genn-sweep/run.py --precision float --brunel-seed 20260724 --brunel-sim-ms 50 --cases brunel_additive --work-dir copilot/tmp/baseline_a100_nsys_brunel_20260907 --reuse-build-root copilot/tmp/baseline_a100_20260907_native_r1/builds"
+  },
+  "artifact_directory_local": "copilot/tmp/a100_profiles_20260907",
+  "artifact_directory_remote": "/data/meow/stdp-baseline-20260907-v2/profiles"
+}
