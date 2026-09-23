@@ -216,12 +216,12 @@ def make_genn_default_model(rule: str, network_scale: float = 1.0) -> Model:
     )
 
 
-def alpha_propagator() -> dict[str, float]:
+def alpha_propagator(tau_syn_ms: float = TAU_SYN_MS) -> dict[str, float]:
     h = DT_MS
-    beta = TAU_SYN_MS * TAU_M_MS / (TAU_M_MS - TAU_SYN_MS)
+    beta = tau_syn_ms * TAU_M_MS / (TAU_M_MS - tau_syn_ms)
     gamma = beta / CAPACITANCE_PF
-    decay_syn = math.exp(-h / TAU_SYN_MS)
-    expm1_tau = math.expm1(h * (TAU_M_MS - TAU_SYN_MS) / (TAU_SYN_MS * TAU_M_MS))
+    decay_syn = math.exp(-h / tau_syn_ms)
+    expm1_tau = math.expm1(h * (TAU_M_MS - tau_syn_ms) / (tau_syn_ms * TAU_M_MS))
     p32 = gamma * decay_syn * expm1_tau
     p31 = gamma * decay_syn * (beta * expm1_tau - h)
     return {
@@ -232,7 +232,7 @@ def alpha_propagator() -> dict[str, float]:
         "p31": p31,
         "p32": p32,
         "p33": math.exp(-h / TAU_M_MS),
-        "epsc_initial": math.e / TAU_SYN_MS,
+        "epsc_initial": math.e / tau_syn_ms,
     }
 
 

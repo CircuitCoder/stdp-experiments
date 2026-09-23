@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / 'reimpl'))
 sys.path.insert(0, str(ROOT / 'genn-sweep'))
 import baseline
 from baseline_cases import mnist_cases
-from zd3.constants import MODEL
+from zd3.constants import MODEL, ModelConstants
 from zd3.io import load_checkpoint, load_mnist, sha256_file
 from zd3.variants import validate_checkpoint_topology
 
@@ -47,46 +47,53 @@ def learning_parameters(variant):
 
 
 class Network:
-    def __init__(self, nest, args, variant, checkpoint, mask):
+    def __init__(self, nest, args, variant, checkpoint, mask, *, constants: ModelConstants = MODEL,
+                 plasticity=True, inhibition=None):
+        self.constants = constants
         self.nest, self.variant, self.mask = nest, variant, mask
-        self.pre_indices = [np.flatnonzero(mask[:, j]) for j in range(MODEL.n_exc)]
-        self._count_baseline = np.zeros(MODEL.n_exc, dtype=np.int64)
+        self.pre_indices = [np.flatnonzero(mask[:, j]) for j in range(self.constants.n_exc)]
+        self._count_baseline = np.zeros(self.constants.n_exc, dtype=np.int64)
         self.normalization_observation = {'attempts_above_wmax': 0,
             'attempts_above_102pct_wmax': 0, 'maximum_weight_over_wmax': 0.0}
         nest.ResetKernel()
-        nest.SetKernelStatus({'resolution': MODEL.dt_ms, 'local_num_threads': args.threads,
+        nest.SetKernelStatus({'resolution': self.constants.dt_ms, 'local_num_threads': args.threads,
             'rng_seed': args.seed, 'print_time': False})
         nest.Install(str(args.module.with_suffix('')))
         nest.verbosity = nest.VerbosityLevel.ERROR
-        p = learning_parameters(variant)
-        self.inputs = nest.Create('cpu_mnist_neuron', MODEL.n_input, p | {'kind': 0})
-        self.inputs.set({'input_index': np.arange(MODEL.n_input, dtype=np.int64)})
-        self.exc = nest.Create('cpu_mnist_neuron', MODEL.n_exc, p | {'kind': 1})
+        p = learning_parameters(variant) | {'plasticity': float(plasticity)}
+        if not plasticity:
+            p.update(theta_plus=0.0, theta_decay=1.0)
+        self.inputs = nest.Create('cpu_mnist_neuron', self.constants.n_input, p | {'kind': 0})
+        capacity = self.inputs[0].get('input_capacity')
+        if self.constants.n_input > capacity:
+            raise ValueError(f'NEST module input capacity {capacity} < {self.constants.n_input}')
+        self.inputs.set({'input_index': np.arange(self.constants.n_input, dtype=np.int64)})
+        self.exc = nest.Create('cpu_mnist_neuron', self.constants.n_exc, p | {'kind': 1})
         self.exc.set([{'theta': float(np.float32(checkpoint.theta_mv[j])),
             'pre_indices': pre.tolist(),
             'ff_weights': checkpoint.weights[pre, j].astype(np.float32).astype(float).tolist()}
             for j, pre in enumerate(self.pre_indices)])
-        self.inh = nest.Create('cpu_mnist_neuron', MODEL.n_inh, {'kind': 2,
-            'V': MODEL.inh_v_rest_mv - 40, 'tau_m': MODEL.inh_tau_m_ms,
-            'v_rest': MODEL.inh_v_rest_mv, 'v_reset': MODEL.inh_v_reset_mv,
-            'v_threshold': MODEL.inh_v_threshold_mv, 'e_inh': MODEL.inh_e_inh_mv,
-            'refractory_steps': round(MODEL.inh_refractory_ms / MODEL.dt_ms), 'plasticity': 0.0})
+        self.inh = nest.Create('cpu_mnist_neuron', self.constants.n_inh, {'kind': 2,
+            'V': self.constants.inh_v_rest_mv - 40, 'tau_m': self.constants.inh_tau_m_ms,
+            'v_rest': self.constants.inh_v_rest_mv, 'v_reset': self.constants.inh_v_reset_mv,
+            'v_threshold': self.constants.inh_v_threshold_mv, 'e_inh': self.constants.inh_e_inh_mv,
+            'refractory_steps': round(self.constants.inh_refractory_ms / self.constants.dt_ms), 'plasticity': 0.0})
         pre, post = np.nonzero(mask)
         sources = np.asarray(self.inputs, dtype=np.int64)[pre]
         targets = np.asarray(self.exc, dtype=np.int64)[post]
         nest.Connect(sources, targets, 'one_to_one', {'synapse_model': 'static_synapse',
-            'weight': np.ones(len(pre)), 'delay': np.full(len(pre), MODEL.dt_ms),
+            'weight': np.ones(len(pre)), 'delay': np.full(len(pre), self.constants.dt_ms),
             'receptor_type': (pre + 1).astype(np.int64)})
         nest.Connect(self.exc, self.inh, 'one_to_one', {'synapse_model': 'static_synapse_hpc',
-            'weight': float(np.float32(MODEL.exc_to_inh_weight)), 'delay': MODEL.dt_ms})
-        recurrent = np.full((MODEL.n_inh, MODEL.n_exc), -MODEL.train_inhibition)
+            'weight': float(np.float32(self.constants.exc_to_inh_weight)), 'delay': self.constants.dt_ms})
+        recurrent = np.full((self.constants.n_inh, self.constants.n_exc), -(self.constants.train_inhibition if inhibition is None else inhibition))
         np.fill_diagonal(recurrent, 0)
         nest.Connect(self.inh, self.exc, 'all_to_all', {'synapse_model': 'static_synapse_hpc',
-            'weight': recurrent, 'delay': MODEL.dt_ms})
+            'weight': recurrent, 'delay': self.constants.dt_ms})
         self.num_ff_connections = len(nest.GetConnections(self.inputs, self.exc))
         if self.num_ff_connections != int(mask.sum()):
             raise RuntimeError('NEST structural connection count differs from frozen mask')
-        if nest.min_delay != MODEL.dt_ms or nest.max_delay != MODEL.dt_ms:
+        if nest.min_delay != self.constants.dt_ms or nest.max_delay != self.constants.dt_ms:
             raise RuntimeError('All NEST MNIST connections must have one-step latency')
         nest.Prepare()
 
@@ -115,7 +122,7 @@ class Network:
         self.inputs.set({'rate_hz': (image.astype(np.float64) / 8.0 * intensity).astype(np.float32)})
 
     def run_stimulus(self):
-        self.nest.Run(MODEL.stimulus_ms)
+        self.nest.Run(self.constants.stimulus_ms)
         current = counts(self.exc)
         result = current - self._count_baseline
         self._count_baseline = current
@@ -123,7 +130,7 @@ class Network:
 
     def run_rest(self):
         self.inputs.set({'rate_hz': 0.0})
-        self.nest.Run(MODEL.rest_ms)
+        self.nest.Run(self.constants.rest_ms)
 
     def population_counts(self):
         return counts(self.inputs), counts(self.exc), counts(self.inh)

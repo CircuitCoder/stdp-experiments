@@ -45,6 +45,7 @@ inline float clamp_weight(double value, const Parameters& p) {
   return std::fmin(double(p.weight_max), std::fmax(0.0, value));
 }
 inline float on_pre(float weight, float old_post_trace, long old_post, long step, const Parameters& p) {
+  if (p.plasticity == 0) return weight;
   if (p.rule == 1) return weight;
   if (p.rule == 2)
     return clamp_weight(weight - p.plasticity * p.depression * old_post_trace
@@ -54,6 +55,7 @@ inline float on_pre(float weight, float old_post_trace, long old_post, long step
 }
 inline float on_post(float weight, float pre_trace, long last_pre, long previous_post,
                      long step, const Parameters& p) {
+  if (p.plasticity == 0) return weight;
   if (p.rule == 1) {
     float delta = p.plasticity * p.potentiation * (pre_trace - p.pre_target)
       * std::pow(double(p.weight_max - weight), double(p.post_exponent));

@@ -10,7 +10,7 @@ from typing import Any
 
 import numpy as np
 
-from .constants import MODEL
+from .constants import MODEL, ModelConstants
 
 
 PORTABLE_CHECKPOINT_SCHEMA = "zd3-portable-checkpoint-v1"
@@ -101,10 +101,11 @@ def save_checkpoint(
     theta_mv: np.ndarray,
     accepted_samples: int,
     manifest: dict[str, Any],
+    model: ModelConstants = MODEL,
 ) -> None:
-    if weights.shape != (MODEL.n_input, MODEL.n_exc):
+    if weights.shape != (model.n_input, model.n_exc):
         raise ValueError(f"unexpected feedforward shape {weights.shape}")
-    if theta_mv.shape != (MODEL.n_exc,):
+    if theta_mv.shape != (model.n_exc,):
         raise ValueError(f"unexpected theta shape {theta_mv.shape}")
     if not np.all(np.isfinite(weights)) or not np.all(np.isfinite(theta_mv)):
         raise ValueError("checkpoint contains non-finite model state")
@@ -113,7 +114,7 @@ def save_checkpoint(
     path.parent.mkdir(parents=True, exist_ok=True)
     complete_manifest = {
         "checkpoint_schema": PORTABLE_CHECKPOINT_SCHEMA,
-        "model": MODEL.as_dict(),
+        "model": model.as_dict(),
         "matrix_layout": "weights[input, excitatory], C row-major",
         **manifest,
     }
@@ -138,7 +139,7 @@ def save_checkpoint(
         raise
 
 
-def load_checkpoint(path: Path) -> PortableCheckpoint:
+def load_checkpoint(path: Path, *, model: ModelConstants = MODEL) -> PortableCheckpoint:
     with np.load(path, allow_pickle=False) as archive:
         required = {"weights", "theta_mv", "accepted_samples", "manifest_json"}
         if set(archive.files) != required:
@@ -149,8 +150,8 @@ def load_checkpoint(path: Path) -> PortableCheckpoint:
         manifest = json.loads(bytes(archive["manifest_json"]).decode("ascii"))
     if manifest.get("checkpoint_schema") != PORTABLE_CHECKPOINT_SCHEMA:
         raise ValueError(f"unsupported checkpoint schema in {path}")
-    if weights.shape != (MODEL.n_input, MODEL.n_exc):
+    if weights.shape != (model.n_input, model.n_exc):
         raise ValueError(f"unexpected feedforward shape {weights.shape}")
-    if theta_mv.shape != (MODEL.n_exc,):
+    if theta_mv.shape != (model.n_exc,):
         raise ValueError(f"unexpected theta shape {theta_mv.shape}")
     return PortableCheckpoint(weights, theta_mv, accepted_samples, manifest)

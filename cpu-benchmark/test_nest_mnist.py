@@ -142,6 +142,38 @@ def test_shared_input_trace_cross_thread_broadcast(nest_api):
     np.testing.assert_array_equal(post.get('post_visits'), np.full(12, 3))
 
 
+def test_rgb_last_input_channel_delivery(nest_api):
+    nest = nest_api
+    probe = nest.Create('cpu_mnist_neuron', 1, {'kind': 1, 'force_only': True})
+    if probe.get('input_capacity') < 3072:
+        pytest.skip('Build extension with CPU_MNIST_INPUT_COUNT=3072 for RGB')
+    pre = nest.Create('cpu_mnist_neuron', 1, {'kind': 0, 'rule': 1, 'input_index': 3071,
+        'force_only': True, 'forced_steps': [2]})
+    probe.set({'pre_indices': [3071], 'ff_weights': [.25]})
+    nest.Connect(pre, probe, syn_spec={'synapse_model': 'static_synapse',
+        'receptor_type': 3072, 'delay': .5, 'weight': 1.0})
+    nest.Simulate(1.0)
+    assert probe.get('last_input_current') == 0
+    nest.Simulate(.5)
+    assert probe.get('last_input_current') == .25
+
+
+@pytest.mark.parametrize('rule', [1, 2, 3])
+def test_inference_preserves_weights_above_learning_cap_and_theta(nest_api, rule):
+    nest = nest_api
+    pre = nest.Create('cpu_mnist_neuron', 1, {'kind': 0, 'rule': rule, 'input_index': 0,
+        'force_only': True, 'forced_steps': [2]})
+    post = nest.Create('cpu_mnist_neuron', 1, {'kind': 1, 'rule': rule,
+        'force_only': True, 'forced_steps': [2, 5], 'plasticity': 0.0,
+        'theta_plus': 0.0, 'theta_decay': 1.0,
+        'pre_indices': [0], 'ff_weights': [1.5], 'theta': 24.0})
+    nest.Connect(pre, post, syn_spec={'synapse_model': 'static_synapse',
+        'receptor_type': 1, 'delay': .5, 'weight': 1.0})
+    nest.Simulate(4.0)
+    np.testing.assert_array_equal(post.get('ff_weights'), [1.5])
+    assert post.get('theta') == 24.0
+
+
 def test_normalization_may_exceed_stdp_weight_cap(nest_api):
     nest = nest_api
     post = nest.Create('cpu_mnist_neuron', 1, {'kind': 1, 'rule': 1,

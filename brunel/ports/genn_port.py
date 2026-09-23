@@ -19,6 +19,7 @@ from ports.common import (
     REFRACTORY_MS,
     TAU_MINUS_MS,
     TAU_PLUS_MS,
+    TAU_SYN_MS,
     STDP_TIMING_MODES,
     STDP_TIE_MODES,
     VM_MEAN_MV,
@@ -34,6 +35,21 @@ from ports.common import (
     stdp_post_path_delay_ms,
     weight_stats,
 )
+
+
+# Zero marks an event that has never occurred. Emission ticks are one-based,
+# so adding the configured delay gives GeNN's next-tick delivery index.
+STDP_TICK_MAX = (1 << 32) - 1
+
+
+def stdp_timestamp_metadata() -> dict[str, Any]:
+    return {
+        "stdp_timestamp_type": "uint32",
+        "stdp_timestamp_unit_ms": DT_MS,
+        "stdp_tie_comparison": "exact integer equality",
+        "stdp_elapsed_time": "integer subtraction, then scalar conversion and multiplication by dt",
+        "stdp_clock_guard": "kernel assertion before uint32 overflow",
+    }
 
 
 def _import_genn() -> dict[str, Any]:
@@ -95,7 +111,15 @@ class GeNNBrunel:
         init_weight_update = api["init_weight_update"]
         init_postsynaptic = api["init_postsynaptic"]
         init_sparse_connectivity = api["init_sparse_connectivity"]
-        p = alpha_propagator()
+        delay_steps = round(spec.delay_ms / DT_MS)
+        post_delay_steps = round(stdp_post_path_delay_ms(stdp_timing, spec.delay_ms) / DT_MS)
+        if not 0 <= max(delay_steps, post_delay_steps) < STDP_TICK_MAX:
+            raise ValueError("synaptic delays exceed the uint32 tick range")
+        if min(delay_steps, post_delay_steps) < 0:
+            raise ValueError("synaptic delays must be nonnegative")
+        self.max_spike_tick = STDP_TICK_MAX - max(delay_steps, post_delay_steps)
+        p = alpha_propagator(getattr(spec, "tau_syn_ms", TAU_SYN_MS))
+        je_pa = getattr(spec, "je_pa", JE_PA)
         neuron_model = create_neuron_model(
             "BrunelAlphaLIF",
             params=[
@@ -111,6 +135,7 @@ class GeNNBrunel:
                 "threshold",
                 "reset",
                 "refractorySteps",
+                ("maxSpikeTick", "uint32_t"),
             ],
             vars=[
                 ("V", "scalar"),
@@ -120,9 +145,13 @@ class GeNNBrunel:
                 ("dIin", "scalar"),
                 ("refrac", "unsigned int"),
                 ("spikeCount", "unsigned int"),
+                ("tick", "uint32_t"),
+                ("lastSpikeTick", "uint32_t"),
             ],
             additional_input_vars=[("exIn", "scalar", 0.0), ("inIn", "scalar", 0.0)],
             sim_code="""
+            assert(tick < maxSpikeTick);
+            tick++;
             if (refrac == 0) {
                 V = (p31 * dIex) + (p32 * Iex) + (p31 * dIin)
                     + (p32 * Iin) + (p33 * V);
@@ -150,6 +179,7 @@ class GeNNBrunel:
             V = reset;
             refrac = (unsigned int)refractorySteps;
             spikeCount++;
+            lastSpikeTick = tick;
             """,
         )
         plastic_model = create_weight_update_model(
@@ -167,21 +197,33 @@ class GeNNBrunel:
                 "nestPostFirst",
                 "nestExcludeZero",
                 "nestCausalBoundary",
-                "tieTolerance",
+                "tickMs",
+                ("axonalDelayTicks", "uint32_t"),
+                ("postDelayTicks", "uint32_t"),
+                ("maxSpikeTick", "uint32_t"),
             ],
             vars=[
                 ("g", "scalar"),
                 ("preTrace", "scalar"),
                 ("postTrace", "scalar"),
-                ("lastTraceTime", "scalar"),
-                ("lastPostUpdateTime", "scalar"),
-                ("lastPreUpdateTime", "scalar"),
+                ("lastTraceTick", "uint32_t"),
+                ("lastPostUpdateTick", "uint32_t"),
+                ("lastPreUpdateTick", "uint32_t"),
             ],
+            pre_neuron_var_refs=[("preSpikeTick", "uint32_t")],
+            post_neuron_var_refs=[("postSpikeTick", "uint32_t")],
             pre_spike_syn_code="""
+            assert((preSpikeTick > 0) && (preSpikeTick <= maxSpikeTick));
+            assert(postSpikeTick <= maxSpikeTick);
+            const uint32_t currentTick = preSpikeTick + axonalDelayTicks;
+            const uint32_t postArrivalTick = postSpikeTick + postDelayTicks;
+            assert(lastTraceTick <= currentTick);
+            assert(lastPostUpdateTick <= currentTick);
+            assert((postSpikeTick == 0) || (postArrivalTick <= currentTick));
             if (((nestPostFirst > 0.5) || (nestCausalBoundary > 0.5))
-                && (fabs(st_post - t) <= tieTolerance)
-                && (lastPostUpdateTime < (t - tieTolerance))) {
-                const scalar postElapsed = t - lastTraceTime;
+                && (postSpikeTick != 0) && (postArrivalTick == currentTick)
+                && (lastPostUpdateTick != currentTick)) {
+                const scalar postElapsed = (scalar)(currentTick - lastTraceTick) * tickMs;
                 preTrace *= exp(-postElapsed / tauPlus);
                 postTrace *= exp(-postElapsed / tauMinus);
                 if (isAdditive > 0.5) {
@@ -192,15 +234,15 @@ class GeNNBrunel:
                     g += learningRate * pow(g, muPlus) * preTrace;
                 }
                 postTrace += 1.0;
-                lastTraceTime = t;
-                lastPostUpdateTime = t;
+                lastTraceTick = currentTick;
+                lastPostUpdateTick = currentTick;
             }
-            const scalar elapsed = t - lastTraceTime;
+            const scalar elapsed = (scalar)(currentTick - lastTraceTick) * tickMs;
             preTrace *= exp(-elapsed / tauPlus);
             postTrace *= exp(-elapsed / tauMinus);
             scalar effectivePostTrace = postTrace;
             if ((nestCausalBoundary > 0.5)
-                && (fabs(lastPostUpdateTime - t) <= tieTolerance)) {
+                && (lastPostUpdateTick == currentTick)) {
                 effectivePostTrace -= 1.0;
             }
             if (isAdditive > 0.5) {
@@ -213,18 +255,23 @@ class GeNNBrunel:
             }
             addToPost(epscInitial * deliveryScale * g);
             preTrace += 1.0;
-            lastTraceTime = t;
-            lastPreUpdateTime = t;
+            lastTraceTick = currentTick;
+            lastPreUpdateTick = currentTick;
             """,
             post_spike_syn_code="""
+            assert((postSpikeTick > 0) && (postSpikeTick <= maxSpikeTick));
+            const uint32_t currentTick = postSpikeTick + postDelayTicks;
+            assert(lastTraceTick <= currentTick);
+            assert(lastPostUpdateTick <= currentTick);
+            assert(lastPreUpdateTick <= currentTick);
             if (((nestPostFirst < 0.5) && (nestCausalBoundary < 0.5))
-                || (fabs(lastPostUpdateTime - t) > tieTolerance)) {
-                const scalar elapsed = t - lastTraceTime;
+                || (lastPostUpdateTick != currentTick)) {
+                const scalar elapsed = (scalar)(currentTick - lastTraceTick) * tickMs;
                 preTrace *= exp(-elapsed / tauPlus);
                 postTrace *= exp(-elapsed / tauMinus);
                 scalar effectivePreTrace = preTrace;
                 if ((nestExcludeZero > 0.5)
-                    && (fabs(lastPreUpdateTime - t) <= tieTolerance)) {
+                    && (lastPreUpdateTick == currentTick)) {
                     effectivePreTrace -= 1.0;
                 }
                 if (isAdditive > 0.5) {
@@ -235,8 +282,8 @@ class GeNNBrunel:
                     g += learningRate * pow(g, muPlus) * effectivePreTrace;
                 }
                 postTrace += 1.0;
-                lastTraceTime = t;
-                lastPostUpdateTime = t;
+                lastTraceTick = currentTick;
+                lastPostUpdateTick = currentTick;
             }
             """,
         )
@@ -283,10 +330,11 @@ class GeNNBrunel:
             "p33": p["p33"],
             "epscInitial": p["epsc_initial"],
             "externalMean": spec.external_rate_hz * DT_MS / 1000.0,
-            "externalWeight": JE_PA,
+            "externalWeight": je_pa,
             "threshold": V_THRESHOLD_MV,
             "reset": V_RESET_MV,
             "refractorySteps": round(REFRACTORY_MS / DT_MS),
+            "maxSpikeTick": self.max_spike_tick,
         }
         rng = np.random.default_rng(seed if state_seed is None else state_seed)
         self.exc = self.model.add_neuron_population(
@@ -302,6 +350,8 @@ class GeNNBrunel:
                 "dIin": 0.0,
                 "refrac": 0,
                 "spikeCount": 0,
+                "tick": 0,
+                "lastSpikeTick": 0,
             },
         )
         self.inh = self.model.add_neuron_population(
@@ -317,6 +367,8 @@ class GeNNBrunel:
                 "dIin": 0.0,
                 "refrac": 0,
                 "spikeCount": 0,
+                "tick": 0,
+                "lastSpikeTick": 0,
             },
         )
         if record_spikes:
@@ -330,30 +382,35 @@ class GeNNBrunel:
             "depressionRatio": spec.rule.depression_ratio,
             "muPlus": spec.rule.mu_plus,
             "weightMax": weight_max,
-            "tauPlus": TAU_PLUS_MS,
-            "tauMinus": TAU_MINUS_MS,
+            "tauPlus": getattr(spec, "tau_plus_ms", TAU_PLUS_MS),
+            "tauMinus": getattr(spec, "tau_minus_ms", TAU_MINUS_MS),
             "isAdditive": 1.0 if spec.rule.name == "additive" else 0.0,
             "nestPostFirst": 1.0 if stdp_tie_order == "nest_post_first" else 0.0,
             "nestExcludeZero": 1.0 if stdp_tie_order == "nest_exclude_zero" else 0.0,
             "nestCausalBoundary": 1.0
             if stdp_tie_order == "nest_causal_boundary"
             else 0.0,
-            "tieTolerance": DT_MS * 1.0e-6,
+            "tickMs": DT_MS,
+            "axonalDelayTicks": delay_steps,
+            "postDelayTicks": post_delay_steps,
+            "maxSpikeTick": self.max_spike_tick,
         }
         trace_vars = {
-            "g": JE_PA,
+            "g": je_pa,
             "preTrace": 0.0,
             "postTrace": 0.0,
-            "lastTraceTime": 0.0,
-            "lastPostUpdateTime": -1.0e30,
-            "lastPreUpdateTime": -1.0e30,
+            "lastTraceTick": 0,
+            "lastPostUpdateTick": 0,
+            "lastPreUpdateTick": 0,
         }
         self.ee = self.model.add_synapse_population(
             "EE",
             "SPARSE",
             self.exc,
             self.exc,
-            init_weight_update(plastic_model, plastic_params, trace_vars),
+            init_weight_update(plastic_model, plastic_params, trace_vars,
+                               pre_var_refs={"preSpikeTick": "lastSpikeTick"},
+                               post_var_refs={"postSpikeTick": "lastSpikeTick"}),
             init_postsynaptic("DeltaCurr"),
             init_sparse_connectivity(no_autapse, {"num": spec.ce}),
         )
@@ -364,16 +421,14 @@ class GeNNBrunel:
             else api["ParallelismHint"].POSTSYNAPTIC
         )
         self.ee.num_threads_per_spike = ee_num_threads_per_spike
-        self.ee.back_prop_delay_steps = round(
-            stdp_post_path_delay_ms(stdp_timing, spec.delay_ms) / DT_MS
-        )
+        self.ee.back_prop_delay_steps = post_delay_steps
         static_ex = {
-            "g": JE_PA,
+            "g": je_pa,
             "epscInitial": p["epsc_initial"],
             "deliveryScale": spec.recurrent_delivery_scale,
         }
         static_in = {
-            "g": -spec.rule.inhibitory_weight_ratio * JE_PA,
+            "g": -spec.rule.inhibitory_weight_ratio * je_pa,
             "epscInitial": p["epsc_initial"],
             "deliveryScale": spec.recurrent_delivery_scale,
         }
@@ -407,7 +462,6 @@ class GeNNBrunel:
             init_sparse_connectivity(no_autapse, {"num": spec.ci}),
         )
         self.ii.post_target_var = "inIn"
-        delay_steps = round(spec.delay_ms / DT_MS)
         for synapses in (self.ee, self.ie, self.ei, self.ii):
             synapses.axonal_delay_steps = delay_steps
         model_code = f"brunel_{spec.rule.name}_CODE"
@@ -562,6 +616,7 @@ def run(args: argparse.Namespace) -> int:
             "external_input": "independent Poisson multiplicity sampled in each neuron kernel",
             "stdp_timing": args.stdp_timing,
             "stdp_tie_order": args.stdp_tie_order,
+            **stdp_timestamp_metadata(),
             "stdp_post_path_delay_ms": stdp_post_path_delay_ms(
                 args.stdp_timing, spec.delay_ms
             ),

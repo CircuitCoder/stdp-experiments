@@ -12,7 +12,10 @@
 #include "ring_buffer.h"
 
 namespace cpu_mnist {
-constexpr size_t input_count = 784;
+#ifndef CPU_MNIST_INPUT_COUNT
+#define CPU_MNIST_INPUT_COUNT 784
+#endif
+constexpr size_t input_count = CPU_MNIST_INPUT_COUNT;
 struct InputTrace { float x{}; long last_spike{-1}; };
 struct alignas(64) SharedInput { std::array<InputTrace, 2> trace; };
 // One network / one process. Each input owns its two slots. All synapses have
@@ -89,6 +92,7 @@ public:
     d["refractory"] = state.refractory; d["spike_count"] = state.spike_count;
     d["clock_step"] = state.clock_step; d["last_post"] = state.last_post;
     d["input_index"] = input_index;
+    d["input_capacity"] = long(input_count);
     d["force_only"] = force_only; d["forced_steps"] = forced_steps;
     d["pre_indices"] = pre_indices;
     d["ff_weights"] = std::vector<double>(weights.begin(), weights.end());

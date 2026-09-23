@@ -6,6 +6,12 @@ case. GeNN event timing, spike recording, weight sampling, runtime-state
 validation, connectivity accounting, periodic statistics, checkpoints, and
 result serialization are disabled.
 
+The shared Brunel/Morrison adapter now uses integer STDP timestamps; see the
+[timing investigation](../workloads/MORRISON-INTEGER-TICKS-20260920.md).
+The historical measurements below predate this change and retain their recorded
+source hashes. Weights, traces, and neuron arithmetic still use the selected
+FP32/FP64 scalar precision.
+
 MNIST column normalization and retry decisions are retained because they are
 part of the training workload. Excitatory spike counters are read after each
 stimulus because the count controls retry behavior. No profiler should be

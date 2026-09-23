@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 
 import numpy as np
 
-from .constants import MODEL
+from .constants import MODEL, ModelConstants
 from .io import normalize_columns
 
 
@@ -66,17 +66,17 @@ def get_variant(name: str) -> NetworkVariant:
         raise ValueError(f"unknown network variant: {name}") from error
 
 
-def connectivity_mask(variant: NetworkVariant) -> np.ndarray:
+def connectivity_mask(variant: NetworkVariant, *, model: ModelConstants = MODEL) -> np.ndarray:
     if variant.topology == "dense":
-        return np.ones((MODEL.n_input, MODEL.n_exc), dtype=bool)
+        return np.ones((model.n_input, model.n_exc), dtype=bool)
     if variant.topology in ("bernoulli", "fixed-fanout"):
         scores = np.random.RandomState(variant.connectivity_seed).uniform(
-            size=(MODEL.n_input, MODEL.n_exc)
+            size=(model.n_input, model.n_exc)
         )
         if variant.topology == "bernoulli":
             return scores < variant.connection_rate
-        degree = round(MODEL.n_exc * variant.connection_rate)
-        if not 0 < degree <= MODEL.n_exc:
+        degree = round(model.n_exc * variant.connection_rate)
+        if not 0 < degree <= model.n_exc:
             raise ValueError("fixed fan-out must select at least one target")
         # Ranking the same scores makes the masks nested across connection rates.
         targets = np.argsort(scores, axis=1, kind="stable")[:, :degree]
@@ -87,13 +87,14 @@ def connectivity_mask(variant: NetworkVariant) -> np.ndarray:
 
 
 def prepare_initial_weights(
-    weights: np.ndarray, variant: NetworkVariant, *, weight_max_by_post: np.ndarray | None = None
+    weights: np.ndarray, variant: NetworkVariant, *, weight_max_by_post: np.ndarray | None = None,
+    model: ModelConstants = MODEL
 ) -> tuple[np.ndarray, np.ndarray]:
-    if weights.shape != (MODEL.n_input, MODEL.n_exc):
+    if weights.shape != (model.n_input, model.n_exc):
         raise ValueError(f"unexpected feedforward shape {weights.shape}")
-    mask = connectivity_mask(variant)
+    mask = connectivity_mask(variant, model=model)
     prepared = np.where(mask, weights, 0.0).astype(np.float64, copy=False)
-    normalize_columns(prepared)
+    normalize_columns(prepared, model.normalization_target)
     caps = variant.weight_max if weight_max_by_post is None else weight_max_by_post
     if np.any(prepared > caps * (1.0 + 1.0e-12)):
         raise ValueError(
@@ -103,9 +104,9 @@ def prepare_initial_weights(
 
 
 def validate_checkpoint_topology(
-    weights: np.ndarray, variant: NetworkVariant
+    weights: np.ndarray, variant: NetworkVariant, *, model: ModelConstants = MODEL
 ) -> np.ndarray:
-    mask = connectivity_mask(variant)
+    mask = connectivity_mask(variant, model=model)
     if np.any(weights[~mask] != 0.0):
         raise ValueError(
             f"checkpoint contains weights outside {variant.name} structural mask"

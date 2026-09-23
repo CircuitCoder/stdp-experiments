@@ -22,6 +22,7 @@ class NormalizationTest(unittest.TestCase):
                 self.pushes += 1
 
         network = GeNNNetwork.__new__(GeNNNetwork)
+        network.constants = MODEL
         network._feedforward_pre, network._feedforward_post = np.indices(weights.shape).reshape(2, -1)
         variable = Variable(weights.ravel())
         network.feedforward = SimpleNamespace(vars={"g": variable})

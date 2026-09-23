@@ -12,7 +12,7 @@ from typing import Any
 
 import numpy as np
 
-from zd3.constants import MODEL
+from zd3.constants import MODEL, ModelConstants
 from zd3.evaluation import simple_demo_accuracy
 from zd3.io import (
     load_checkpoint,
@@ -79,15 +79,19 @@ def create_two_trace_model(create_weight_update_model: Any) -> Any:
         post_spike_code="y += 1.0;",
         pre_spike_syn_code="""
         addToPost(g);
+        if (plasticity > 0.0) {
         // Neuron traces already include this tick's spikes. Brian processes
         // pre before post, so depression excludes a simultaneous post increment.
         const scalar postBefore = fmax(0.0, y - ((st_post == st_pre) ? 1.0 : 0.0));
         g = fmin(weightMax, fmax(weightMin, g - plasticity * depressionRate
             * postBefore * pow(g, preExponent)));
+        }
         """,
         post_spike_syn_code="""
+        if (plasticity > 0.0) {
         g = fmin(weightMax, fmax(weightMin, g + plasticity * potentiationRate
             * (x - preTarget) * pow(weightMax - g, postExponent)));
+        }
         """,
     )
 
@@ -113,7 +117,13 @@ class GeNNNetwork:
         record_spikes: bool = False,
         recording_steps: int = 0,
         weight_max_by_post: np.ndarray | None = None,
+        constants: ModelConstants = MODEL,
+        integer_timestamps: bool = False,
     ) -> None:
+        self.constants = constants
+        self.integer_timestamps = integer_timestamps
+        if integer_timestamps and variant.learning_rule != "three-trace":
+            raise ValueError("integer image timestamps currently require three-trace STDP")
         api = _import_genn()
         if backend not in api["backend_modules"]:
             available = ", ".join(api["backend_modules"])
@@ -121,6 +131,21 @@ class GeNNNetwork:
                 f"GeNN backend {backend!r} is unavailable in this PyGeNN build; available: {available}"
             )
         create_neuron_model = api["create_neuron_model"]
+        if integer_timestamps:
+            def create_neuron_model(name, **definition):
+                if name in ("ZD3PoissonInput", "ZD3Excitatory"):
+                    definition["vars"] = [*definition.get("vars", []),
+                        ("tick", "uint32_t"), ("lastSpikeTick", "uint32_t"),
+                        ("previousSpikeTick", "uint32_t")]
+                    # Zero means no spike history; emission ticks are one-based.
+                    # These image connections all have the same next-tick delivery.
+                    definition["sim_code"] = (
+                        "assert(tick < 4294967295u); tick++;\n"
+                        + definition.get("sim_code", ""))
+                    definition["reset_code"] = (
+                        "previousSpikeTick = lastSpikeTick; lastSpikeTick = tick;\n"
+                        + definition.get("reset_code", ""))
+                return api["create_neuron_model"](name, **definition)
         create_weight_update_model = api["create_weight_update_model"]
         init_postsynaptic = api["init_postsynaptic"]
         init_sparse_connectivity = api["init_sparse_connectivity"]
@@ -128,7 +153,7 @@ class GeNNNetwork:
         self.variant = variant
         self.scalar_dtype = np.float32 if precision == "float" else np.float64
         self.structural_mask = np.asarray(structural_mask, dtype=bool)
-        if self.structural_mask.shape != (MODEL.n_input, MODEL.n_exc):
+        if self.structural_mask.shape != (self.constants.n_input, self.constants.n_exc):
             raise ValueError("invalid feedforward structural mask shape")
         self._feedforward_pre, self._feedforward_post = np.nonzero(
             self.structural_mask
@@ -141,7 +166,7 @@ class GeNNNetwork:
                                    np.asarray(weight_max_by_post, dtype=self.scalar_dtype).copy())
         cap_initial = {}
         if self.weight_max_by_post is not None:
-            if (self.weight_max_by_post.shape != (MODEL.n_exc,) or
+            if (self.weight_max_by_post.shape != (self.constants.n_exc,) or
                     not np.all(np.isfinite(self.weight_max_by_post)) or
                     np.any(self.weight_max_by_post < 0) or
                     np.any(self.weight_max_by_post[self._feedforward_indegree > 0] <= 0)):
@@ -272,13 +297,16 @@ class GeNNNetwork:
             vars=[("g", "scalar")],
             pre_spike_syn_code="""
             addToPost(g);
+            if (plasticity > 0.0) {
             const scalar postTimeBeforePre = (st_post < st_pre) ? st_post : prev_st_post;
             const scalar post1Before = (postTimeBeforePre > -1.0e20)
                 ? exp(-(st_pre - postTimeBeforePre) / post1Tau) : 0.0;
             g = fmin(weightMax, fmax(weightMin,
                 g - (plasticity * depressionRate * post1Before)));
+            }
             """,
             post_spike_syn_code="""
+            if (plasticity > 0.0) {
             const scalar preTimeBeforePost = (st_pre <= st_post) ? st_pre : prev_st_pre;
             const scalar preBefore = (preTimeBeforePost > -1.0e20)
                 ? exp(-(st_post - preTimeBeforePost) / preTau) : 0.0;
@@ -286,8 +314,42 @@ class GeNNNetwork:
                 ? exp(-(st_post - prev_st_post) / post2Tau) : 0.0;
             g = fmin(weightMax, fmax(weightMin,
                 g + (plasticity * potentiationRate * preBefore * post2Before)));
+            }
             """,
         )
+        if integer_timestamps:
+            triplet_model = create_weight_update_model(
+                "ZD3TripletIntegerTicks",
+                params=["depressionRate", "potentiationRate", "weightMin",
+                        "weightMax", "preTau", "post1Tau", "post2Tau", "plasticity"],
+                vars=[("g", "scalar")],
+                pre_neuron_var_refs=[("preTick", "uint32_t"), ("previousPreTick", "uint32_t")],
+                post_neuron_var_refs=[("postTick", "uint32_t"), ("previousPostTick", "uint32_t")],
+                pre_spike_syn_code="""
+                addToPost(g);
+                if (plasticity > 0.0) {
+                    assert(preTick > 0u);
+                    const uint32_t precedingPost = (postTick < preTick) ? postTick : previousPostTick;
+                    assert(precedingPost <= preTick);
+                    const scalar lag = (scalar)(preTick - precedingPost) * dt;
+                    const scalar post1Before = (precedingPost > 0u) ? exp(-lag / post1Tau) : 0.0;
+                    g = fmin(weightMax, fmax(weightMin, g - plasticity * depressionRate * post1Before));
+                }
+                """,
+                post_spike_syn_code="""
+                if (plasticity > 0.0) {
+                    assert(postTick > 0u);
+                    const uint32_t precedingPre = (preTick <= postTick) ? preTick : previousPreTick;
+                    assert(precedingPre <= postTick && previousPostTick < postTick);
+                    const scalar preLag = (scalar)(postTick - precedingPre) * dt;
+                    const scalar postLag = (scalar)(postTick - previousPostTick) * dt;
+                    const scalar preBefore = (precedingPre > 0u) ? exp(-preLag / preTau) : 0.0;
+                    const scalar post2Before = (previousPostTick > 0u) ? exp(-postLag / post2Tau) : 0.0;
+                    g = fmin(weightMax, fmax(weightMin,
+                        g + plasticity * potentiationRate * preBefore * post2Before));
+                }
+                """,
+            )
         one_trace_model = create_weight_update_model(
             "ZD3OneTracePower",
             params=[
@@ -305,9 +367,11 @@ class GeNNNetwork:
             pre_spike_code="x += 1.0;",
             pre_spike_syn_code="addToPost(g);",
             post_spike_syn_code="""
+            if (plasticity > 0.0) {
             const scalar delta = plasticity * potentiationRate * (x - preTarget)
                 * pow(weightMax - g, postExponent);
             g = fmin(weightMax, fmax(weightMin, g + delta));
+            }
             """,
         )
         variable_pulse_model = create_weight_update_model(
@@ -333,63 +397,66 @@ class GeNNNetwork:
             if existing_flags:
                 os.environ["NVCC_PREPEND_FLAGS"] = existing_flags
         self.model = api["GeNNModel"](precision, "zd3_genn", backend=backend)
-        self.model.dt = MODEL.dt_ms
+        self.model.dt = self.constants.dt_ms
         self.model.seed = seed
         self.timing_enabled = timing_enabled
         self.model.timing_enabled = timing_enabled
         self.inputs = self.model.add_neuron_population(
-            "Input", MODEL.n_input, input_model, {}, {"rateHz": 0.0, "spikeCount": 0}
+            "Input", self.constants.n_input, input_model, {},
+            {"rateHz": 0.0, "spikeCount": 0,
+             **({"tick": 0, "lastSpikeTick": 0, "previousSpikeTick": 0} if integer_timestamps else {})}
         )
         common_decay = {
-            "geHalfDecay": exp(-0.5 * MODEL.dt_ms / MODEL.tau_ge_ms),
-            "giHalfDecay": exp(-0.5 * MODEL.dt_ms / MODEL.tau_gi_ms),
-            "geDecay": exp(-MODEL.dt_ms / MODEL.tau_ge_ms),
-            "giDecay": exp(-MODEL.dt_ms / MODEL.tau_gi_ms),
+            "geHalfDecay": exp(-0.5 * self.constants.dt_ms / self.constants.tau_ge_ms),
+            "giHalfDecay": exp(-0.5 * self.constants.dt_ms / self.constants.tau_gi_ms),
+            "geDecay": exp(-self.constants.dt_ms / self.constants.tau_ge_ms),
+            "giDecay": exp(-self.constants.dt_ms / self.constants.tau_gi_ms),
         }
         exc_params = {
-            "tauM": MODEL.exc_tau_m_ms,
-            "vRest": MODEL.exc_v_rest_mv,
-            "vReset": MODEL.exc_v_reset_mv,
-            "vThreshold": MODEL.exc_v_threshold_mv,
-            "eExc": MODEL.exc_e_exc_mv,
-            "eInh": MODEL.exc_e_inh_mv,
-            "thetaOffset": MODEL.theta_offset_mv,
-            "thetaPlus": MODEL.theta_plus_mv if plasticity else 0.0,
-            "thetaDecay": exp(-MODEL.dt_ms / MODEL.theta_tau_ms) if plasticity else 1.0,
-            "refractorySteps": round(MODEL.exc_refractory_ms / MODEL.dt_ms),
+            "tauM": self.constants.exc_tau_m_ms,
+            "vRest": self.constants.exc_v_rest_mv,
+            "vReset": self.constants.exc_v_reset_mv,
+            "vThreshold": self.constants.exc_v_threshold_mv,
+            "eExc": self.constants.exc_e_exc_mv,
+            "eInh": self.constants.exc_e_inh_mv,
+            "thetaOffset": self.constants.theta_offset_mv,
+            "thetaPlus": self.constants.theta_plus_mv if plasticity else 0.0,
+            "thetaDecay": exp(-self.constants.dt_ms / self.constants.theta_tau_ms) if plasticity else 1.0,
+            "refractorySteps": round(self.constants.exc_refractory_ms / self.constants.dt_ms),
             **common_decay,
         }
         inh_params = {
-            "tauM": MODEL.inh_tau_m_ms,
-            "vRest": MODEL.inh_v_rest_mv,
-            "vReset": MODEL.inh_v_reset_mv,
-            "vThreshold": MODEL.inh_v_threshold_mv,
-            "eExc": MODEL.inh_e_exc_mv,
-            "eInh": MODEL.inh_e_inh_mv,
-            "refractorySteps": round(MODEL.inh_refractory_ms / MODEL.dt_ms),
+            "tauM": self.constants.inh_tau_m_ms,
+            "vRest": self.constants.inh_v_rest_mv,
+            "vReset": self.constants.inh_v_reset_mv,
+            "vThreshold": self.constants.inh_v_threshold_mv,
+            "eExc": self.constants.inh_e_exc_mv,
+            "eInh": self.constants.inh_e_inh_mv,
+            "refractorySteps": round(self.constants.inh_refractory_ms / self.constants.dt_ms),
             **common_decay,
         }
         self.exc = self.model.add_neuron_population(
             "Exc",
-            MODEL.n_exc,
+            self.constants.n_exc,
             exc_model,
             exc_params,
             {
-                "V": MODEL.exc_v_rest_mv - 40.0,
+                "V": self.constants.exc_v_rest_mv - 40.0,
                 "ge": 0.0,
                 "gi": 0.0,
                 "theta": np.asarray(theta_mv, dtype=self.scalar_dtype),
                 "refrac": 0,
                 "spikeCount": 0,
+                **({"tick": 0, "lastSpikeTick": 0, "previousSpikeTick": 0} if integer_timestamps else {}),
             },
         )
         self.inh = self.model.add_neuron_population(
             "Inh",
-            MODEL.n_inh,
+            self.constants.n_inh,
             inh_model,
             inh_params,
             {
-                "V": MODEL.inh_v_rest_mv - 40.0,
+                "V": self.constants.inh_v_rest_mv - 40.0,
                 "ge": 0.0,
                 "gi": 0.0,
                 "refrac": 0,
@@ -405,19 +472,19 @@ class GeNNNetwork:
         triplet_params = {
             "depressionRate": variant.depression_rate,
             "potentiationRate": variant.potentiation_rate,
-            "weightMin": MODEL.weight_min,
+            "weightMin": self.constants.weight_min,
             "weightMax": variant.weight_max,
-            "preTau": MODEL.pre_tau_ms,
-            "post1Tau": MODEL.post1_tau_ms,
-            "post2Tau": MODEL.post2_tau_ms,
+            "preTau": self.constants.pre_tau_ms,
+            "post1Tau": self.constants.post1_tau_ms,
+            "post2Tau": self.constants.post2_tau_ms,
             "plasticity": 1.0 if plasticity else 0.0,
         }
         one_trace_params = {
-            "preTau": MODEL.pre_tau_ms,
+            "preTau": self.constants.pre_tau_ms,
             "potentiationRate": variant.potentiation_rate,
             "preTarget": variant.pre_trace_target,
             "postExponent": variant.post_weight_exponent,
-            "weightMin": MODEL.weight_min,
+            "weightMin": self.constants.weight_min,
             "weightMax": variant.weight_max,
             "plasticity": 1.0 if plasticity else 0.0,
         }
@@ -430,6 +497,9 @@ class GeNNNetwork:
                 triplet_params,
                 {"g": np.asarray(weights[self.structural_mask], dtype=self.scalar_dtype)},
                 post_vars=cap_initial,
+                **({"pre_var_refs": {"preTick": "lastSpikeTick", "previousPreTick": "previousSpikeTick"},
+                    "post_var_refs": {"postTick": "lastSpikeTick", "previousPostTick": "previousSpikeTick"}}
+                   if integer_timestamps else {}),
             )
         elif variant.learning_rule == "one-trace-power":
             feedforward_update = init_weight_update(
@@ -443,7 +513,7 @@ class GeNNNetwork:
             two_trace_model = create_two_trace_model(create_weight_update_model)
             feedforward_update = init_weight_update(
                 two_trace_model,
-                {**one_trace_params, "postTau": MODEL.post1_tau_ms,
+                {**one_trace_params, "postTau": self.constants.post1_tau_ms,
                  "depressionRate": variant.depression_rate,
                  "preExponent": variant.pre_weight_exponent},
                 {"g": np.asarray(weights[self.structural_mask], dtype=self.scalar_dtype)},
@@ -476,13 +546,13 @@ class GeNNNetwork:
             "SPARSE",
             self.exc,
             self.inh,
-            init_weight_update("StaticPulseConstantWeight", {"g": MODEL.exc_to_inh_weight}),
+            init_weight_update("StaticPulseConstantWeight", {"g": self.constants.exc_to_inh_weight}),
             init_postsynaptic("DeltaCurr"),
             init_sparse_connectivity("OneToOne"),
         )
         self.exc_to_inh.post_target_var = "geIn"
         inhibitory_weights = np.full(
-            (MODEL.n_inh, MODEL.n_exc), inhibition, dtype=self.scalar_dtype
+            (self.constants.n_inh, self.constants.n_exc), inhibition, dtype=self.scalar_dtype
         )
         np.fill_diagonal(inhibitory_weights, 0.0)
         self.inh_to_exc = self.model.add_synapse_population(
@@ -510,7 +580,7 @@ class GeNNNetwork:
             self.model.load(num_recording_timesteps=recording_steps)
         else:
             self.model.load()
-        self._count_baseline = np.zeros(MODEL.n_exc, dtype=np.uint32)
+        self._count_baseline = np.zeros(self.constants.n_exc, dtype=np.uint32)
         self._record_spikes = record_spikes
 
     def close(self) -> None:
@@ -540,7 +610,7 @@ class GeNNNetwork:
             self.model.step_time()
 
     def run_stimulus(self) -> np.ndarray:
-        self._step(MODEL.stimulus_ticks)
+        self._step(self.constants.stimulus_ticks)
         variable = self.exc.vars["spikeCount"]
         variable.pull_from_device()
         current = np.asarray(variable.view, dtype=np.uint32).copy()
@@ -550,7 +620,7 @@ class GeNNNetwork:
 
     def run_rest(self, *, synchronize: bool = True) -> None:
         self.set_zero_input()
-        self._step(MODEL.rest_ticks)
+        self._step(self.constants.rest_ticks)
         if synchronize and not self.timing_enabled:
             # GeNN event timing synchronizes every tick. Without it, synchronize
             # once at the attempt boundary so wall timing includes the final rest.
@@ -559,7 +629,7 @@ class GeNNNetwork:
     def weights(self) -> np.ndarray:
         variable = self.feedforward.vars["g"]
         variable.pull_from_device()
-        dense = np.zeros((MODEL.n_input, MODEL.n_exc), dtype=np.float64)
+        dense = np.zeros((self.constants.n_input, self.constants.n_exc), dtype=np.float64)
         dense[self._feedforward_pre, self._feedforward_post] = np.asarray(
             variable.values, dtype=np.float64
         )
@@ -568,18 +638,18 @@ class GeNNNetwork:
     def normalize(self, *, validate: bool = True, check_weight_bound: bool = True) -> None:
         variable = self.feedforward.vars["g"]
         variable.pull_from_device()
-        weights = np.zeros((MODEL.n_input, MODEL.n_exc), dtype=np.float64)
+        weights = np.zeros((self.constants.n_input, self.constants.n_exc), dtype=np.float64)
         weights[self._feedforward_pre, self._feedforward_post] = np.asarray(
             variable.values, dtype=np.float64
         )
         if validate:
-            normalize_columns(weights)
+            normalize_columns(weights, self.constants.normalization_target)
             if check_weight_bound:
                 validate_normalized_weight_bound(weights, self.variant,
                                                  weight_max_by_post=self.weight_max_by_post)
         else:
             sums = weights.sum(axis=0, dtype=np.float64)
-            weights *= (MODEL.normalization_target / sums)[None, :]
+            weights *= (self.constants.normalization_target / sums)[None, :]
         variable.values = weights[self._feedforward_pre, self._feedforward_post]
         variable.push_to_device()
 

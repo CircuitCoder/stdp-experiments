@@ -8,6 +8,11 @@ or 0.32 for Morrison. `run_genn.py` now uses these defaults. The Brian2,
 Brian2CUDA, NEST, and NEST-GPU ports have not been validated with this
 configuration and retain historical behavior.
 
+The shared GeNN code now uses integer tick timestamps for STDP, with exact tie
+comparisons and FP32 elapsed-time trace arithmetic for FP32 workloads. See the
+[integer timing investigation](../workloads/MORRISON-INTEGER-TICKS-20260920.md).
+Historical benchmark timings predate this timestamp change.
+
 The reports below primarily describe the older full-indegree, 1.5 ms-delay
 family. Their results remain valid for their recorded manifests but are not
 direct performance or dynamics comparisons with the current GeNN default.
