@@ -1,0 +1,625 @@
+{
+  "schema": "morrison-integer-timestamps-v1",
+  "paper": {
+    "mean_pa": 45.65,
+    "std_pa": 3.99,
+    "url": "https://brainworks.biologie.uni-freiburg.de/2007/journal%20papers/morrison-neco-2007.pdf",
+    "protocol": "8.1 million synapses from 900 source neurons; final histogram averaged over 10 samples during last 500 seconds of 2000-second simulation"
+  },
+  "sampling_protocol": "100000 fixed valid EE edges every 10 seconds, plus guard endpoint; final table uses endpoint population SD (ddof=0)",
+  "count_scope": "completed intervals; enqueued visits include pending endpoint deliveries and zero weight changes; not distinct changed synapses; external Poisson drive excluded",
+  "topology_comparison_scope": "sample locations and all four outdegree vectors checked; complete connectivity target-index arrays were not compared",
+  "cases": [
+    {
+      "case": "integer_morrison_0p0_551713",
+      "job_id": 551713,
+      "delay_ms": 0.0,
+      "artifact_directory": "copilot/tmp/workload_integer_ticks_20260920/integer_morrison_0p0_551713",
+      "status": "maximum_duration_reached",
+      "completed_seconds": 500,
+      "simulation_wall_seconds": 1456.768514091149,
+      "process_wall_seconds": 1480.7013280359097,
+      "final_sample": {
+        "seconds": 500,
+        "count": 100000,
+        "mean_pa": 44.737274386253354,
+        "std_pa": 3.5055378047279504,
+        "min_pa": 30.018352508544922,
+        "max_pa": 61.41658020019531,
+        "quantiles_pa": [
+          36.988845367431644,
+          39.139763832092285,
+          42.32593059539795,
+          44.633649826049805,
+          47.052703857421875,
+          50.67452983856201,
+          53.3232681274414
+        ],
+        "zero_fraction": 0.0,
+        "skewness": 0.16797402980608897,
+        "excess_kurtosis": 0.036767388676700374,
+        "hist_overflow": 0
+      },
+      "settling_checks": [
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 200,
+          "endpoint_ks_distance": 0.05862000000000003,
+          "mean_linear_drift_pa": -0.16561480203106774,
+          "passed": false,
+          "start_seconds": 100,
+          "std_end_pa": 2.952224936625711,
+          "std_linear_drift_fraction": 0.16464212817679494,
+          "std_range_fraction": 0.1667909925651675,
+          "std_start_pa": 2.494418866097604
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 250,
+          "endpoint_ks_distance": 0.04252000000000003,
+          "mean_linear_drift_pa": -0.13061350741472919,
+          "passed": false,
+          "start_seconds": 150,
+          "std_end_pa": 3.0922079764975208,
+          "std_linear_drift_fraction": 0.11284970794211772,
+          "std_range_fraction": 0.11365216730883809,
+          "std_start_pa": 2.7580337540520197
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 300,
+          "endpoint_ks_distance": 0.03137000000000001,
+          "mean_linear_drift_pa": -0.09881103816813705,
+          "passed": false,
+          "start_seconds": 200,
+          "std_end_pa": 3.208364698009106,
+          "std_linear_drift_fraction": 0.08243264589227502,
+          "std_range_fraction": 0.08296805248946808,
+          "std_start_pa": 2.952224936625711
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 350,
+          "endpoint_ks_distance": 0.025480000000000003,
+          "mean_linear_drift_pa": -0.09268466190511905,
+          "passed": false,
+          "start_seconds": 250,
+          "std_end_pa": 3.3020369801673373,
+          "std_linear_drift_fraction": 0.06601491237450471,
+          "std_range_fraction": 0.06549892602101635,
+          "std_start_pa": 3.0922079764975208
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 400,
+          "endpoint_ks_distance": 0.021089999999999998,
+          "mean_linear_drift_pa": -0.08181101082021393,
+          "passed": false,
+          "start_seconds": 300,
+          "std_end_pa": 3.3801480135787005,
+          "std_linear_drift_fraction": 0.05178956872539299,
+          "std_range_fraction": 0.052069560494873254,
+          "std_start_pa": 3.208364698009106
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 450,
+          "endpoint_ks_distance": 0.016749999999999987,
+          "mean_linear_drift_pa": -0.06534866065458825,
+          "passed": false,
+          "start_seconds": 350,
+          "std_end_pa": 3.446873953555867,
+          "std_linear_drift_fraction": 0.04284861321754646,
+          "std_range_fraction": 0.042877123427441356,
+          "std_start_pa": 3.3020369801673373
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 500,
+          "endpoint_ks_distance": 0.016170000000000018,
+          "mean_linear_drift_pa": -0.06273836231230495,
+          "passed": false,
+          "start_seconds": 400,
+          "std_end_pa": 3.5055378047279504,
+          "std_linear_drift_fraction": 0.03617540615452743,
+          "std_range_fraction": 0.036391496096575326,
+          "std_start_pa": 3.3801480135787005
+        }
+      ],
+      "counts_completed_intervals": {
+        "excitatory_spikes": 142757491,
+        "inhibitory_spikes": 44702273,
+        "total_spikes": 187459764,
+        "structural_synapses": {
+          "ee": 810000000,
+          "ei": 202500000,
+          "ie": 202500000,
+          "ii": 50625000
+        },
+        "presynaptic_traversals_enqueued": {
+          "ee": 1284811075063,
+          "ie": 402321236725,
+          "ei": 321210896494,
+          "ii": 100579513487
+        },
+        "ee_postsynaptic_plastic_traversals": 1284817419000,
+        "plastic_pre_plus_post_visits_enqueued": 2569628494063,
+        "all_recurrent_pre_visits_enqueued": 2108922721769,
+        "neuron_time_steps": 562500000000
+      },
+      "endpoint_e_hz": 2.5512333333333332,
+      "endpoint_i_hz": 3.4546666666666668,
+      "last_100_seconds_e_hz": 2.5951588888888892,
+      "last_100_seconds_i_hz": 3.4915248888888883,
+      "paper_difference": {
+        "mean_pa": -0.9127256137466446,
+        "std_pa": -0.4844621952720498,
+        "mean_percent": -1.9993989348228824,
+        "std_percent": -12.141909655941097
+      },
+      "gpu_allocation": {
+        "max_spike_tick": 4294967295,
+        "python_pid": 353680,
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "353680, 28642"
+      },
+      "manifest_sha256": "de47a08b7cc7b683a6a52920bbe058dc1cf2d39da607962ff769398ebfa66462",
+      "last_100_seconds_endpoint_std_change_percent": 3.7095946877336416,
+      "last_100_seconds_pooled_sample": {
+        "snapshots": 11,
+        "mean_pa": 44.76990392877926,
+        "std_pa": 3.4458626463943585,
+        "scope": "same synapses sampled repeatedly; correlated snapshots, not independent observations"
+      },
+      "old_sample_identity_and_degree_vector_match": {
+        "logical_edge": true,
+        "rows": true,
+        "offsets": true,
+        "ee": true,
+        "ei": true,
+        "ie": true,
+        "ii": true
+      },
+      "matched_old_control": {
+        "seconds": 500,
+        "new_mean_pa": 44.737274386253354,
+        "old_mean_pa": 44.7598316862297,
+        "new_std_pa": 3.5055378047279504,
+        "old_std_pa": 3.5491627756624364,
+        "ks_distance": 0.005910000000000082
+      }
+    },
+    {
+      "case": "integer_morrison_1p5_551714",
+      "job_id": 551714,
+      "delay_ms": 1.5,
+      "artifact_directory": "copilot/tmp/workload_integer_ticks_20260920/integer_morrison_1p5_551714",
+      "status": "population_rate_guard",
+      "completed_seconds": 63,
+      "simulation_wall_seconds": 945.1318889097311,
+      "process_wall_seconds": 963.2013934026472,
+      "final_sample": {
+        "seconds": 63,
+        "count": 100000,
+        "mean_pa": 92.76626016231536,
+        "std_pa": 77.50208141888146,
+        "min_pa": 3.841489791870117,
+        "max_pa": 415.979248046875,
+        "quantiles_pa": [
+          7.372646751403809,
+          10.0432363986969,
+          55.003207206726074,
+          71.70757293701172,
+          86.93333053588867,
+          240.67829360961912,
+          331.6044909667968
+        ],
+        "zero_fraction": 0.0,
+        "skewness": 1.2034809068867276,
+        "excess_kurtosis": 0.6490536704608294,
+        "hist_overflow": 23946
+      },
+      "settling_checks": [],
+      "counts_completed_intervals": {
+        "excitatory_spikes": 96619942,
+        "inhibitory_spikes": 22193526,
+        "total_spikes": 118813468,
+        "structural_synapses": {
+          "ee": 810000000,
+          "ei": 202500000,
+          "ie": 202500000,
+          "ii": 50625000
+        },
+        "presynaptic_traversals_enqueued": {
+          "ee": 869578118755,
+          "ie": 199743893197,
+          "ei": 217401559223,
+          "ii": 49934651149
+        },
+        "ee_postsynaptic_plastic_traversals": 869579478000,
+        "plastic_pre_plus_post_visits_enqueued": 1739157596755,
+        "all_recurrent_pre_visits_enqueued": 1336658222324,
+        "neuron_time_steps": 70875000000
+      },
+      "endpoint_e_hz": 203.76705555555554,
+      "endpoint_i_hz": 155.1800888888889,
+      "last_100_seconds_e_hz": 17.040554144620813,
+      "last_100_seconds_i_hz": 15.656808465608465,
+      "paper_difference": {
+        "mean_pa": 47.11626016231536,
+        "std_pa": 73.51208141888146,
+        "mean_percent": 103.21196092511582,
+        "std_percent": 1842.4080556110641
+      },
+      "gpu_allocation": {
+        "max_spike_tick": 4294967265,
+        "python_pid": 353681,
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "353681, 28666"
+      },
+      "manifest_sha256": "eabd506ff2199a07abe3a6278d13a2f33da3e4b10df2b0efa0bf9f454564681b",
+      "old_sample_identity_and_degree_vector_match": {
+        "logical_edge": true,
+        "rows": true,
+        "offsets": true,
+        "ee": true,
+        "ei": true,
+        "ie": true,
+        "ii": true
+      },
+      "matched_old_control": {
+        "seconds": 40,
+        "new_mean_pa": 45.93678538982391,
+        "old_mean_pa": 46.03121628803253,
+        "new_std_pa": 3.249093290954899,
+        "old_std_pa": 3.484815019736466,
+        "ks_distance": 0.023789999999999978
+      }
+    },
+    {
+      "case": "integer_settling_morrison_0p0_551753",
+      "job_id": 551753,
+      "delay_ms": 0.0,
+      "artifact_directory": "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753",
+      "status": "settled_by_predeclared_test",
+      "completed_seconds": 1250,
+      "simulation_wall_seconds": 3122.334125951398,
+      "process_wall_seconds": 3154.7353636641055,
+      "final_sample": {
+        "seconds": 1250,
+        "count": 100000,
+        "mean_pa": 44.450353042201996,
+        "std_pa": 3.98629774084965,
+        "min_pa": 29.86067008972168,
+        "max_pa": 63.32161331176758,
+        "quantiles_pa": [
+          35.73885761260986,
+          38.167816162109375,
+          41.68828105926514,
+          44.30297660827637,
+          47.047157287597656,
+          51.23248443603515,
+          54.43414585113525
+        ],
+        "zero_fraction": 0.0,
+        "skewness": 0.21979654827030248,
+        "excess_kurtosis": 0.09661186109081044,
+        "hist_overflow": 0
+      },
+      "settling_checks": [
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 200,
+          "endpoint_ks_distance": 0.05918000000000001,
+          "mean_linear_drift_pa": -0.17731754775306743,
+          "passed": false,
+          "start_seconds": 100,
+          "std_end_pa": 2.9451926635632777,
+          "std_linear_drift_fraction": 0.1632883300057899,
+          "std_range_fraction": 0.16374664610374373,
+          "std_start_pa": 2.495983311505143
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 250,
+          "endpoint_ks_distance": 0.042050000000000004,
+          "mean_linear_drift_pa": -0.13614238962346023,
+          "passed": false,
+          "start_seconds": 150,
+          "std_end_pa": 3.0871078171399087,
+          "std_linear_drift_fraction": 0.11077533459461497,
+          "std_range_fraction": 0.11224977328421103,
+          "std_start_pa": 2.757466734697725
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 300,
+          "endpoint_ks_distance": 0.030929999999999985,
+          "mean_linear_drift_pa": -0.10281048015940639,
+          "passed": false,
+          "start_seconds": 200,
+          "std_end_pa": 3.2045104410313177,
+          "std_linear_drift_fraction": 0.08410136827617418,
+          "std_range_fraction": 0.08411254422657692,
+          "std_start_pa": 2.9451926635632777
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 350,
+          "endpoint_ks_distance": 0.026770000000000016,
+          "mean_linear_drift_pa": -0.09339391733863872,
+          "passed": false,
+          "start_seconds": 250,
+          "std_end_pa": 3.305680151041468,
+          "std_linear_drift_fraction": 0.06716244340047738,
+          "std_range_fraction": 0.0682714372645871,
+          "std_start_pa": 3.0871078171399087
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 400,
+          "endpoint_ks_distance": 0.02483000000000002,
+          "mean_linear_drift_pa": -0.09257816551728879,
+          "passed": false,
+          "start_seconds": 300,
+          "std_end_pa": 3.3882096851633765,
+          "std_linear_drift_fraction": 0.056283316402175335,
+          "std_range_fraction": 0.05564046615586728,
+          "std_start_pa": 3.2045104410313177
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 450,
+          "endpoint_ks_distance": 0.01934999999999998,
+          "mean_linear_drift_pa": -0.07632385441173178,
+          "passed": false,
+          "start_seconds": 350,
+          "std_end_pa": 3.459541133433014,
+          "std_linear_drift_fraction": 0.045156811944907636,
+          "std_range_fraction": 0.04543466740042759,
+          "std_start_pa": 3.305680151041468
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 500,
+          "endpoint_ks_distance": 0.016220000000000012,
+          "mean_linear_drift_pa": -0.06468912705854428,
+          "passed": false,
+          "start_seconds": 400,
+          "std_end_pa": 3.525529630415452,
+          "std_linear_drift_fraction": 0.03960228970782412,
+          "std_range_fraction": 0.039701656904331785,
+          "std_start_pa": 3.3882096851633765
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 550,
+          "endpoint_ks_distance": 0.015720000000000012,
+          "mean_linear_drift_pa": -0.06475067118733482,
+          "passed": false,
+          "start_seconds": 450,
+          "std_end_pa": 3.580796781748632,
+          "std_linear_drift_fraction": 0.03403118231319042,
+          "std_range_fraction": 0.03442161711338797,
+          "std_start_pa": 3.459541133433014
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 600,
+          "endpoint_ks_distance": 0.01397000000000001,
+          "mean_linear_drift_pa": -0.05124231761412574,
+          "passed": false,
+          "start_seconds": 500,
+          "std_end_pa": 3.6249733424159447,
+          "std_linear_drift_fraction": 0.02857637494444888,
+          "std_range_fraction": 0.02779124918780389,
+          "std_start_pa": 3.525529630415452
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 650,
+          "endpoint_ks_distance": 0.010110000000000008,
+          "mean_linear_drift_pa": -0.041216033403215654,
+          "passed": false,
+          "start_seconds": 550,
+          "std_end_pa": 3.669054401095538,
+          "std_linear_drift_fraction": 0.024347827629673288,
+          "std_range_fraction": 0.024337973848091575,
+          "std_start_pa": 3.580796781748632
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 700,
+          "endpoint_ks_distance": 0.011080000000000007,
+          "mean_linear_drift_pa": -0.04002886427792654,
+          "passed": false,
+          "start_seconds": 600,
+          "std_end_pa": 3.7146911695217435,
+          "std_linear_drift_fraction": 0.024086259874418075,
+          "std_range_fraction": 0.024444805773217296,
+          "std_start_pa": 3.6249733424159447
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 750,
+          "endpoint_ks_distance": 0.010209999999999997,
+          "mean_linear_drift_pa": -0.045566146885269596,
+          "passed": false,
+          "start_seconds": 650,
+          "std_end_pa": 3.753379725911704,
+          "std_linear_drift_fraction": 0.022506908609904046,
+          "std_range_fraction": 0.022713334375796375,
+          "std_start_pa": 3.669054401095538
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 800,
+          "endpoint_ks_distance": 0.009220000000000006,
+          "mean_linear_drift_pa": -0.038472350491596884,
+          "passed": false,
+          "start_seconds": 700,
+          "std_end_pa": 3.784842657512263,
+          "std_linear_drift_fraction": 0.019444677751211,
+          "std_range_fraction": 0.01869818555844732,
+          "std_start_pa": 3.7146911695217435
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 850,
+          "endpoint_ks_distance": 0.008460000000000023,
+          "mean_linear_drift_pa": -0.03565937000621497,
+          "passed": false,
+          "start_seconds": 750,
+          "std_end_pa": 3.814955304081901,
+          "std_linear_drift_fraction": 0.01625383504704951,
+          "std_range_fraction": 0.0162654358335738,
+          "std_start_pa": 3.753379725911704
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 900,
+          "endpoint_ks_distance": 0.008539999999999992,
+          "mean_linear_drift_pa": -0.036558163018655054,
+          "passed": false,
+          "start_seconds": 800,
+          "std_end_pa": 3.8497255220844138,
+          "std_linear_drift_fraction": 0.016926373257454885,
+          "std_range_fraction": 0.016997598094926458,
+          "std_start_pa": 3.784842657512263
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 950,
+          "endpoint_ks_distance": 0.007100000000000023,
+          "mean_linear_drift_pa": -0.03358405858298598,
+          "passed": false,
+          "start_seconds": 850,
+          "std_end_pa": 3.87280421431734,
+          "std_linear_drift_fraction": 0.015051490755916773,
+          "std_range_fraction": 0.015036496052195173,
+          "std_start_pa": 3.814955304081901
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 1000,
+          "endpoint_ks_distance": 0.007039999999999991,
+          "mean_linear_drift_pa": -0.03162816253315783,
+          "passed": false,
+          "start_seconds": 900,
+          "std_end_pa": 3.8930625049678818,
+          "std_linear_drift_fraction": 0.011268812843168914,
+          "std_range_fraction": 0.01119075029196996,
+          "std_start_pa": 3.8497255220844138
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 1050,
+          "endpoint_ks_distance": 0.006099999999999994,
+          "mean_linear_drift_pa": -0.026227938104101373,
+          "passed": false,
+          "start_seconds": 950,
+          "std_end_pa": 3.9130010036281706,
+          "std_linear_drift_fraction": 0.010073446504462744,
+          "std_range_fraction": 0.010324941383068893,
+          "std_start_pa": 3.87280421431734
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 1100,
+          "endpoint_ks_distance": 0.005979999999999985,
+          "mean_linear_drift_pa": -0.0295398317857312,
+          "passed": false,
+          "start_seconds": 1000,
+          "std_end_pa": 3.936315043743209,
+          "std_linear_drift_fraction": 0.010997244725619753,
+          "std_range_fraction": 0.011051561634765016,
+          "std_start_pa": 3.8930625049678818
+        },
+        {
+          "consecutive_passes": 0,
+          "end_seconds": 1150,
+          "endpoint_ks_distance": 0.006409999999999999,
+          "mean_linear_drift_pa": -0.030162432637639642,
+          "passed": false,
+          "start_seconds": 1050,
+          "std_end_pa": 3.956305339075003,
+          "std_linear_drift_fraction": 0.01108939004357274,
+          "std_range_fraction": 0.011004384926750549,
+          "std_start_pa": 3.9130010036281706
+        },
+        {
+          "consecutive_passes": 1,
+          "end_seconds": 1200,
+          "endpoint_ks_distance": 0.00546000000000002,
+          "mean_linear_drift_pa": -0.024656816296999798,
+          "passed": true,
+          "start_seconds": 1100,
+          "std_end_pa": 3.968667951720958,
+          "std_linear_drift_fraction": 0.00830686370790356,
+          "std_range_fraction": 0.008181278966938382,
+          "std_start_pa": 3.936315043743209
+        },
+        {
+          "consecutive_passes": 2,
+          "end_seconds": 1250,
+          "endpoint_ks_distance": 0.0047699999999999965,
+          "mean_linear_drift_pa": -0.012143896744452324,
+          "passed": true,
+          "start_seconds": 1150,
+          "std_end_pa": 3.98629774084965,
+          "std_linear_drift_fraction": 0.007307405251709722,
+          "std_range_fraction": 0.007553661160064214,
+          "std_start_pa": 3.956305339075003
+        }
+      ],
+      "counts_completed_intervals": {
+        "excitatory_spikes": 300514404,
+        "inhibitory_spikes": 99947688,
+        "total_spikes": 400462092,
+        "structural_synapses": {
+          "ee": 810000000,
+          "ei": 202500000,
+          "ie": 202500000,
+          "ii": 50625000
+        },
+        "presynaptic_traversals_enqueued": {
+          "ee": 2704609790754,
+          "ie": 899531365323,
+          "ei": 676175854908,
+          "ii": 224881828634
+        },
+        "ee_postsynaptic_plastic_traversals": 2704629636000,
+        "plastic_pre_plus_post_visits_enqueued": 5409239426754,
+        "all_recurrent_pre_visits_enqueued": 4505198839619,
+        "neuron_time_steps": 1406250000000
+      },
+      "endpoint_e_hz": 2.185522222222222,
+      "endpoint_i_hz": 3.145688888888889,
+      "last_100_seconds_e_hz": 2.215267888888889,
+      "last_100_seconds_i_hz": 3.170876444444444,
+      "paper_difference": {
+        "mean_pa": -1.1996469577980022,
+        "std_pa": -0.0037022591503501623,
+        "mean_percent": -2.6279232372354966,
+        "std_percent": -0.09278844988346302
+      },
+      "gpu_allocation": {
+        "max_spike_tick": 4294967295,
+        "python_pid": 355330,
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "355330, 28642"
+      },
+      "manifest_sha256": "cf111e6fe54a5e64b5eee67ad620d52debb88ba0106c71fd8987c9429d6d23a3",
+      "last_100_seconds_endpoint_std_change_percent": 0.7580911786161382,
+      "last_100_seconds_pooled_sample": {
+        "snapshots": 11,
+        "mean_pa": 44.455898893019935,
+        "std_pa": 3.970590999312021,
+        "scope": "same synapses sampled repeatedly; correlated snapshots, not independent observations"
+      }
+    }
+  ]
+}

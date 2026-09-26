@@ -1,0 +1,429 @@
+{
+  "schema": "morrison-zero-delay-final-v1",
+  "finalized_utc": "2026-09-23T16:54:46.856924+00:00",
+  "experiment_status": "complete; accepted zero-delay derivative; no further runs scheduled",
+  "job_id": 551753,
+  "model": {
+    "capacitance_pf": 250.0,
+    "ce": 9000,
+    "ci": 2250,
+    "delay_ms": 0.0,
+    "dt_ms": 0.1,
+    "effective_delivery_ms": 0.1,
+    "external_rate_hz": 20880.0,
+    "external_rate_scale": 1.0,
+    "family": "morrison-integer-settling-diagnostic",
+    "indegree_scale": 1.0,
+    "je_pa": 45.61,
+    "ne": 90000,
+    "network_scale": 10.0,
+    "ni": 22500,
+    "parent_delay_ms": 1.5,
+    "plastic_synapses": 810000000,
+    "post_path_delay_ms": 0.0,
+    "recurrent_delivery_scale": 1.0,
+    "recurrent_synapses": 1265625000,
+    "refractory_ms": 0.5,
+    "rule": {
+      "depression_ratio": 0.1057,
+      "external_drive_eta": 1.0,
+      "inhibitory_weight_ratio": 5.0,
+      "learning_rate": 0.1,
+      "mu_minus": 1.0,
+      "mu_plus": 0.4,
+      "name": "morrison",
+      "weight_max_pa": null
+    },
+    "stdp_clock_guard": "kernel assertion before uint32 overflow",
+    "stdp_elapsed_time": "integer subtraction, then scalar conversion and multiplication by dt",
+    "stdp_tie_comparison": "exact integer equality",
+    "stdp_tie_order": "nest_causal_boundary",
+    "stdp_timestamp_type": "uint32",
+    "stdp_timestamp_unit_ms": 0.1,
+    "stdp_timing": "arrival",
+    "tau_m_ms": 10.0,
+    "tau_minus_ms": 20.0,
+    "tau_plus_ms": 20.0,
+    "tau_syn_ms": 0.33,
+    "v_reset_mv": 0.0,
+    "v_rest_mv": 0.0,
+    "v_threshold_mv": 20.0,
+    "vm_mean_mv": 5.7,
+    "vm_std_mv": 7.2
+  },
+  "source_git_base_recorded_for_experiment": "9ad791ebc67086cb28047b82a884bceb55a565d3 plus archived worktree",
+  "git_head_at_documentation": "823a0d854a62b3c871e434c540081f28f10f6141",
+  "whole_run": {
+    "global_timesteps": 12500000,
+    "simulation_wall_seconds": 3122.334125951398,
+    "totals": {
+      "excitatory_spikes": 300514404,
+      "inhibitory_spikes": 99947688,
+      "recurrent_neuron_spikes": 400462092,
+      "ee_presynaptic_visits": 2704609790754,
+      "ee_postsynaptic_visits": 2704629636000,
+      "plastic_pre_plus_post_visits": 5409239426754,
+      "all_recurrent_presynaptic_visits": 4505198839619,
+      "all_recurrent_pre_plus_plastic_post_visits": 7209828475619
+    },
+    "per_timestep": {
+      "excitatory_spikes": 24.04115232,
+      "inhibitory_spikes": 7.99581504,
+      "recurrent_neuron_spikes": 32.03696736,
+      "ee_presynaptic_visits": 216368.78326032,
+      "ee_postsynaptic_visits": 216370.37088,
+      "plastic_pre_plus_post_visits": 432739.15414032,
+      "all_recurrent_presynaptic_visits": 360415.90716952,
+      "all_recurrent_pre_plus_plastic_post_visits": 576786.27804952
+    },
+    "simulation_us_per_timestep": 249.78673007611187,
+    "window_seconds": [
+      0,
+      1250
+    ],
+    "process_wall_seconds": 3154.7353636641055,
+    "process_us_per_timestep": 252.37882909312845,
+    "build_seconds": 15.264492962043732
+  },
+  "final_100_seconds": {
+    "global_timesteps": 1000000,
+    "simulation_wall_seconds": 212.5091869654134,
+    "totals": {
+      "excitatory_spikes": 19937411,
+      "inhibitory_spikes": 7134472,
+      "recurrent_neuron_spikes": 27071883,
+      "ee_presynaptic_visits": 179435864253,
+      "ee_postsynaptic_visits": 179436699000,
+      "plastic_pre_plus_post_visits": 358872563253,
+      "all_recurrent_presynaptic_visits": 304559931876,
+      "all_recurrent_pre_plus_plastic_post_visits": 483996630876
+    },
+    "per_timestep": {
+      "excitatory_spikes": 19.937411,
+      "inhibitory_spikes": 7.134472,
+      "recurrent_neuron_spikes": 27.071883,
+      "ee_presynaptic_visits": 179435.864253,
+      "ee_postsynaptic_visits": 179436.699,
+      "plastic_pre_plus_post_visits": 358872.563253,
+      "all_recurrent_presynaptic_visits": 304559.931876,
+      "all_recurrent_pre_plus_plastic_post_visits": 483996.630876
+    },
+    "simulation_us_per_timestep": 212.5091869654134,
+    "window_seconds": [
+      1150,
+      1250
+    ],
+    "excitatory_rate_hz": 2.215267888888889,
+    "inhibitory_rate_hz": 3.170876444444444
+  },
+  "brunel_h800_recorded_baseline": {
+    "global_timesteps": 10000,
+    "simulation_wall_seconds": 0.42238499189261347,
+    "totals": {
+      "excitatory_spikes": 53597,
+      "inhibitory_spikes": 13492,
+      "recurrent_neuron_spikes": 67089,
+      "ee_presynaptic_visits": 24129383,
+      "ee_postsynaptic_visits": 24118650,
+      "plastic_pre_plus_post_visits": 48248033,
+      "all_recurrent_presynaptic_visits": 37718437,
+      "all_recurrent_pre_plus_plastic_post_visits": 61837087
+    },
+    "per_timestep": {
+      "excitatory_spikes": 5.3597,
+      "inhibitory_spikes": 1.3492,
+      "recurrent_neuron_spikes": 6.7089,
+      "ee_presynaptic_visits": 2412.9383,
+      "ee_postsynaptic_visits": 2411.865,
+      "plastic_pre_plus_post_visits": 4824.8033,
+      "all_recurrent_presynaptic_visits": 3771.8437,
+      "all_recurrent_pre_plus_plastic_post_visits": 6183.7087
+    },
+    "simulation_us_per_timestep": 42.23849918926135,
+    "timing_statistic": "median of five independently timed 10000-step runs",
+    "timing_mean_us_per_timestep": 42.41216485854238,
+    "timing_range_us_per_timestep": [
+      42.07130299182609,
+      42.844348202925175
+    ],
+    "timing_repetitions": [
+      {
+        "simulation_steps": 10000,
+        "spike_count": 67089,
+        "total_spikes": 67089,
+        "us_per_step": 42.23849918926135,
+        "wall_seconds": 0.42238499189261347
+      },
+      {
+        "simulation_steps": 10000,
+        "spike_count": 67089,
+        "total_spikes": 67089,
+        "us_per_step": 42.844348202925175,
+        "wall_seconds": 0.42844348202925175
+      },
+      {
+        "simulation_steps": 10000,
+        "spike_count": 67089,
+        "total_spikes": 67089,
+        "us_per_step": 42.7857656031847,
+        "wall_seconds": 0.427857656031847
+      },
+      {
+        "simulation_steps": 10000,
+        "spike_count": 67089,
+        "total_spikes": 67089,
+        "us_per_step": 42.07130299182609,
+        "wall_seconds": 0.4207130299182609
+      },
+      {
+        "simulation_steps": 10000,
+        "spike_count": 67089,
+        "total_spikes": 67089,
+        "us_per_step": 42.120908305514604,
+        "wall_seconds": 0.42120908305514604
+      }
+    ],
+    "presimulation_ms": 100,
+    "measured_ms": 1000,
+    "model": {
+      "capacitance_pf": 250.0,
+      "ce": 450,
+      "ci": 112,
+      "delay_ms": 0.0,
+      "dt_ms": 0.1,
+      "external_rate_hz": 12674.529432475041,
+      "external_rate_scale": 0.32,
+      "indegree_scale": 0.05,
+      "je_pa": 45.609600316540956,
+      "ne": 9000,
+      "network_scale": 1.0,
+      "ni": 2250,
+      "plastic_synapses": 4050000,
+      "recurrent_delivery_scale": 4.47213595499958,
+      "recurrent_synapses": 6322500,
+      "refractory_ms": 0.5,
+      "rule": {
+        "depression_ratio": 0.1026,
+        "external_drive_eta": 3.2,
+        "inhibitory_weight_ratio": 8.0,
+        "learning_rate": 0.1,
+        "mu_minus": 1.0,
+        "mu_plus": 0.4,
+        "name": "morrison",
+        "weight_max_pa": null
+      },
+      "tau_m_ms": 10.0,
+      "tau_minus_ms": 30.0,
+      "tau_plus_ms": 20.0,
+      "tau_syn_ms": 0.3258272240372284,
+      "v_reset_mv": 0.0,
+      "v_rest_mv": 0.0,
+      "v_threshold_mv": 20.0,
+      "vm_mean_mv": 5.7,
+      "vm_std_mv": 7.2
+    },
+    "diagnostic_command": [
+      "/WORK/PUBLIC/zhangyouh_work/meow/stdp-experiments/brunel/run_genn.py",
+      "--backend",
+      "cuda",
+      "--precision",
+      "float",
+      "--rule",
+      "morrison",
+      "--seed",
+      "20260724",
+      "--state-seed",
+      "20260724",
+      "--indegree-scale",
+      "0.05",
+      "--delay-ms",
+      "0",
+      "--recurrent-delivery-scale",
+      "4.47213595499958",
+      "--external-rate-scale",
+      "0.32",
+      "--presim-ms",
+      "100",
+      "--sim-ms",
+      "1000",
+      "--chunk-ms",
+      "100",
+      "--record-neurons",
+      "9000",
+      "--weight-sample-size",
+      "100000",
+      "--no-genn-timing",
+      "--no-profile-accounting",
+      "--output",
+      "copilot/tmp/baseline_h800_20260907_diagnostic_v1/brunel_morrison"
+    ],
+    "source_sha256": {
+      "brunel/ports/common.py": "4b9e762ef3bbc189acdd7c797709e53b56d9353f2df10ceed3449d5c4192148d",
+      "brunel/ports/genn_port.py": "ef8b39684afe5eb550cbc628684af57209cc21cd3210d08db10fe29ec21a79fe",
+      "genn-sweep/baseline.py": "0fd0ba82269dc2a994f2c8b97efa1be2ad14778d29483f47bd64dcc81437c481",
+      "genn-sweep/baseline_cases.py": "c8a2971f32418a9ed98da58bfd91ca14d703d20658ca8e2cc3982afc2c4f4ce5",
+      "genn-sweep/run.py": "ab835191e5cd9f019dde9cc210377740bc2e819e853c7a59ad8646f0ec9ad1f5",
+      "reimpl/backends/genn_backend.py": "d11066ffa46861c45492c7d47001534a4bc3f13124fb494d9716d83646c30013",
+      "reimpl/zd3/constants.py": "7d9a8e4dcdba24438b7d13f4f753585a501f89b7b873c71375d9685b9b226f4f",
+      "reimpl/zd3/io.py": "cb8f097baa7a1f762cb8f44228ab5549cfc7b56ab2c7d63e95f646b589c3e196",
+      "reimpl/zd3/variants.py": "0d17e789f6adf7c9155697bbbd17c6d02266ad138e14ad06c2fc205319c6cd06"
+    }
+  },
+  "ratios_to_brunel": {
+    "whole_run": {
+      "excitatory_spikes": 4.485540668320987,
+      "inhibitory_spikes": 5.92633785947228,
+      "recurrent_neuron_spikes": 4.775293618924116,
+      "ee_presynaptic_visits": 89.67025110435688,
+      "ee_postsynaptic_visits": 89.71081336641977,
+      "plastic_pre_plus_post_visits": 89.69052772375613,
+      "all_recurrent_presynaptic_visits": 95.5543060200294,
+      "all_recurrent_pre_plus_plastic_post_visits": 93.27513730546848,
+      "runtime_to_brunel_median": 5.91372172000887,
+      "runtime_to_brunel_mean": 5.889506723111811
+    },
+    "final_100_seconds": {
+      "excitatory_spikes": 3.719874433270519,
+      "inhibitory_spikes": 5.287927660836051,
+      "recurrent_neuron_spikes": 4.035219335509547,
+      "ee_presynaptic_visits": 74.36404994400397,
+      "ee_postsynaptic_visits": 74.39748866541038,
+      "plastic_pre_plus_post_visits": 74.38076558540739,
+      "all_recurrent_presynaptic_visits": 80.74563955977285,
+      "all_recurrent_pre_plus_plastic_post_visits": 78.26963629059694,
+      "runtime_to_brunel_median": 5.031172769970042,
+      "runtime_to_brunel_mean": 5.010571558282792
+    }
+  },
+  "settling_rules": {
+    "check_interval_seconds": 50,
+    "consecutive_passes": 2,
+    "max_abs_mean_linear_drift_pa_per_window": 0.1,
+    "max_abs_std_linear_drift_fraction_per_window": 0.01,
+    "max_std_range_fraction": 0.02,
+    "max_window_endpoint_ks_distance": 0.02,
+    "minimum_seconds": 200,
+    "window_seconds": 100
+  },
+  "last_two_settling_checks": [
+    {
+      "end_seconds": 1200,
+      "start_seconds": 1100,
+      "std_start_pa": 3.936315043743209,
+      "std_end_pa": 3.968667951720958,
+      "std_linear_drift_fraction": 0.00830686370790356,
+      "std_range_fraction": 0.008181278966938382,
+      "mean_linear_drift_pa": -0.024656816296999798,
+      "endpoint_ks_distance": 0.00546000000000002,
+      "passed": true,
+      "consecutive_passes": 1
+    },
+    {
+      "end_seconds": 1250,
+      "start_seconds": 1150,
+      "std_start_pa": 3.956305339075003,
+      "std_end_pa": 3.98629774084965,
+      "std_linear_drift_fraction": 0.007307405251709722,
+      "std_range_fraction": 0.007553661160064214,
+      "mean_linear_drift_pa": -0.012143896744452324,
+      "endpoint_ks_distance": 0.0047699999999999965,
+      "passed": true,
+      "consecutive_passes": 2
+    }
+  ],
+  "weight_endpoint": {
+    "seconds": 1250,
+    "count": 100000,
+    "mean_pa": 44.450353042201996,
+    "std_pa": 3.98629774084965,
+    "min_pa": 29.86067008972168,
+    "max_pa": 63.32161331176758,
+    "quantiles_pa": [
+      35.73885761260986,
+      38.167816162109375,
+      41.68828105926514,
+      44.30297660827637,
+      47.047157287597656,
+      51.23248443603515,
+      54.43414585113525
+    ],
+    "zero_fraction": 0.0,
+    "skewness": 0.21979654827030248,
+    "excess_kurtosis": 0.09661186109081044,
+    "hist_overflow": 0
+  },
+  "paper_comparison": {
+    "paper_mean_pa": 45.65,
+    "paper_std_pa": 3.99,
+    "mean_difference_pa": -1.1996469577980022,
+    "std_difference_pa": -0.0037022591503501623,
+    "paper_url": "https://brainworks.biologie.uni-freiburg.de/2007/journal%20papers/morrison-neco-2007.pdf",
+    "paper_protocol": "8.1 million edges; ten histograms averaged over final 500 s of 2000 s",
+    "local_protocol": "100000 fixed valid edges; endpoint ddof=0 at1250 s"
+  },
+  "count_scope": "Measured E+I spikes and enqueued synaptic handler visits; external Poisson multiplicities excluded; includes zero weight increments and pending boundary events; not distinct changed weights or enumerated spike pairs",
+  "runtime_scope": "Morrison sum of one-second step timers including launch overhead and end-of-chunk E counter synchronization; build, other diagnostic transfers and output excluded; Brunel historical five-run median from separate timing passes, preceding integer timestamp fix",
+  "verification": {
+    "remote_artifacts": {
+      "remote_sha256_initial.json": {
+        "files_verified": 94,
+        "all_match": true,
+        "manifest_sha256": "55dfe048b18eef99546260b16e194830bbd93e51eb34f32b72aa1c486548296d"
+      },
+      "remote_sha256_settling.json": {
+        "files_verified": 144,
+        "all_match": true,
+        "manifest_sha256": "6c2c5d492d3013609c61ac14217a94ca293e2466f0ee04f21d0cccf69b2ba600"
+      }
+    },
+    "all_1250_activity_intervals_checked": true,
+    "final_counts_dot_outdegrees_match": true,
+    "all_126_weight_snapshot_moments_recomputed": true,
+    "both_passing_settling_windows_recomputed": true,
+    "baseline_five_timing_repetitions_checked": true,
+    "current_core_source_matches_run": {
+      "brunel/ports/common.py": true,
+      "brunel/ports/genn_port.py": true,
+      "workloads/morrison.py": true
+    }
+  },
+  "input_sha256": {
+    "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753/manifest.json": "cf111e6fe54a5e64b5eee67ad620d52debb88ba0106c71fd8987c9429d6d23a3",
+    "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753/result.json": "2058c75f8fee6730ba2b519e37a5a47116acf11370b05fe3e85c055e4993800e",
+    "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753/activity.jsonl": "b10c89d7df01ba05877557985b3a0afec9101f1560d9099762aaf9efb8e1f4ec",
+    "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753/weight_statistics.jsonl": "2e3731596636e183be725620057d6c540c578bd768c574485f82244bb0b27c3e",
+    "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753/settling_checks.jsonl": "4f0e82974da860eb113ed128ab3f82ad0878ce42e25eb50e43b98df4cf69ec43",
+    "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753/sample_identity.npz": "d9e23dfdbb1d8d1fdc83ee8ac392d69f5c41c73ad4f94bd94f65e9c47f7df60e",
+    "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753/final_population_counts.npz": "e31d47607a309ea789f5813924fc30aeefe0f41aacb9684f8186487c7e57bc96",
+    "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753/weights_1250.npz": "816a90f468bbef91e6ce5c26ae31f1b41e34df0ca82578847b2abce8181697ca",
+    "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753/command.txt": "7124471269909d6a2ed840dd11fe8dc5bbf0b7a16b0bfdd13be02c6bc7d4fc28",
+    "copilot/tmp/workload_integer_ticks_20260920/integer_settling_morrison_0p0_551753/gpu_allocation.json": "b23bb0d909d1d160674a056ea9fcdc5480c27693652623ee20a278707ead0258",
+    "genn-sweep/baseline-20260907-matrix.json": "99509f200fa4111f7a05bdd7c6102c6ede43c23fccccaa1e408508b478843d5a",
+    "copilot/tmp/workload_integer_ticks_20260920/morrison_settling_runner.py": "7124471269909d6a2ed840dd11fe8dc5bbf0b7a16b0bfdd13be02c6bc7d4fc28",
+    "copilot/tmp/workload_integer_ticks_20260920/morrison_settling_batch_command.txt": "625cf2b43290075519e99a58306fe484522079e24621bf188e3b6ce1833fc044",
+    "copilot/tmp/workload_integer_ticks_20260920/settling_submission_0.0.json": "732a6f8fca59efc391962ccbdd1d0ad8992764345cdc4ca15f77a91c754c71c5",
+    "copilot/tmp/workload_integer_ticks_20260920/slurm_settling_job.txt": "6e5bf9f28382dd637db174fcbdd3576fb372f25d2d3b40e0d87448fd6d7b7662"
+  },
+  "related_reports": [
+    "workloads/MORRISON-INTEGER-TICKS-20260920.md",
+    "workloads/SETTLING-HOMEOSTASIS-20260920.md",
+    "workloads/MORRISON-TICK-TOLERANCE-20260920.md",
+    "workloads/INVESTIGATION-20260920.md",
+    "workloads/PILOTS.md",
+    "BASELINE.md"
+  ],
+  "promoted_figures": {
+    "workloads/figures/morrison-final-settling.png": {
+      "source": "copilot/tmp/workload_integer_ticks_20260920/morrison_integer_settling.png",
+      "sha256": "3e0e8b44b1c6eecbe48b62009a4c5be6f7f59e4953154a491454204af037330d"
+    },
+    "workloads/figures/morrison-final-settling.pdf": {
+      "source": "copilot/tmp/workload_integer_ticks_20260920/morrison_integer_settling.pdf",
+      "sha256": "49dcf8882e9ad50a0fe22af9a0655ec229b5d77e5b8aaaef98a29db6d829a280"
+    },
+    "workloads/figures/morrison-final-settling.svg": {
+      "source": "copilot/tmp/workload_integer_ticks_20260920/morrison_integer_settling.svg",
+      "sha256": "408199415b9ce07b9f52922d2ab3cb0782eef7b8ca4589e158ecf739908a809a"
+    }
+  }
+}
